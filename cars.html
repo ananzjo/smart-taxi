@@ -29,58 +29,55 @@
         <div class="bg-white p-6 rounded-xl shadow-md mb-8">
             <h2 class="text-lg font-bold text-slate-700 mb-4 border-b pb-2">إضافة سيارة جديدة</h2>
             <form id="carForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <input type="text" id="plate_no" placeholder="رقم اللوحة" class="p-3 border rounded border-red-200 focus:ring-2 focus:ring-yellow-400 outline-none">
+                
+                <input type="text" id="plate_no" placeholder="رقم اللوحة (الأساسي)" class="p-3 border rounded border-blue-200 font-bold">
                 <input type="text" id="car_office" placeholder="مكتب السيارة" class="p-3 border rounded">
-                <input type="text" id="brand" placeholder="النوع (تويوتا، هيونداي...)" class="p-3 border rounded">
-                <input type="number" id="model" placeholder="سنة الصنع (موديل)" class="p-3 border rounded">
+                <input type="text" id="brand" placeholder="الماركة" class="p-3 border rounded">
+                <input type="number" id="model" placeholder="الموديل (السنة)" class="p-3 border rounded">
                 
                 <input type="text" id="color" placeholder="اللون" class="p-3 border rounded">
                 <select id="meter_type" class="p-3 border rounded">
-                    <option value="">-- نوع العداد --</option>
+                    <option value="">نوع العداد</option>
                     <option value="كهرباء">كهرباء</option>
                     <option value="عادي">عادي</option>
                 </select>
-                <input type="text" id="chassis_no" placeholder="رقم الشاصي" class="p-3 border rounded text-xs">
-                <input type="text" id="engine_no" placeholder="رقم المحرك" class="p-3 border rounded text-xs">
+                <input type="text" id="chassis_no" placeholder="رقم الشاصي" class="p-3 border rounded">
+                <input type="text" id="engine_no" placeholder="رقم المحرك" class="p-3 border rounded">
                 
                 <div class="flex flex-col">
-                    <label class="text-xs text-gray-500 mr-1">انتهاء الترخيص</label>
+                    <label class="text-[10px] text-gray-400 mr-1">انتهاء الترخيص</label>
                     <input type="date" id="license_expiry" class="p-3 border rounded">
                 </div>
                 <div class="flex flex-col">
-                    <label class="text-xs text-gray-500 mr-1">انتهاء التأمين</label>
+                    <label class="text-[10px] text-gray-400 mr-1">انتهاء التأمين</label>
                     <input type="date" id="insurance_expiry" class="p-3 border rounded">
                 </div>
                 <input type="number" id="standard_rent" step="0.01" placeholder="الضمان المرجعي" class="p-3 border rounded bg-green-50">
                 <input type="number" id="management_fee" step="0.01" placeholder="العمولة الإدارية" class="p-3 border rounded">
 
-                <select id="owner_id" class="p-3 border rounded bg-blue-50">
+                <select id="owner_id" class="p-3 border rounded bg-yellow-50">
                     <option value="">-- اختر المالك --</option>
-                    </select>
+                </select>
                 
-                <div class="md:col-span-2">
+                <div class="md:col-span-3">
                     <input type="text" id="car_notes" placeholder="ملاحظات السيارة" class="w-full p-3 border rounded">
                 </div>
 
-                <button type="button" onclick="saveCar()" class="bg-slate-800 text-yellow-400 font-bold p-3 rounded hover:bg-slate-700 transition">
+                <button type="button" onclick="saveCar()" class="bg-slate-800 text-yellow-400 font-bold p-3 rounded hover:bg-slate-700">
                     <i class="fa fa-save ml-1"></i> حفظ السيارة
                 </button>
             </form>
         </div>
 
         <div class="bg-white rounded-xl shadow-md overflow-hidden">
-            <div class="p-5 bg-slate-50 border-b font-bold text-slate-700 flex justify-between">
-                <span>السيارات المسجلة</span>
-                <button onclick="fetchCars()" class="text-blue-600 text-sm"><i class="fa fa-sync"></i></button>
-            </div>
-            <table class="w-full text-right border-collapse">
-                <thead>
-                    <tr class="bg-gray-100 text-gray-600 text-sm">
-                        <th class="p-4">اللوحة</th>
-                        <th class="p-4">النوع/الموديل</th>
-                        <th class="p-4">المالك</th>
-                        <th class="p-4">الضمان</th>
-                        <th class="p-4">الترخيص</th>
+            <table class="w-full text-right border-collapse text-sm">
+                <thead class="bg-slate-100 text-slate-600">
+                    <tr>
+                        <th class="p-4 text-right">رقم اللوحة</th>
+                        <th class="p-4 text-right">الماركة/الموديل</th>
+                        <th class="p-4 text-right">المالك</th>
+                        <th class="p-4 text-right">الضمان</th>
+                        <th class="p-4 text-right">الترخيص</th>
                     </tr>
                 </thead>
                 <tbody id="carsList"></tbody>
@@ -88,4 +85,75 @@
         </div>
     </div>
 
-    <script src="
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // كود الربط المعتمد
+        const SUPABASE_URL = 'https://tjntctaapsdynbywdfns.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_BJgdmxyFsCgzFDXh1Qn1CQ_cFRMsy2P'; 
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // 1. تحميل الملاك للقائمة المنسدلة
+        async function loadOwners() {
+            const { data } = await _supabase.from('owners').select('id, name');
+            const select = document.getElementById('owner_id');
+            data?.forEach(owner => {
+                select.innerHTML += `<option value="${owner.id}">${owner.name}</option>`;
+            });
+        }
+
+        // 2. وظيفة الحفظ (مطابقة تماماً لأسماء حقول cars في السكيما)
+        async function saveCar() {
+            const carData = {
+                plate_no: document.getElementById('plate_no').value,
+                car_office: document.getElementById('car_office').value,
+                brand: document.getElementById('brand').value,
+                model: document.getElementById('model').value,
+                color: document.getElementById('color').value,
+                meter_type: document.getElementById('meter_type').value,
+                chassis_no: document.getElementById('chassis_no').value,
+                engine_no: document.getElementById('engine_no').value,
+                license_expiry: document.getElementById('license_expiry').value || null,
+                insurance_expiry: document.getElementById('insurance_expiry').value || null,
+                standard_rent: document.getElementById('standard_rent').value || 0,
+                management_fee: document.getElementById('management_fee').value || 0,
+                owner_id: document.getElementById('owner_id').value || null,
+                car_notes: document.getElementById('car_notes').value
+            };
+
+            if (!carData.plate_no) return Swal.fire('تنبيه', 'رقم اللوحة حقل إلزامي', 'warning');
+
+            const { error } = await _supabase.from('cars').insert([carData]);
+
+            if (error) {
+                Swal.fire('خطأ', error.message, 'error');
+            } else {
+                Swal.fire('تم بنجاح', 'تم تسجيل السيارة في الأسطول', 'success');
+                document.getElementById('carForm').reset();
+                fetchCars();
+            }
+        }
+
+        // 3. جلب وعرض البيانات
+        async function fetchCars() {
+            const { data, error } = await _supabase.from('cars').select('*, owners(name)').order('id', { ascending: false });
+            if (error) return;
+
+            const tableBody = document.getElementById('carsList');
+            tableBody.innerHTML = '';
+            data.forEach(car => {
+                tableBody.innerHTML += `
+                    <tr class="border-b hover:bg-slate-50 transition">
+                        <td class="p-4 font-bold text-blue-700">${car.plate_no}</td>
+                        <td class="p-4">${car.brand} / ${car.model}</td>
+                        <td class="p-4 font-medium">${car.owners?.name || '---'}</td>
+                        <td class="p-4 text-green-700 font-bold">${car.standard_rent} د.أ</td>
+                        <td class="p-4 text-xs font-mono">${car.license_expiry || '---'}</td>
+                    </tr>`;
+            });
+        }
+
+        window.onload = () => { loadOwners(); fetchCars(); };
+    </script>
+</body>
+</html>
