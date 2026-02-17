@@ -15,6 +15,7 @@
         :root { --primary-dark: #0f172a; --accent-yellow: #facc15; }
         body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
 
+        /* Tooltip */
         [data-tooltip] { position: relative; cursor: pointer; }
         [data-tooltip]:before {
             content: attr(data-tooltip);
@@ -25,6 +26,7 @@
         }
         [data-tooltip]:hover:before { opacity: 1; visibility: visible; }
 
+        /* Pulse Status */
         .pulse-status { display: inline-block; width: 12px; height: 12px; border-radius: 50%; position: relative; margin-left: 8px; }
         .pulse-red { background: #ef4444; animation: shadow-pulse-red 2s infinite; }
         @keyframes shadow-pulse-red {
@@ -33,6 +35,7 @@
             100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
 
+        /* Snackbar */
         #snackbar {
             visibility: hidden; min-width: 280px; background-color: var(--primary-dark);
             color: #fff; text-align: center; border-radius: 16px; padding: 20px;
@@ -51,37 +54,40 @@
 <body class="flex min-h-screen">
 
     <aside class="w-72 bg-[#0f172a] sticky top-0 h-screen text-white p-6 shadow-2xl flex flex-col z-40">
-        <div class="flex items-center gap-3 mb-12 px-2">
-            <div class="bg-yellow-400 p-2 rounded-lg text-slate-900">
-                <i class="fa-solid fa-taxi text-2xl"></i>
+        <div class="flex flex-col gap-1 mb-12 px-2">
+            <div class="flex items-center gap-3">
+                <div class="bg-yellow-400 p-2 rounded-lg text-slate-900">
+                    <i class="fa-solid fa-taxi text-2xl"></i>
+                </div>
+                <h1 class="text-xl font-bold tracking-tight text-white font-bold">التاكسي الذكي</h1>
             </div>
-            <h1 class="text-xl font-bold tracking-tight">التاكسي الذكي</h1>
+            <div class="flex items-center gap-2 mr-12">
+                <span class="text-[9px] text-slate-500 uppercase tracking-[0.2em]">Version</span>
+                <span class="text-[10px] text-yellow-500/80 font-mono font-bold">1.2.1</span>
+            </div>
         </div>
-
         <nav class="space-y-3 flex-1">
-            <a href="index.html" class="sidebar-link active-link flex items-center p-4 rounded-2xl gap-3">
+            <a href="index.html" class="sidebar-link active-link flex items-center p-4 rounded-2xl gap-3 text-sm">
                 <i class="fa-solid fa-chart-pie w-6 text-center"></i> لوحة التحكم
             </a>
-            <a href="cars.html" class="sidebar-link flex items-center p-4 rounded-2xl gap-3 text-slate-400">
+            <a href="cars.html" class="sidebar-link flex items-center p-4 rounded-2xl gap-3 text-sm text-slate-400">
                 <i class="fa-solid fa-car-side w-6 text-center"></i> سجل استلام السيارات
             </a>
-            <a href="drivers.html" class="sidebar-link flex items-center p-4 rounded-2xl gap-3 text-slate-400">
+            <a href="drivers.html" class="sidebar-link flex items-center p-4 rounded-2xl gap-3 text-sm text-slate-400">
                 <i class="fa-solid fa-user-tie w-6 text-center"></i> السائقين
             </a>
-            <a href="work-days.html" class="sidebar-link flex items-center p-4 rounded-2xl gap-3 text-slate-400">
+            <a href="work-days.html" class="sidebar-link flex items-center p-4 rounded-2xl gap-3 text-sm text-slate-400">
                 <i class="fa-solid fa-calendar-check w-6 text-center"></i> أيام العمل
             </a>
-            <a href="financials.html" class="sidebar-link flex items-center p-4 rounded-2xl gap-3 text-slate-400">
+            <a href="financials.html" class="sidebar-link flex items-center p-4 rounded-2xl gap-3 text-sm text-slate-400">
                 <i class="fa-solid fa-receipt w-6 text-center"></i> المالية والمطابقة
             </a>
         </nav>
 
         <div class="mt-auto border-t border-slate-700 pt-5">
-            <div class="flex flex-col gap-1 px-2">
-                <div class="flex items-center justify-between text-[10px] text-slate-500 uppercase tracking-widest">
-                    <span>إصدار النظام:</span>
-                    <span class="text-yellow-400 font-bold">v1.2.0</span>
-                </div>
+            <div class="flex items-center justify-between text-[10px] text-slate-500">
+                <span>حالة الاتصال:</span>
+                <span class="text-green-500 font-bold">Online</span>
             </div>
         </div>
     </aside>
@@ -89,8 +95,8 @@
     <main class="flex-1 p-8">
         <header class="flex justify-between items-center mb-10">
             <div>
-                <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">مرحباً بك</h2>
-                <p class="text-slate-500 mt-1 uppercase text-xs tracking-widest font-bold">Dashboard Overview</p>
+                <h2 class="text-3xl font-bold text-slate-800">الرئيسية</h2>
+                <p class="text-slate-500 mt-1 uppercase text-[10px] tracking-widest font-bold">Dashboard v1.2.1</p>
             </div>
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 text-sm font-bold">
                 <i class="fa-solid fa-calendar text-yellow-500"></i>
@@ -161,25 +167,23 @@
         </div>
     </main>
 
-    <div id="snackbar">نظام التاكسي الذكي - مسميات محدثة v1.2.0 🚖</div>
+    <div id="snackbar">تم دمج الإصدار v1.2.1 بنجاح 🚖</div>
 
     <script>
         const SUPABASE_URL = 'https://tjntctaapsdynbywdfns.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_BJgdmxyFsCgzFDXh1Qn1CQ_cFRMsy2P';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        function showSnackbar(message) {
+        function showSnackbar() {
             const sb = document.getElementById("snackbar");
-            if(message) sb.innerText = message;
             sb.className = "show";
             setTimeout(() => { sb.className = sb.className.replace("show", ""); }, 4000);
         }
 
-        function initDashboard() {
+        window.onload = () => {
             document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-EG');
             showSnackbar();
-        }
-        window.onload = initDashboard;
+        };
     </script>
 </body>
 </html>
