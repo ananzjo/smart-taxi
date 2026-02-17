@@ -3,141 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة السيارات v1.7.0 | التاكسي الذكي</title>
+    <title>إدارة السيارات v1.8.0 | التاكسي الذكي</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { 
-            font-family: 'Tajawal', sans-serif; 
-            /* خلفية متدرجة فخمة */
-            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); 
-            min-height: screen;
-        }
-        .sidebar-link { transition: 0.3s; border-right: 4px solid transparent; }
-        .sidebar-link:hover, .active-link { background: rgba(250, 204, 21, 0.15); border-right-color: #facc15; color: #facc15; }
-        
-        /* تأثير الزيبرا المحسن */
-        .zebra-table tbody tr:nth-child(even) { background-color: rgba(241, 245, 249, 0.7); }
-        .zebra-table tbody tr:hover { background-color: #fffbeb !important; transform: scale(1.01); transition: 0.2s; }
-
-        .modal { transition: all 0.3s ease; opacity: 0; visibility: hidden; }
+        body { font-family: 'Tajawal', sans-serif; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); min-height: 100vh; }
+        .zebra-table tbody tr:nth-child(even) { background-color: rgba(241, 245, 249, 0.6); }
+        .zebra-table tr:hover { background-color: #fffbeb !important; }
+        .modal { transition: all 0.3s ease; opacity: 0; visibility: hidden; z-index: 1000; }
         .modal.active { opacity: 1; visibility: visible; }
-
-        /* التحكم في حجم الحقول بناءً على الشاشة */
-        .smart-input {
-            width: 100%;
-            background-color: #f8fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 1.25rem;
-            transition: all 0.3s;
-            text-align: center;
-        }
-        /* على الموبايل: ضخم */
-        @media (max-width: 768px) {
-            .smart-input { padding: 1.25rem; font-size: 1.5rem; font-weight: 800; }
-            .smart-label { font-size: 1.1rem; margin-bottom: 0.5rem; }
-        }
-        /* على الكمبيوتر: رشيق */
-        @media (min-width: 769px) {
-            .smart-input { padding: 0.75rem; font-size: 1.1rem; font-weight: 700; }
-            .smart-label { font-size: 0.9rem; margin-bottom: 0.25rem; }
-        }
+        
+        /* أحجام ذكية: ضخمة للموبايل ورشيقة للكمبيوتر */
+        .smart-input { width: 100%; background: #ffffff; border: 2px solid #e2e8f0; border-radius: 1rem; text-align: center; transition: 0.3s; }
+        @media (max-width: 768px) { .smart-input { padding: 1.2rem; font-size: 1.4rem; } .smart-label { font-size: 1.1rem; } }
+        @media (min-width: 769px) { .smart-input { padding: 0.6rem; font-size: 1rem; } .smart-label { font-size: 0.85rem; } }
+        .smart-input:focus { border-color: #facc15; box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.2); outline: none; }
     </style>
 </head>
-<body class="flex flex-col md:flex-row min-h-screen">
+<body class="flex flex-col md:flex-row">
 
-    <aside class="w-full md:w-72 bg-[#0f172a] md:sticky top-0 md:h-screen text-white p-6 shadow-2xl z-50 flex flex-col hidden md:flex">
-        <div class="flex items-center gap-3 mb-10">
-            <div class="bg-yellow-400 p-2 rounded-xl text-slate-900"><i class="fa-solid fa-taxi text-2xl"></i></div>
-            <h1 class="text-xl font-black italic tracking-tighter">التاكسي الذكي</h1>
+    <aside class="w-full md:w-72 bg-[#0f172a] md:sticky top-0 md:h-screen text-white p-6 shadow-2xl hidden md:flex flex-col">
+        <div class="flex items-center gap-3 mb-10 text-yellow-400">
+            <i class="fa-solid fa-taxi text-3xl"></i>
+            <h1 class="text-xl font-black italic">التاكسي الذكي</h1>
         </div>
         <nav class="space-y-2 flex-1">
-            <a href="index.html" class="sidebar-link flex items-center p-3 rounded-xl gap-3 text-slate-400 hover:text-white">
-                <i class="fa-solid fa-chart-line w-6"></i> لوحة التحكم
+            <a href="cars.html" class="flex items-center p-3 rounded-xl gap-3 bg-yellow-400/10 text-yellow-400 border-r-4 border-yellow-400 font-bold">
+                <i class="fa-solid fa-car"></i> السيارات
             </a>
-            <a href="cars.html" class="sidebar-link active-link flex items-center p-3 rounded-xl gap-3 font-bold">
-                <i class="fa-solid fa-car-side w-6"></i> السيارات
-            </a>
-            <a href="owners.html" class="sidebar-link flex items-center p-3 rounded-xl gap-3 text-slate-400">
-                <i class="fa-solid fa-user-tie w-6"></i> المالكين
-            </a>
+            <a href="owners.html" class="flex items-center p-3 rounded-xl gap-3 text-slate-400 hover:text-white"><i class="fa-solid fa-user-tie"></i> المالكين</a>
         </nav>
     </aside>
 
     <main class="flex-1 p-4 md:p-8">
         <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-            <div class="text-center md:text-right">
-                <h2 class="text-4xl font-black text-slate-800 italic">الأسطول</h2>
-                <span class="bg-yellow-400 text-[10px] font-black px-2 py-1 rounded-md uppercase">Schema 1.7.0</span>
-            </div>
-            <button onclick="toggleModal(true)" class="bg-slate-900 text-white px-8 py-4 rounded-2xl flex items-center gap-3 hover:bg-yellow-500 hover:text-slate-900 transition-all shadow-lg font-bold w-full md:w-auto justify-center">
-                <i class="fa-solid fa-plus-circle"></i> إضافة مركبة
+            <h2 class="text-4xl font-black text-slate-800 italic text-center md:text-right">إدارة الأسطول <span class="text-sm text-slate-400 block not-italic font-bold tracking-widest">SCHEMA 10-25</span></h2>
+            <button onclick="toggleModal(true)" class="bg-slate-900 text-white px-8 py-4 rounded-2xl flex items-center gap-3 hover:bg-yellow-500 hover:text-slate-900 transition-all shadow-xl font-bold w-full md:w-auto justify-center">
+                <i class="fa-solid fa-plus-circle"></i> إضافة سيارة جديدة
             </button>
         </header>
 
-        <div class="bg-white/80 backdrop-blur-md rounded-[2.5rem] shadow-2xl border border-white/50 overflow-hidden">
+        <div class="bg-white/80 backdrop-blur-md rounded-[2.5rem] shadow-xl border border-white/50 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full zebra-table text-center">
-                    <thead class="bg-slate-800 text-yellow-400 text-xs uppercase tracking-widest">
+                    <thead class="bg-slate-800 text-yellow-400 text-xs uppercase">
                         <tr>
-                            <th class="p-5">اللوحة</th>
-                            <th class="p-5">الماركة</th>
+                            <th class="p-5">رقم اللوحة</th>
                             <th class="p-5">المكتب</th>
+                            <th class="p-5">الماركة/الموديل</th>
                             <th class="p-5">الضمان</th>
                             <th class="p-5">الإجراءات</th>
                         </tr>
                     </thead>
-                    <tbody id="carsTableBody" class="text-lg font-bold text-slate-700">
-                        </tbody>
+                    <tbody id="carsTableBody" class="text-lg font-bold text-slate-700"></tbody>
                 </table>
             </div>
         </div>
     </main>
 
-    <div id="carModal" class="modal fixed inset-0 flex items-center justify-center p-4 z-[100]">
-        <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm" onclick="toggleModal(false)"></div>
-        <div class="bg-white rounded-[3rem] w-full max-w-4xl relative z-10 shadow-2xl overflow-hidden">
-            <div class="p-6 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
-                <h3 class="font-black text-2xl text-slate-800">بيانات المركبة</h3>
+    <div id="carModal" class="modal fixed inset-0 flex items-center justify-center p-2 md:p-6 overflow-y-auto">
+        <div class="fixed inset-0 bg-slate-900/90 backdrop-blur-md" onclick="toggleModal(false)"></div>
+        <div class="bg-white rounded-[2.5rem] md:rounded-[3rem] w-full max-w-5xl relative z-10 shadow-2xl overflow-y-auto max-h-[95vh]">
+            <div class="p-6 bg-slate-50 border-b flex justify-between items-center sticky top-0 bg-white z-20">
+                <h3 class="font-black text-2xl text-slate-800 italic">بطاقة بيانات السيارة (10-25)</h3>
                 <button onclick="toggleModal(false)" class="text-slate-400 hover:text-red-500 text-4xl">&times;</button>
             </div>
 
-            <form id="carForm" class="p-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="flex flex-col items-center">
-                    <label class="smart-label font-bold text-slate-500 uppercase italic">رقم اللوحة</label>
-                    <input type="text" name="plate_no" required class="smart-input focus:border-yellow-400 outline-none shadow-sm">
-                </div>
-                <div class="flex flex-col items-center">
-                    <label class="smart-label font-bold text-slate-500 uppercase">المكتب</label>
-                    <input type="text" name="car_office" class="smart-input focus:border-yellow-400 outline-none shadow-sm">
-                </div>
-                <div class="flex flex-col items-center">
-                    <label class="smart-label font-bold text-slate-500 uppercase">المالك</label>
-                    <select id="ownerSelect" name="owner_id" required class="smart-input focus:border-yellow-400 outline-none shadow-sm cursor-pointer">
-                        <option value="">تحميل المالكين...</option>
-                    </select>
+            <form id="carForm" class="p-6 md:p-10 grid grid-cols-1 md:grid-cols-3 gap-5 text-center">
+                <div><label class="smart-label font-bold text-slate-500">رقم اللوحة (plate_no)</label><input type="text" name="plate_no" required class="smart-input font-black"></div>
+                <div><label class="smart-label font-bold text-slate-500">مكتب السيارة (car_office)</label><input type="text" name="car_office" class="smart-input"></div>
+                
+                <div><label class="smart-label font-bold text-slate-500">الماركة (brand)</label><input type="text" name="brand" class="smart-input font-bold"></div>
+                <div><label class="smart-label font-bold text-slate-500">الموديل (model)</label><input type="text" name="model" class="smart-input font-mono"></div>
+                <div><label class="smart-label font-bold text-slate-500">اللون (color)</label><input type="text" name="color" class="smart-input"></div>
+
+                <div><label class="smart-label font-bold text-slate-500">نوع العداد (meter_type)</label><input type="text" name="meter_type" class="smart-input"></div>
+                <div><label class="smart-label font-bold text-slate-500">رقم الشاسيه (chassis)</label><input type="text" name="chassis" class="smart-input font-mono"></div>
+                <div><label class="smart-label font-bold text-slate-500">رقم المحرك (engine)</label><input type="text" name="engine" class="smart-input font-mono"></div>
+
+                <div><label class="smart-label font-bold text-slate-500 uppercase">تاريخ الانتهاء (exp_dates)</label><input type="date" name="exp_dates" class="smart-input font-bold"></div>
+
+                <div class="bg-blue-50 p-3 rounded-2xl"><label class="smart-label font-black text-blue-600">الضمان (standard_rent)</label><input type="number" step="0.01" name="standard_rent" class="smart-input border-blue-200 text-blue-700 font-black"></div>
+                <div class="bg-red-50 p-3 rounded-2xl"><label class="smart-label font-black text-red-600">العمولة (fees)</label><input type="number" step="0.01" name="fees" class="smart-input border-red-200 text-red-700 font-black"></div>
+
+                <div><label class="smart-label font-bold text-slate-500">معرف المالك (owner_id)</label>
+                    <select id="ownerSelect" name="owner_id" required class="smart-input cursor-pointer font-bold"><option value="">جاري التحميل...</option></select>
                 </div>
 
-                <div class="flex flex-col items-center">
-                    <label class="smart-label font-bold text-slate-500 uppercase">الماركة</label>
-                    <input type="text" name="brand" class="smart-input focus:border-yellow-400 outline-none">
-                </div>
-                <div class="flex flex-col items-center">
-                    <label class="smart-label font-bold text-slate-500 uppercase">الموديل</label>
-                    <input type="text" name="model" class="smart-input focus:border-yellow-400 outline-none font-mono">
-                </div>
-                <div class="flex flex-col items-center">
-                    <label class="smart-label font-bold text-slate-500 uppercase italic">الضمان المرجعي</label>
-                    <input type="number" step="0.01" name="standard_rent" class="smart-input border-blue-200 text-blue-600 font-black">
-                </div>
+                <div class="md:col-span-3"><label class="smart-label font-bold text-slate-500">ملاحظات (car_notes)</label><textarea name="car_notes" rows="2" class="smart-input"></textarea></div>
 
-                <div class="md:col-span-3 pt-4">
-                    <button type="submit" class="w-full bg-slate-900 text-white font-black py-5 rounded-2xl hover:bg-yellow-400 hover:text-slate-900 transition-all text-xl shadow-xl group">
-                        <i class="fa-solid fa-save ml-2 group-hover:scale-125 transition"></i> حفظ البيانات
-                    </button>
-                </div>
+                <button type="submit" class="md:col-span-3 bg-slate-900 text-white font-black py-5 rounded-3xl hover:bg-yellow-400 hover:text-slate-900 transition-all text-2xl shadow-2xl">تأكيد وحفظ البيانات</button>
             </form>
         </div>
     </div>
@@ -147,59 +104,33 @@
         const SUPABASE_KEY = 'sb_publishable_BJgdmxyFsCgzFDXh1Qn1CQ_cFRMsy2P';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        function toggleModal(show) {
-            const modal = document.getElementById('carModal');
-            if(show) {
-                modal.classList.add('active');
-                loadOwners(); // تحميل المالكين عند فتح النافذة
-            } else {
-                modal.classList.remove('active');
-            }
-        }
+        function toggleModal(show) { document.getElementById('carModal').classList.toggle('active', show); if(show) loadOwners(); }
 
-        // جلب المالكين ووضعهم في القائمة المنسدلة
         async function loadOwners() {
-            const select = document.getElementById('ownerSelect');
-            const { data, error } = await supabaseClient.from('owners').select('id, name');
-            
-            if (!error && data) {
-                select.innerHTML = '<option value="">اختر المالك</option>' + 
-                    data.map(o => `<option value="${o.id}">${o.name}</option>`).join('');
-            } else {
-                select.innerHTML = '<option value="">لا يوجد ملاك مسجلين</option>';
-            }
+            const { data } = await supabaseClient.from('owners').select('id, name');
+            document.getElementById('ownerSelect').innerHTML = '<option value="">اختر المالك</option>' + (data || []).map(o => `<option value="${o.id}">${o.name}</option>`).join('');
         }
 
         async function loadCars() {
-            const tableBody = document.getElementById('carsTableBody');
-            const { data, error } = await supabaseClient.from('cars').select('*').order('id', { ascending: false });
-
-            if (data) {
-                tableBody.innerHTML = data.map(car => `
-                    <tr>
-                        <td class="p-4 font-black text-xl">${car.plate_no}</td>
-                        <td class="p-4">${car.brand} ${car.model}</td>
-                        <td class="p-4 text-slate-500">${car.car_office || '-'}</td>
-                        <td class="p-4 text-blue-600 font-black">${car.standard_rent}</td>
-                        <td class="p-4 flex justify-center gap-4">
-                            <button class="text-blue-500 hover:scale-110"><i class="fa-solid fa-edit"></i></button>
-                            <button class="text-red-500 hover:scale-110"><i class="fa-solid fa-trash"></i></button>
-                        </td>
-                    </tr>
-                `).join('');
-            }
+            const { data } = await supabaseClient.from('cars').select('*').order('id', { ascending: false });
+            document.getElementById('carsTableBody').innerHTML = (data || []).map(car => `
+                <tr class="transition">
+                    <td class="p-4 font-black text-xl">${car.plate_no}</td>
+                    <td class="p-4 text-slate-500">${car.car_office || '-'}</td>
+                    <td class="p-4">${car.brand} ${car.model}</td>
+                    <td class="p-4 text-blue-600 font-black">${car.standard_rent}</td>
+                    <td class="p-4 flex justify-center gap-4">
+                        <button class="text-blue-500 hover:scale-125 transition"><i class="fa-solid fa-edit"></i></button>
+                        <button class="text-red-500 hover:scale-125 transition"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>`).join('');
         }
 
         document.getElementById('carForm').onsubmit = async (e) => {
             e.preventDefault();
-            const formData = new FormData(e.target);
-            const carData = Object.fromEntries(formData.entries());
-
-            const { error } = await supabaseClient.from('cars').insert([carData]);
-            if (!error) { toggleModal(false); loadCars(); e.target.reset(); }
-            else { alert("حدث خطأ: " + error.message); }
+            const { error } = await supabaseClient.from('cars').insert([Object.fromEntries(new FormData(e.target).entries())]);
+            if (!error) { toggleModal(false); loadCars(); e.target.reset(); } else { alert("خطأ: " + error.message); }
         };
-
         window.onload = loadCars;
     </script>
 </body>
