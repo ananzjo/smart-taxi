@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3448/3448636.png" type="image/png">
+    <title>🚖 سجل السيارات | نظام إدارة التاكسي الذكي</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --primary-dark: #0f172a; --accent-yellow: #facc15; }
+        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; }
+
+        .sidebar-link { transition: 0.3s; border-right: 4px solid transparent; }
+        .sidebar-link:hover, .active-link { background: rgba(250, 204, 21, 0.1); border-right-color: var(--accent-yellow); color: var(--accent-yellow); }
+
+        /* Modal Animation */
+        .modal { transition: opacity 0.3s ease, visibility 0.3s ease; opacity: 0; visibility: hidden; }
+        .modal.active { opacity: 1; visibility: visible; }
+    </style>
+</head>
+<body class="flex min-h-screen">
+
+    <aside class="w-72 bg-[#0f172a] sticky top-0 h-screen text-white p-6 shadow-2xl flex flex-col z-40">
+        <div class="flex flex-col gap-1 mb-8 px-2">
+            <div class="flex items-center gap-3">
+                <div class="bg-yellow-400 p-2 rounded-lg text-slate-900"><i class="fa-solid fa-taxi text-2xl"></i></div>
+                <h1 class="text-xl font-bold">التاكسي الذكي</h1>
+            </div>
+            <div class="flex items-center gap-2 mr-12 text-[10px]">
+                <span class="text-slate-500 uppercase tracking-widest">Version</span>
+                <span class="text-yellow-500 font-bold">1.3.0</span>
+            </div>
+        </div>
+
+        <nav class="space-y-1 flex-1 overflow-y-auto px-2">
+            <a href="index.html" class="sidebar-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400">
+                <i class="fa-solid fa-gauge-high w-6 text-center"></i> لوحة التحكم الذكية
+            </a>
+            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-widest text-right">إدارة الأسطول</div>
+            <a href="cars.html" class="sidebar-link active-link flex items-center p-3 rounded-xl gap-3 text-sm">
+                <i class="fa-solid fa-car w-6 text-center"></i> السيارات
+            </a>
+            <a href="owners.html" class="sidebar-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400">
+                <i class="fa-solid fa-user-tie w-6 text-center"></i> المالكين
+            </a>
+            </nav>
+    </aside>
+
+    <main class="flex-1 p-8">
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <h2 class="text-3xl font-bold text-slate-800 italic">إدارة السيارات</h2>
+                <p class="text-slate-500 mt-1 uppercase text-[10px] tracking-[0.2em] font-bold">Fleet Assets Management</p>
+            </div>
+            <button onclick="toggleModal(true)" class="bg-slate-900 text-white px-6 py-3 rounded-2xl flex items-center gap-3 hover:bg-slate-800 transition shadow-lg shadow-slate-200">
+                <i class="fa-solid fa-plus text-yellow-400"></i>
+                إضافة سيارة جديدة
+            </button>
+        </header>
+
+        <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+            <div class="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
+                <h3 class="font-bold text-slate-800">قائمة أسطول السيارات</h3>
+                <div class="relative">
+                    <input type="text" placeholder="بحث برقم اللوحة..." class="pr-10 pl-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-yellow-400 transition w-64">
+                    <i class="fa-solid fa-search absolute right-4 top-3 text-slate-400 text-xs"></i>
+                </div>
+            </div>
+            
+            <table class="w-full text-right">
+                <thead>
+                    <tr class="text-slate-400 text-[11px] uppercase tracking-widest border-b border-slate-50">
+                        <th class="p-6">رقم اللوحة</th>
+                        <th class="p-6">النوع / الموديل</th>
+                        <th class="p-6">المالك</th>
+                        <th class="p-6 text-center">الحالة</th>
+                        <th class="p-6 text-center">الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="carsTableBody" class="text-sm">
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-50">
+                        <td class="p-6 font-bold text-slate-700">90-55412</td>
+                        <td class="p-6">تويوتا كامري 2023</td>
+                        <td class="p-6">شركة الأفق للنقل</td>
+                        <td class="p-6 text-center">
+                            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[10px] font-bold">متاحة للعمل</span>
+                        </td>
+                        <td class="p-6 text-center">
+                            <button class="text-slate-400 hover:text-blue-600 transition mx-1"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button class="text-slate-400 hover:text-red-600 transition mx-1"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <div id="carModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="toggleModal(false)"></div>
+        <div class="bg-white rounded-[2.5rem] w-full max-w-lg relative z-10 shadow-2xl overflow-hidden">
+            <div class="p-8 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="font-bold text-slate-800 text-xl">إضافة سيارة جديدة للأسطول</h3>
+                <button onclick="toggleModal(false)" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+            </div>
+            <form id="carForm" class="p-8 space-y-5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2 mr-2">رقم اللوحة</label>
+                    <input type="text" name="plate_number" required placeholder="مثلاً: 90-12345" class="w-full p-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-yellow-400 outline-none transition font-bold">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-2 mr-2">النوع</label>
+                        <input type="text" name="make" required placeholder="تويوتا" class="w-full p-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-yellow-400 outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-2 mr-2">الموديل</label>
+                        <input type="text" name="model" required placeholder="كامري 2024" class="w-full p-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-yellow-400 outline-none transition">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2 mr-2">المالك</label>
+                    <select name="owner_id" class="w-full p-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-yellow-400 outline-none transition">
+                        <option value="">-- اختر المالك --</option>
+                        </select>
+                </div>
+                <button type="submit" class="w-full bg-yellow-400 text-slate-900 font-bold p-5 rounded-2xl hover:bg-yellow-500 transition shadow-lg shadow-yellow-100 mt-4">
+                    حفظ السيارة في النظام
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function toggleModal(show) {
+            const modal = document.getElementById('carModal');
+            if(show) modal.classList.add('active');
+            else modal.classList.remove('active');
+        }
+
+        // Supabase Initialization (نفس البيانات المحفوظة)
+        const SUPABASE_URL = 'https://tjntctaapsdynbywdfns.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_BJgdmxyFsCgzFDXh1Qn1CQ_cFRMsy2P';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // هنا سنضيف لاحقاً دوال CRUD للسيارات
+    </script>
+</body>
+</html>
