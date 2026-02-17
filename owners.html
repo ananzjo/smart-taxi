@@ -2,56 +2,54 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إدارة الملاك - نظام إدارة التاكسي الذكي</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-gray-100 flex">
+<body class="bg-gray-100">
 
-    <div class="w-64 bg-slate-800 text-white min-h-screen p-5 fixed right-0">
-        <h2 class="text-xl font-bold mb-10 text-yellow-400 text-center">التاكسي الذكي</h2>
-        <nav class="space-y-4">
-            <a href="index.html" class="block p-3 rounded hover:bg-slate-700">الرئيسة</a>
-            <a href="owners.html" class="block p-3 rounded bg-blue-600 font-bold">الملاك</a>
-            <a href="cars.html" class="block p-3 rounded hover:bg-slate-700">السيارات</a>
+    <div class="flex flex-col h-screen h-full w-64 bg-slate-800 text-white fixed right-0 shadow-lg">
+        <div class="p-5 text-2xl font-bold border-b border-slate-700 text-yellow-400">
+            نظام التاكسي الذكي
+        </div>
+        <nav class="flex-1 p-4 space-y-2">
+            <a href="index.html" class="block p-3 rounded hover:bg-slate-700"><i class="fa fa-home ml-2"></i> الرئيسة</a>
+            <a href="owners.html" class="block p-3 rounded bg-yellow-500 text-slate-900 font-bold"><i class="fa fa-user-tie ml-2"></i> الملاك</a>
+            <a href="cars.html" class="block p-3 rounded hover:bg-slate-700"><i class="fa fa-car ml-2"></i> السيارات</a>
+            <a href="drivers.html" class="block p-3 rounded hover:bg-slate-700"><i class="fa fa-users ml-2"></i> السائقين</a>
+            <a href="handover.html" class="block p-3 rounded hover:bg-slate-700"><i class="fa fa-exchange-alt ml-2"></i> التبديل</a>
+            <a href="work-days.html" class="block p-3 rounded hover:bg-slate-700"><i class="fa fa-calendar-check ml-2"></i> أيام العمل</a>
+            <a href="financials.html" class="block p-3 rounded hover:bg-slate-700"><i class="fa fa-file-invoice-dollar ml-2"></i> المالية</a>
         </nav>
+        <div class="p-4 border-t border-slate-700 text-sm text-gray-400 text-center">
+            الإصدار 1.0 - 2026
+        </div>
     </div>
 
-    <div class="flex-1 mr-64 p-10">
-        <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-blue-600">
-            <h2 class="text-2xl font-bold mb-6 text-slate-800 border-b pb-4">إضافة مالك جديد</h2>
-            
-            <form id="ownerForm" class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">اسم المالك</label>
-                    <input type="text" id="name" required class="w-full p-3 border rounded-md bg-gray-50 focus:ring-2 focus:ring-blue-400 outline-none">
+    <div class="mr-64 p-8">
+        <header class="flex justify-between items-center mb-8 bg-white p-5 rounded-lg shadow-sm">
+            <h1 class="text-2xl font-bold text-slate-800">إدارة الملاك</h1>
+            <div class="text-slate-600">تسجيل ومتابعة ملاك المركبات</div>
+        </header>
+
+        <div class="bg-white p-6 rounded-xl shadow-md mb-8">
+            <h2 class="text-lg font-bold text-slate-700 mb-4 border-b pb-2">إضافة مالك جديد</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input type="text" id="name" placeholder="اسم المالك" class="p-3 border rounded focus:ring-2 focus:ring-yellow-400 outline-none">
+                <input type="text" id="phone" placeholder="رقم الهاتف" class="p-3 border rounded focus:ring-2 focus:ring-yellow-400 outline-none">
+                <input type="text" id="address" placeholder="العنوان" class="p-3 border rounded focus:ring-2 focus:ring-yellow-400 outline-none">
+                <div class="md:col-span-2">
+                    <input type="text" id="notes" placeholder="ملاحظات عامة" class="w-full p-3 border rounded focus:ring-2 focus:ring-yellow-400 outline-none">
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">رقم الهاتف</label>
-                    <input type="text" id="phone" class="w-full p-3 border rounded-md bg-gray-50 focus:ring-2 focus:ring-blue-400 outline-none">
-                </div>
-                <div class="col-span-2">
-                    <label class="block text-sm font-medium text-gray-700">العنوان</label>
-                    <input type="text" id="address" class="w-full p-3 border rounded-md bg-gray-50 focus:ring-2 focus:ring-blue-400 outline-none">
-                </div>
-                <div class="col-span-2">
-                    <label class="block text-sm font-medium text-gray-700">ملاحظات</label>
-                    <textarea id="notes" class="w-full p-3 border rounded-md bg-gray-50 focus:ring-2 focus:ring-blue-400 outline-none" rows="2"></textarea>
-                </div>
-                <div class="col-span-2">
-                    <button type="button" onclick="saveOwner()" class="w-full bg-green-600 text-white p-4 rounded-lg font-bold hover:bg-green-700 shadow-md transition-all">
-                        حفظ بيانات المالك
-                    </button>
-                </div>
-            </form>
+                <button onclick="saveOwner()" class="bg-slate-800 text-yellow-400 font-bold p-3 rounded hover:bg-slate-700 transition shadow-md">
+                    <i class="fa fa-plus-circle ml-1"></i> حفظ البيانات
+                </button>
+            </div>
         </div>
 
-        <div class="mt-10 bg-white rounded-xl shadow-md overflow-hidden">
-            <div class="p-5 bg-slate-50 border-b font-bold text-slate-700 flex justify-between items-center">
-                <span>قائمة الملاك المسجلين</span>
-                <button onclick="fetchOwners()" class="text-blue-600 hover:text-blue-800 text-sm"><i class="fa fa-sync"></i> تحديث القائمة</button>
-            </div>
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="p-5 bg-slate-50 border-b font-bold text-slate-700">قائمة الملاك المسجلين</div>
             <table class="w-full text-right border-collapse">
                 <thead>
                     <tr class="bg-gray-100 text-gray-600 text-sm">
@@ -67,57 +65,54 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // إعدادات الربط - بياناتك الحقيقية
         const SUPABASE_URL = 'https://tjntctaapsdynbywdfns.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_BJgdmxyFsCgzFDXh1Qn1CQ_cFRMsy2P'; 
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // 1. وظيفة الحفظ (Insert)
         async function saveOwner() {
             const name = document.getElementById('name').value;
             const phone = document.getElementById('phone').value;
             const address = document.getElementById('address').value;
             const notes = document.getElementById('notes').value;
 
-            if (!name) return Swal.fire('خطأ', 'الاسم حقل مطلوب', 'error');
+            if (!name) return Swal.fire('تنبيه', 'يجب إدخال اسم المالك على الأقل', 'warning');
 
-            const { data, error } = await _supabase.from('owners').insert([
-                { name, phone, address, notes }
-            ]);
+            const { error } = await _supabase.from('owners').insert([{ name, phone, address, notes }]);
 
             if (error) {
-                console.error(error);
-                Swal.fire('فشل في الحفظ', error.message, 'error');
+                Swal.fire('خطأ', error.message, 'error');
             } else {
-                Swal.fire('تم بنجاح', 'تم تسجيل بيانات المالك في النظام', 'success');
-                document.getElementById('ownerForm').reset();
-                fetchOwners(); // تحديث الجدول
+                Swal.fire('نجاح', 'تم الحفظ بنجاح', 'success');
+                // مسح الحقول بعد الحفظ
+                document.getElementById('name').value = '';
+                document.getElementById('phone').value = '';
+                document.getElementById('address').value = '';
+                document.getElementById('notes').value = '';
+                fetchOwners();
             }
         }
 
-        // 2. وظيفة جلب البيانات (Select)
         async function fetchOwners() {
             const { data, error } = await _supabase.from('owners').select('*').order('id', { ascending: false });
-            
             if (error) return console.error(error);
 
             const tableBody = document.getElementById('ownersList');
             tableBody.innerHTML = '';
-            
             data.forEach(owner => {
                 tableBody.innerHTML += `
                     <tr class="border-b hover:bg-gray-50 transition">
-                        <td class="p-4 font-bold text-blue-800">${owner.name}</td>
+                        <td class="p-4 font-bold text-slate-800">${owner.name}</td>
                         <td class="p-4">${owner.phone || '-'}</td>
                         <td class="p-4">${owner.address || '-'}</td>
-                        <td class="p-4 text-gray-500 text-xs">${owner.notes || '-'}</td>
+                        <td class="p-4 text-gray-500">${owner.notes || '-'}</td>
                     </tr>`;
             });
         }
 
-        // تشغيل الجلب عند فتح الصفحة
-        fetchOwners();
+        window.onload = fetchOwners;
     </script>
 </body>
 </html>
