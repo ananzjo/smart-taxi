@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --sidebar-bg: #0f172a; --accent: #fbbf24; }
+        :root { --sidebar-bg: #0f172a; --accent: #fbbf24; --success: #22c55e; }
         body { font-family: 'Tajawal', sans-serif; background-color: #f1f5f9; margin: 0; overflow-x: hidden; }
         
         /* القائمة الجانبية الثابتة */
@@ -19,29 +19,19 @@
         .nav-link { display: flex; align-items: center; padding: 14px 24px; gap: 12px; color: #94a3b8; transition: 0.2s; font-weight: 700; border-right: 4px solid transparent; text-decoration: none; }
         .nav-link:hover, .nav-link.active { background: #1e293b; color: var(--accent); border-right-color: var(--accent); }
 
+        /* نظام الإشعارات (Toast) */
+        #notify { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 3000; padding: 12px 30px; border-radius: 50px; font-weight: 900; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: none; transition: 0.3s; }
+        .notify-loading { background: #334155; color: white; }
+        .notify-success { background: var(--success); color: white; }
+        .notify-empty { background: #ef4444; color: white; }
+
         /* البطاقة المزوقة (Modal) */
         .modal-container { display: none; position: fixed; inset: 0; z-index: 2000; align-items: center; justify-content: center; padding: 20px; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(5px); }
         .modal-card { background: white; width: 100%; max-width: 600px; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.3); border-top: 8px solid var(--accent); }
         
-        .modal-header { padding: 20px 30px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
-        .modal-body { padding: 30px; display: grid; grid-template-columns: 1fr; gap: 15px; }
-
         /* الحقول */
-        .field-group { display: flex; flex-direction: column; gap: 5px; }
-        .field-label { font-size: 12px; font-weight: 900; color: #64748b; margin-right: 5px; }
-        .field-input { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 12px; font-weight: 700; color: #1e293b; text-align: center; outline: none; transition: 0.3s; }
-        .field-input:focus { border-color: var(--accent); background: white; }
-
-        @media (max-width: 1024px) {
-            .sidebar { width: 80px; }
-            .sidebar span, .sidebar h1, .sidebar p { display: none; }
-            .main-content { margin-right: 80px; }
-        }
-        @media (max-width: 768px) {
-            .sidebar { display: none; }
-            .main-content { margin-right: 0; padding: 15px; }
-            .field-input { font-size: 1.4rem; padding: 16px; }
-        }
+        .field-input { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 12px; font-weight: 700; text-align: center; outline: none; width: 100%; }
+        @media (max-width: 768px) { .sidebar { display: none; } .main-content { margin-right: 0; } .field-input { font-size: 1.4rem; padding: 18px; } }
     </style>
 </head>
 <body>
@@ -49,7 +39,6 @@
     <aside class="sidebar">
         <div class="p-8 text-center border-b border-white/5">
             <h1 class="text-2xl font-black text-yellow-400">التاكسي الذكي</h1>
-            <p class="text-[10px] text-slate-500 font-bold tracking-widest mt-1 uppercase">نظام الإدارة المتكامل</p>
         </div>
         <nav class="mt-4">
             <a href="cars.html" class="nav-link"><i class="fa-solid fa-car w-6"></i><span>بيانات السيارات</span></a>
@@ -63,12 +52,19 @@
         </nav>
     </aside>
 
+    <div id="notify"></div>
+
     <main class="main-content">
-        <header class="flex justify-between items-center mb-8">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
             <h2 class="text-3xl font-black text-slate-800">بيانات المالكين</h2>
-            <button onclick="openModal()" class="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-yellow-500 hover:text-slate-900 transition-all flex items-center gap-2 shadow-lg">
-                <i class="fa-solid fa-user-plus"></i> إضافة مالك جديد
-            </button>
+            <div class="flex gap-3 w-full md:w-auto">
+                <button onclick="loadOwners()" class="flex-1 md:flex-none bg-slate-200 text-slate-700 px-6 py-3 rounded-xl font-bold hover:bg-slate-300 transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-rotate"></i> عرض البيانات
+                </button>
+                <button onclick="openModal()" class="flex-1 md:flex-none bg-slate-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-yellow-500 hover:text-slate-900 transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus"></i> إضافة مالك
+                </button>
+            </div>
         </header>
 
         <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
@@ -82,39 +78,24 @@
                         <th class="p-5">العمليات</th>
                     </tr>
                 </thead>
-                <tbody id="ownersTableBody" class="font-bold text-slate-700 divide-y divide-slate-50 text-sm md:text-base">
-                    </tbody>
+                <tbody id="ownersTableBody" class="font-bold text-slate-700 divide-y divide-slate-50 text-sm md:text-base"></tbody>
             </table>
         </div>
     </main>
 
     <div id="ownerModal" class="modal-container">
         <div class="modal-card">
-            <div class="modal-header">
-                <h3 class="font-black text-xl text-slate-800">إضافة بيانات مالك</h3>
-                <button onclick="closeModal()" class="text-2xl font-bold text-slate-400 hover:text-red-500">&times;</button>
+            <div class="p-6 bg-slate-900 text-white flex justify-between items-center">
+                <h3 class="font-black text-xl">إدارة بيانات المالك</h3>
+                <button onclick="closeModal()" class="text-2xl">&times;</button>
             </div>
-            <form id="ownerForm" class="modal-body">
-                <div class="field-group">
-                    <label class="field-label">اسم المالك الكامل</label>
-                    <input type="text" name="name" required class="field-input" placeholder="أدخل الاسم">
-                </div>
-                <div class="field-group">
-                    <label class="field-label">رقم الهاتف</label>
-                    <input type="text" name="phone" required class="field-input" placeholder="07XXXXXXXX">
-                </div>
-                <div class="field-group">
-                    <label class="field-label">العنوان السكني</label>
-                    <input type="text" name="address" class="field-input" placeholder="المدينة / المنطقة">
-                </div>
-                <div class="field-group">
-                    <label class="field-label">الرقم الوطني</label>
-                    <input type="text" name="national_id" class="field-input" placeholder="الرقم الوطني المكون من 10 أرقام">
-                </div>
-
-                <button type="submit" class="bg-slate-900 text-yellow-400 font-black py-4 rounded-xl hover:bg-slate-800 transition-all text-lg mt-4 border-b-4 border-yellow-400">
-                    تأكيد وحفظ البيانات
-                </button>
+            <form id="ownerForm" class="p-8 flex flex-col gap-4">
+                <input type="hidden" name="id" id="ownerId">
+                <div class="field-group"><label class="text-xs font-black text-slate-400">اسم المالك</label><input type="text" name="name" required class="field-input"></div>
+                <div class="field-group"><label class="text-xs font-black text-slate-400">رقم الهاتف</label><input type="text" name="phone" required class="field-input"></div>
+                <div class="field-group"><label class="text-xs font-black text-slate-400">العنوان</label><input type="text" name="address" class="field-input"></div>
+                <div class="field-group"><label class="text-xs font-black text-slate-400">الرقم الوطني</label><input type="text" name="national_id" class="field-input"></div>
+                <button type="submit" class="bg-slate-900 text-yellow-400 font-black py-4 rounded-xl mt-4 border-b-4 border-yellow-400 hover:bg-slate-800 transition">حفظ التغييرات</button>
             </form>
         </div>
     </div>
@@ -124,18 +105,63 @@
         const SUPABASE_KEY = 'sb_publishable_BJgdmxyFsCgzFDXh1Qn1CQ_cFRMsy2P';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        function openModal() { document.getElementById('ownerModal').style.display = 'flex'; }
-        function closeModal() { document.getElementById('ownerModal').style.display = 'none'; document.getElementById('ownerForm').reset(); }
+        function showNotify(msg, type) {
+            const n = document.getElementById('notify');
+            n.innerText = msg;
+            n.className = `notify-${type}`;
+            n.style.display = 'block';
+            if (type !== 'loading') setTimeout(() => n.style.display = 'none', 3000);
+        }
+
+        function openModal(data = null) {
+            document.getElementById('ownerModal').style.display = 'flex';
+            if (data) {
+                document.getElementById('ownerId').value = data.id;
+                document.getElementById('ownerForm').name.value = data.name;
+                document.getElementById('ownerForm').phone.value = data.phone;
+                document.getElementById('ownerForm').address.value = data.address;
+                document.getElementById('ownerForm').national_id.value = data.national_id;
+            }
+        }
+
+        function closeModal() { document.getElementById('ownerModal').style.display = 'none'; document.getElementById('ownerForm').reset(); document.getElementById('ownerId').value = ''; }
 
         async function loadOwners() {
+            showNotify('جاري جلب البيانات...', 'loading');
             const { data, error } = await supabaseClient.from('owners').select('*').order('created_at', { ascending: false });
-            if (data) {
-                document.getElementById('ownersTableBody').innerHTML = data.map(owner => `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="p-5">${owner.name}</td>
-                        <td class="p-5">${owner.phone}</td>
-                        <td class="p-5 text-slate-500">${owner.address || '-'}</td>
-                        <td class="p-5 font-mono text-slate-500">${owner.national_id || '-'}</td>
-                        <td class="p-5 flex justify-center gap-4">
-                            <button class="text-slate-300 hover:text-blue-600 transition text-xl"><i class="fa-solid fa-pen-to-square"></i></button>
-                            <button onclick="deleteOwner(${owner.id})" class="text-slate-300 hover:text-red-500 transition text-xl"><i class="fa-solid fa-trash-can"></i>
+            
+            if (error) { showNotify('خطأ في التحميل', 'empty'); return; }
+            if (data.length === 0) { showNotify('لا يوجد بيانات', 'empty'); document.getElementById('ownersTableBody').innerHTML = ''; return; }
+
+            showNotify('تم جلب البيانات بنجاح', 'success');
+            document.getElementById('ownersTableBody').innerHTML = data.map(owner => `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="p-5">${owner.name}</td>
+                    <td class="p-5">${owner.phone}</td>
+                    <td class="p-5">${owner.address || '-'}</td>
+                    <td class="p-5 font-mono">${owner.national_id || '-'}</td>
+                    <td class="p-5 flex justify-center gap-2">
+                        <button onclick='editOwner(${JSON.stringify(owner)})' class="bg-blue-100 text-blue-600 p-2 rounded-lg hover:bg-blue-600 hover:text-white transition"><i class="fa-solid fa-pen"></i> تعديل</button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        function editOwner(owner) { openModal(owner); }
+
+        document.getElementById('ownerForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = Object.fromEntries(new FormData(e.target).entries());
+            const id = formData.id; delete formData.id;
+
+            let result;
+            if (id) result = await supabaseClient.from('owners').update(formData).eq('id', id);
+            else result = await supabaseClient.from('owners').insert([formData]);
+
+            if (!result.error) { showNotify('تم الحفظ بنجاح', 'success'); closeModal(); loadOwners(); }
+            else { showNotify('خطأ أثناء الحفظ', 'empty'); }
+        };
+
+        window.onload = loadOwners;
+    </script>
+</body>
+</html>
