@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3448/3448636.png" type="image/png">
-    <title>🚖 نظام إدارة التاكسي الذكي | لوحة التحكم</title>
+    <title>🚖 نظام إدارة التاكسي الذكي | لوحة التحكم الذكية</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -14,6 +14,11 @@
     <style>
         :root { --primary-dark: #0f172a; --accent-yellow: #facc15; }
         body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
+
+        /* Custom Scrollbar for Sidebar */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: var(--primary-dark); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
 
         /* Tooltip */
         [data-tooltip] { position: relative; cursor: pointer; }
@@ -54,40 +59,58 @@
 <body class="flex min-h-screen">
 
     <aside class="w-72 bg-[#0f172a] sticky top-0 h-screen text-white p-6 shadow-2xl flex flex-col z-40">
-        <div class="flex flex-col gap-1 mb-12 px-2">
+        <div class="flex flex-col gap-1 mb-8 px-2">
             <div class="flex items-center gap-3">
                 <div class="bg-yellow-400 p-2 rounded-lg text-slate-900">
                     <i class="fa-solid fa-taxi text-2xl"></i>
                 </div>
-                <h1 class="text-xl font-bold tracking-tight text-white font-bold">التاكسي الذكي</h1>
+                <h1 class="text-xl font-bold tracking-tight text-white">التاكسي الذكي</h1>
             </div>
             <div class="flex items-center gap-2 mr-12">
                 <span class="text-[9px] text-slate-500 uppercase tracking-[0.2em]">Version</span>
-                <span class="text-[10px] text-yellow-500/80 font-mono font-bold">1.2.1</span>
+                <span class="text-[10px] text-yellow-500/80 font-mono font-bold">1.3.0</span>
             </div>
         </div>
-        <nav class="space-y-3 flex-1">
-            <a href="index.html" class="sidebar-link active-link flex items-center p-4 rounded-2xl gap-3 text-sm">
-                <i class="fa-solid fa-chart-pie w-6 text-center"></i> لوحة التحكم
+
+        <nav class="space-y-1 flex-1 overflow-y-auto custom-scrollbar px-2">
+            <a href="index.html" class="sidebar-link active-link flex items-center p-3 rounded-xl gap-3 text-sm">
+                <i class="fa-solid fa-gauge-high w-6 text-center text-lg"></i> لوحة التحكم الذكية
             </a>
-            <a href="cars.html" class="sidebar-link flex items-center p-4 rounded-2xl gap-3 text-sm text-slate-400">
-                <i class="fa-solid fa-car-side w-6 text-center"></i> سجل استلام السيارات
+            
+            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-widest">إدارة الأسطول</div>
+            <a href="cars.html" class="sidebar-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400">
+                <i class="fa-solid fa-car w-6 text-center"></i> السيارات
             </a>
-            <a href="drivers.html" class="sidebar-link flex items-center p-4 rounded-2xl gap-3 text-sm text-slate-400">
-                <i class="fa-solid fa-user-tie w-6 text-center"></i> السائقين
+            <a href="owners.html" class="sidebar-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400">
+                <i class="fa-solid fa-user-tie w-6 text-center"></i> المالكين
             </a>
-            <a href="work-days.html" class="sidebar-link flex items-center p-4 rounded-2xl gap-3 text-sm text-slate-400">
+            <a href="drivers.html" class="sidebar-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400">
+                <i class="fa-solid fa-users w-6 text-center"></i> السائقين
+            </a>
+
+            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-widest">الحركة والتشغيل</div>
+            <a href="deliveries.html" class="sidebar-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400">
+                <i class="fa-solid fa-key w-6 text-center"></i> سجل استلام السيارات
+            </a>
+            <a href="work-days.html" class="sidebar-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400">
                 <i class="fa-solid fa-calendar-check w-6 text-center"></i> أيام العمل
             </a>
-            <a href="financials.html" class="sidebar-link flex items-center p-4 rounded-2xl gap-3 text-sm text-slate-400">
-                <i class="fa-solid fa-receipt w-6 text-center"></i> المالية والمطابقة
+
+            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-widest">المالية والمطابقة</div>
+            <a href="revenues.html" class="sidebar-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400">
+                <i class="fa-solid fa-hand-holding-dollar w-6 text-center"></i> الإيرادات
+            </a>
+            <a href="expenses.html" class="sidebar-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400">
+                <i class="fa-solid fa-file-invoice-dollar w-6 text-center"></i> المصاريف
+            </a>
+            <a href="reconciliation.html" class="sidebar-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400">
+                <i class="fa-solid fa-scale-balanced w-6 text-center"></i> المطابقة المالية
             </a>
         </nav>
-
         <div class="mt-auto border-t border-slate-700 pt-5">
             <div class="flex items-center justify-between text-[10px] text-slate-500">
                 <span>حالة الاتصال:</span>
-                <span class="text-green-500 font-bold">Online</span>
+                <span class="text-green-500 font-bold">Online Cloud</span>
             </div>
         </div>
     </aside>
@@ -95,12 +118,14 @@
     <main class="flex-1 p-8">
         <header class="flex justify-between items-center mb-10">
             <div>
-                <h2 class="text-3xl font-bold text-slate-800">الرئيسية</h2>
-                <p class="text-slate-500 mt-1 uppercase text-[10px] tracking-widest font-bold">Dashboard v1.2.1</p>
+                <h2 class="text-3xl font-bold text-slate-800">لوحة التحكم الذكية</h2>
+                <p class="text-slate-500 mt-1 uppercase text-[10px] tracking-[0.2em] font-bold italic">Smart Dashboard Control</p>
             </div>
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 text-sm font-bold">
-                <i class="fa-solid fa-calendar text-yellow-500"></i>
-                <span id="currentDate">-- / -- / ----</span>
+            <div class="flex items-center gap-4">
+                <div class="bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-100 flex items-center gap-3 text-sm font-bold">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    <span id="currentDate" class="text-slate-700 font-mono italic"></span>
+                </div>
             </div>
         </header>
 
@@ -160,14 +185,17 @@
                             <th class="p-6 text-center">الحالة</th>
                         </tr>
                     </thead>
-                    <tbody id="fleetTableBody" class="text-sm">
-                        </tbody>
+                    <tbody id="fleetTableBody" class="text-sm italic text-slate-400">
+                        <tr>
+                            <td colspan="4" class="p-10 text-center text-xs">جاري سحب بيانات الأسطول من السحابة الذكية...</td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
         </div>
     </main>
 
-    <div id="snackbar">تم دمج الإصدار v1.2.1 بنجاح 🚖</div>
+    <div id="snackbar">لوحة التحكم الذكية v1.3.0 جاهزة 🚖</div>
 
     <script>
         const SUPABASE_URL = 'https://tjntctaapsdynbywdfns.supabase.co';
@@ -181,7 +209,8 @@
         }
 
         window.onload = () => {
-            document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-EG');
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-EG', options);
             showSnackbar();
         };
     </script>
