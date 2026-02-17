@@ -12,13 +12,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        :root {
-            --primary-dark: #0f172a;
-            --accent-yellow: #facc15;
-        }
-        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; }
+        :root { --primary-dark: #0f172a; --accent-yellow: #facc15; }
+        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
 
-        /* CSS-Only Tooltip */
         [data-tooltip] { position: relative; cursor: pointer; }
         [data-tooltip]:before {
             content: attr(data-tooltip);
@@ -29,11 +25,7 @@
         }
         [data-tooltip]:hover:before { opacity: 1; visibility: visible; }
 
-        /* Pulse Effect for Idle Cars */
-        .pulse-status {
-            display: inline-block; width: 12px; height: 12px; border-radius: 50%;
-            position: relative; margin-left: 8px;
-        }
+        .pulse-status { display: inline-block; width: 12px; height: 12px; border-radius: 50%; position: relative; margin-left: 8px; }
         .pulse-red { background: #ef4444; animation: shadow-pulse-red 2s infinite; }
         @keyframes shadow-pulse-red {
             0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
@@ -41,7 +33,6 @@
             100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
 
-        /* Snackbar/Toast */
         #snackbar {
             visibility: hidden; min-width: 280px; background-color: var(--primary-dark);
             color: #fff; text-align: center; border-radius: 16px; padding: 20px;
@@ -53,7 +44,6 @@
         @keyframes slideIn { from {right: -300px; opacity: 0;} to {right: 30px; opacity: 1;} }
         @keyframes slideOut { from {right: 30px; opacity: 1;} to {right: -300px; opacity: 0;} }
 
-        /* Sidebar Glass Effect */
         .sidebar-link { transition: 0.3s; border-right: 4px solid transparent; }
         .sidebar-link:hover, .active-link { background: rgba(250, 204, 21, 0.1); border-right-color: var(--accent-yellow); color: var(--accent-yellow); }
     </style>
@@ -73,34 +63,34 @@
                 <i class="fa-solid fa-chart-pie w-6 text-center"></i> لوحة التحكم
             </a>
             <a href="cars.html" class="sidebar-link flex items-center p-4 rounded-2xl gap-3 text-slate-400">
-                <i class="fa-solid fa-car-side w-6 text-center"></i> عُهد السيارات
+                <i class="fa-solid fa-car-side w-6 text-center"></i> سجل استلام السيارات
             </a>
             <a href="drivers.html" class="sidebar-link flex items-center p-4 rounded-2xl gap-3 text-slate-400">
                 <i class="fa-solid fa-user-tie w-6 text-center"></i> السائقين
             </a>
             <a href="work-days.html" class="sidebar-link flex items-center p-4 rounded-2xl gap-3 text-slate-400">
-                <i class="fa-solid fa-calendar-check w-6 text-center"></i> تسجيل العمل
+                <i class="fa-solid fa-calendar-check w-6 text-center"></i> أيام العمل
             </a>
             <a href="financials.html" class="sidebar-link flex items-center p-4 rounded-2xl gap-3 text-slate-400">
-                <i class="fa-solid fa-receipt w-6 text-center"></i> المالية
+                <i class="fa-solid fa-receipt w-6 text-center"></i> المالية والمطابقة
             </a>
         </nav>
 
-        <div class="mt-auto p-4 bg-slate-800/50 rounded-2xl text-xs text-slate-400 border border-slate-700">
-            <p class="mb-1 text-yellow-400 font-bold">وصف النظام:</p>
-            <p>نظام سحابي ذكي لإدارة العُهد والمطابقة المالية.</p>
+        <div class="mt-auto border-t border-slate-700 pt-5">
+            <div class="flex flex-col gap-1 px-2">
+                <div class="flex items-center justify-between text-[10px] text-slate-500 uppercase tracking-widest">
+                    <span>إصدار النظام:</span>
+                    <span class="text-yellow-400 font-bold">v1.2.0</span>
+                </div>
+            </div>
         </div>
     </aside>
 
     <main class="flex-1 p-8">
-        
         <header class="flex justify-between items-center mb-10">
             <div>
-                <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
-                    مرحباً بك 
-                    <span class="text-sm font-normal bg-blue-100 text-blue-700 px-3 py-1 rounded-full">مسؤول النظام</span>
-                </h2>
-                <p class="text-slate-500 mt-1">نظرة شاملة على أداء الأسطول والسيولة</p>
+                <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">مرحباً بك</h2>
+                <p class="text-slate-500 mt-1 uppercase text-xs tracking-widest font-bold">Dashboard Overview</p>
             </div>
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 text-sm font-bold">
                 <i class="fa-solid fa-calendar text-yellow-500"></i>
@@ -109,110 +99,75 @@
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 relative overflow-hidden group">
+            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 group transition hover:shadow-xl">
                 <div class="flex justify-between items-start mb-4">
                     <div class="p-3 bg-blue-50 text-blue-600 rounded-2xl"><i class="fa-solid fa-dollar-sign text-xl"></i></div>
-                    <span class="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Revenue</span>
+                    <span class="text-[10px] font-bold text-blue-600 uppercase">Revenue</span>
                 </div>
-                <p class="text-slate-400 text-sm" data-tooltip="إجمالي أيام العمل المسجلة">إجمالي الوارد</p>
-                <h3 class="text-2xl font-bold text-slate-800 mt-1" id="totalRevenue">0.00 <span class="text-xs">د.أ</span></h3>
+                <p class="text-slate-400 text-sm" data-tooltip="إجمالي الإيرادات المولدة من أيام العمل">إجمالي الوارد</p>
+                <h3 class="text-2xl font-bold text-slate-800 mt-1" id="totalRevenue">0.00 <small class="text-xs font-normal">د.أ</small></h3>
             </div>
 
-            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 relative overflow-hidden group">
+            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 group transition hover:shadow-xl">
                 <div class="flex justify-between items-start mb-4">
                     <div class="p-3 bg-red-50 text-red-600 rounded-2xl"><i class="fa-solid fa-wrench text-xl"></i></div>
-                    <span class="text-[10px] font-bold text-red-600 uppercase tracking-wider">Expenses</span>
+                    <span class="text-[10px] font-bold text-red-600 uppercase">Expenses</span>
                 </div>
-                <p class="text-slate-400 text-sm" data-tooltip="تكاليف الصيانة والتشغيل">إجمالي المصروف</p>
-                <h3 class="text-2xl font-bold text-slate-800 mt-1" id="totalExpenses">0.00 <span class="text-xs">د.أ</span></h3>
+                <p class="text-slate-400 text-sm">إجمالي المصروف</p>
+                <h3 class="text-2xl font-bold text-slate-800 mt-1" id="totalExpenses">0.00 <small class="text-xs font-normal">د.أ</small></h3>
             </div>
 
-            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 relative overflow-hidden group">
+            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 group transition hover:shadow-xl">
                 <div class="flex justify-between items-start mb-4">
                     <div class="p-3 bg-green-50 text-green-600 rounded-2xl"><i class="fa-solid fa-vault text-xl"></i></div>
-                    <span class="text-[10px] font-bold text-green-600 uppercase tracking-wider">Collected</span>
+                    <span class="text-[10px] font-bold text-green-600 uppercase">Collected</span>
                 </div>
-                <p class="text-slate-400 text-sm" data-tooltip="النقد المستلم فعلياً">المقبوض (كاش)</p>
-                <h3 class="text-2xl font-bold text-slate-800 mt-1" id="totalCollected">0.00 <span class="text-xs">د.أ</span></h3>
+                <p class="text-slate-400 text-sm">المقبوض (كاش)</p>
+                <h3 class="text-2xl font-bold text-slate-800 mt-1" id="totalCollected">0.00 <small class="text-xs font-normal">د.أ</small></h3>
             </div>
 
-            <div class="bg-white p-6 rounded-[2rem] shadow-sm border-yellow-400 border-2 relative overflow-hidden group">
+            <div class="bg-white p-6 rounded-[2rem] shadow-sm border-yellow-400 border-2 relative group transition hover:shadow-xl">
                 <div class="flex justify-between items-start mb-4">
                     <div class="p-3 bg-yellow-50 text-yellow-600 rounded-2xl"><i class="fa-solid fa-briefcase text-xl"></i></div>
-                    <span class="text-[10px] font-bold text-yellow-600 uppercase tracking-wider">Receivables</span>
+                    <span class="text-[10px] font-bold text-yellow-600 uppercase">Receivables</span>
                 </div>
                 <p class="text-slate-400 text-sm">صافي الذمم</p>
-                <h3 class="text-2xl font-bold text-slate-800 mt-1" id="netReceivables">0.00 <span class="text-xs">د.أ</span></h3>
+                <h3 class="text-2xl font-bold text-slate-800 mt-1" id="netReceivables">0.00 <small class="text-xs font-normal">د.أ</small></h3>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-2 bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
-                <div class="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
-                    <h3 class="font-bold text-slate-800 text-lg">مراقبة الأسطول اللحظية</h3>
-                    <div class="flex gap-4">
-                        <span class="flex items-center text-xs font-bold text-slate-500">
-                            <i class="pulse-status pulse-red"></i> 
-                            متوقفة: <span id="idleCars" class="mr-1 text-red-600">0</span>
-                        </span>
-                    </div>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-right">
-                        <thead>
-                            <tr class="text-slate-400 text-[11px] uppercase tracking-widest border-b border-slate-50">
-                                <th class="p-6">السيارة</th>
-                                <th class="p-6">السائق</th>
-                                <th class="p-6">الحالة</th>
-                                <th class="p-6 text-center">الإجراء</th>
-                            </tr>
-                        </thead>
-                        <tbody id="fleetTableBody" class="text-sm">
-                            </tbody>
-                    </table>
-                </div>
+        <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden mb-8">
+            <div class="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/20">
+                <h3 class="font-bold text-slate-800 text-lg">مراقبة الأسطول والسيارات المتوقفة</h3>
+                <span class="flex items-center text-xs font-bold text-slate-500">
+                    <i class="pulse-status pulse-red"></i> 
+                    سيارات متوقفة: <span id="idleCars" class="mr-1 text-red-600">0</span>
+                </span>
             </div>
-
-            <div class="space-y-4">
-                <h3 class="font-bold text-slate-800 px-2">العمليات السريعة</h3>
-                
-                <button class="w-full p-6 bg-slate-900 text-white rounded-[1.5rem] flex items-center justify-between hover:bg-slate-800 transition shadow-xl shadow-slate-200 group">
-                    <div class="flex items-center gap-4">
-                        <div class="bg-yellow-400 text-slate-900 p-3 rounded-xl group-hover:scale-110 transition duration-300">
-                            <i class="fa-solid fa-right-left"></i>
-                        </div>
-                        <div class="text-right">
-                            <p class="font-bold">حركة عهدة</p>
-                            <p class="text-[10px] text-slate-400">تغيير حالة السيارة (In/Out)</p>
-                        </div>
-                    </div>
-                    <i class="fa-solid fa-angle-left opacity-30 group-hover:opacity-100 transition"></i>
-                </button>
-
-                <button class="w-full p-6 bg-white border border-slate-200 text-slate-800 rounded-[1.5rem] flex items-center justify-between hover:border-yellow-400 transition group shadow-sm">
-                    <div class="flex items-center gap-4">
-                        <div class="bg-blue-50 text-blue-600 p-3 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition duration-300">
-                            <i class="fa-solid fa-calendar-check"></i>
-                        </div>
-                        <div class="text-right">
-                            <p class="font-bold text-sm">تسجيل ورديات</p>
-                            <p class="text-[10px] text-slate-400">توليد أيام العمل المفقودة</p>
-                        </div>
-                    </div>
-                </button>
+            <div class="overflow-x-auto">
+                <table class="w-full text-right">
+                    <thead>
+                        <tr class="text-slate-400 text-[11px] uppercase tracking-widest border-b border-slate-50">
+                            <th class="p-6 text-right">السيارة</th>
+                            <th class="p-6 text-right">السائق المستلم</th>
+                            <th class="p-6 text-right">تاريخ الاستلام</th>
+                            <th class="p-6 text-center">الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fleetTableBody" class="text-sm">
+                        </tbody>
+                </table>
             </div>
         </div>
     </main>
 
-    <div id="snackbar">جاري مزامنة بيانات الأسطول الآن... 🚖</div>
+    <div id="snackbar">نظام التاكسي الذكي - مسميات محدثة v1.2.0 🚖</div>
 
     <script>
-        // Supabase Configuration
         const SUPABASE_URL = 'https://tjntctaapsdynbywdfns.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_BJgdmxyFsCgzFDXh1Qn1CQ_cFRMsy2P';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // UI Helpers
         function showSnackbar(message) {
             const sb = document.getElementById("snackbar");
             if(message) sb.innerText = message;
@@ -220,17 +175,10 @@
             setTimeout(() => { sb.className = sb.className.replace("show", ""); }, 4000);
         }
 
-        async function initDashboard() {
-            // Update Date
-            const now = new Date();
-            document.getElementById('currentDate').innerText = now.toLocaleDateString('ar-EG');
-            
+        function initDashboard() {
+            document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-EG');
             showSnackbar();
-            
-            // Logic لجلب البيانات الحقيقية من جداولك (توضيحي)
-            // fetchRealStats();
         }
-
         window.onload = initDashboard;
     </script>
 </body>
