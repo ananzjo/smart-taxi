@@ -6,81 +6,80 @@
     <title>إدارة السيارات - نظام إدارة التاكسي الذكي</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        #sidebar { transition: transform 0.3s ease-in-out; }
+        .sidebar-open { transform: translateX(0); }
+        .sidebar-closed { transform: translateX(100%); }
+    </style>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-100 font-sans text-right">
 
-    <div class="flex flex-col h-screen h-full w-64 bg-slate-800 text-white fixed right-0 shadow-lg">
-        <div class="p-5 text-2xl font-bold border-b border-slate-700 text-yellow-400">نظام التاكسي الذكي</div>
-        <nav class="flex-1 p-4 space-y-2">
-            <a href="index.html" class="block p-3 rounded hover:bg-slate-700"><i class="fa fa-home ml-2"></i> الرئيسة</a>
-            <a href="owners.html" class="block p-3 rounded hover:bg-slate-700"><i class="fa fa-user-tie ml-2"></i> الملاك</a>
-            <a href="cars.html" class="block p-3 rounded bg-yellow-500 text-slate-900 font-bold"><i class="fa fa-car ml-2"></i> السيارات</a>
-            <a href="drivers.html" class="block p-3 rounded hover:bg-slate-700"><i class="fa fa-users ml-2"></i> السائقين</a>
-            <a href="handover.html" class="block p-3 rounded hover:bg-slate-700"><i class="fa fa-exchange-alt ml-2"></i> التبديل</a>
-            <a href="work-days.html" class="block p-3 rounded hover:bg-slate-700"><i class="fa fa-calendar-check ml-2"></i> أيام العمل</a>
+    <button onclick="toggleSidebar()" class="fixed top-5 right-5 z-50 bg-slate-800 text-yellow-400 p-3 rounded-full shadow-lg hover:bg-slate-700">
+        <i class="fa fa-bars fa-lg"></i>
+    </button>
+
+    <div id="overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black opacity-50 z-40 hidden"></div>
+
+    <div id="sidebar" class="fixed top-0 right-0 h-full w-64 bg-slate-800 text-white z-50 sidebar-closed shadow-2xl">
+        <div class="p-5 flex justify-between items-center border-b border-slate-700">
+            <span class="text-xl font-bold text-yellow-400">التاكسي الذكي</span>
+            <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white"><i class="fa fa-times"></i></button>
+        </div>
+        <nav class="p-4 space-y-2">
+            <a href="index.html" class="flex items-center p-3 rounded hover:bg-slate-700 transition"><i class="fa fa-home ml-3"></i> الرئيسة</a>
+            <a href="staff.html" class="flex items-center p-3 rounded hover:bg-slate-700 transition"><i class="fa fa-user-shield ml-3"></i> المستخدمين</a>
+            <a href="owners.html" class="flex items-center p-3 rounded hover:bg-slate-700 transition"><i class="fa fa-user-tie ml-3"></i> الملاك</a>
+            <a href="cars.html" class="flex items-center p-3 rounded bg-slate-700 text-yellow-400 border-r-4 border-yellow-500 font-bold"><i class="fa fa-car ml-3"></i> السيارات</a>
+            <a href="drivers.html" class="flex items-center p-3 rounded hover:bg-slate-700 transition"><i class="fa fa-users ml-3"></i> السائقين</a>
+            <a href="handover.html" class="flex items-center p-3 rounded hover:bg-slate-700 transition"><i class="fa fa-exchange-alt ml-3"></i> التبديل</a>
         </nav>
     </div>
 
-    <div class="mr-64 p-8">
-        <header class="flex justify-between items-center mb-8 bg-white p-5 rounded-lg shadow-sm">
+    <div class="p-8 pt-24 max-w-7xl mx-auto">
+        <div class="flex justify-between items-center mb-8 bg-white p-6 rounded-xl shadow-sm border-r-8 border-yellow-500">
             <h1 class="text-2xl font-bold text-slate-800">إدارة أسطول السيارات</h1>
-        </header>
+            <p class="text-gray-500 text-sm">إضافة وتحديث بيانات المركبات</p>
+        </div>
 
-        <div class="bg-white p-6 rounded-xl shadow-md mb-8">
-            <h2 class="text-lg font-bold text-slate-700 mb-4 border-b pb-2">إضافة سيارة جديدة</h2>
-            <form id="carForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                
-                <input type="text" id="plate_no" placeholder="رقم اللوحة (الأساسي)" class="p-3 border rounded border-blue-200 font-bold">
-                <input type="text" id="car_office" placeholder="مكتب السيارة" class="p-3 border rounded">
-                <input type="text" id="brand" placeholder="الماركة" class="p-3 border rounded">
-                <input type="number" id="model" placeholder="الموديل (السنة)" class="p-3 border rounded">
-                
-                <input type="text" id="color" placeholder="اللون" class="p-3 border rounded">
-                <select id="meter_type" class="p-3 border rounded">
-                    <option value="">نوع العداد</option>
-                    <option value="كهرباء">كهرباء</option>
-                    <option value="عادي">عادي</option>
-                </select>
-                <input type="text" id="chassis_no" placeholder="رقم الشاصي" class="p-3 border rounded">
-                <input type="text" id="engine_no" placeholder="رقم المحرك" class="p-3 border rounded">
-                
-                <div class="flex flex-col">
-                    <label class="text-[10px] text-gray-400 mr-1">انتهاء الترخيص</label>
-                    <input type="date" id="license_expiry" class="p-3 border rounded">
+        <div class="bg-white p-6 rounded-xl shadow-md mb-10 border border-gray-200">
+            <h2 class="text-lg font-bold text-slate-700 mb-6 border-b pb-2"><i class="fa fa-plus-circle ml-2 text-yellow-600"></i> تسجيل مركبة جديدة</h2>
+            <form id="carForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <input type="text" id="plate_no" placeholder="رقم اللوحة" class="p-3 border rounded focus:ring-2 focus:ring-yellow-400 outline-none font-bold">
+                <input type="text" id="car_office" placeholder="مكتب السيارة" class="p-3 border rounded focus:ring-2 focus:ring-yellow-400 outline-none">
+                <input type="text" id="brand" placeholder="الماركة (تويوتا، الخ..)" class="p-3 border rounded focus:ring-2 focus:ring-yellow-400 outline-none">
+                <input type="number" id="model" placeholder="الموديل (السنة)" class="p-3 border rounded focus:ring-2 focus:ring-yellow-400 outline-none">
+                <label class="text-[10px] text-gray-400 mr-1 font-bold text-right">انتهاء الترخيص</label>
+                <input type="date" id="license_expiry" class="p-3 border rounded">
                 </div>
-                <div class="flex flex-col">
-                    <label class="text-[10px] text-gray-400 mr-1">انتهاء التأمين</label>
-                    <input type="date" id="insurance_expiry" class="p-3 border rounded">
-                </div>
-                <input type="number" id="standard_rent" step="0.01" placeholder="الضمان المرجعي" class="p-3 border rounded bg-green-50">
+                <input type="number" id="standard_rent" step="0.01" placeholder="الضمان المرجعي" class="p-3 border rounded bg-green-50 font-bold">
                 <input type="number" id="management_fee" step="0.01" placeholder="العمولة الإدارية" class="p-3 border rounded">
 
-                <select id="owner_id" class="p-3 border rounded bg-yellow-50">
+                <select id="owner_id" class="p-3 border rounded bg-blue-50">
                     <option value="">-- اختر المالك --</option>
                 </select>
                 
-                <div class="md:col-span-3">
+                <div class="lg:col-span-3">
                     <input type="text" id="car_notes" placeholder="ملاحظات السيارة" class="w-full p-3 border rounded">
                 </div>
 
-                <button type="button" onclick="saveCar()" class="bg-slate-800 text-yellow-400 font-bold p-3 rounded hover:bg-slate-700">
-                    <i class="fa fa-save ml-1"></i> حفظ السيارة
+                <button type="button" onclick="saveCar()" class="lg:col-span-4 bg-slate-800 text-yellow-400 font-bold p-4 rounded-lg hover:bg-slate-700 transition shadow-lg">
+                    <i class="fa fa-save ml-2"></i> حفظ بيانات المركبة
                 </button>
             </form>
         </div>
 
-        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
             <table class="w-full text-right border-collapse text-sm">
-                <thead class="bg-slate-100 text-slate-600">
+                <thead class="bg-gray-100 text-gray-600 font-bold">
                     <tr>
-                        <th class="p-4 text-right">رقم اللوحة</th>
-                        <th class="p-4 text-right">الماركة/الموديل</th>
-                        <th class="p-4 text-right">المالك</th>
-                        <th class="p-4 text-right">الضمان</th>
-                        <th class="p-4 text-right">الترخيص</th>
+                        <th class="p-4">رقم اللوحة</th>
+                        <th class="p-4">الماركة/الموديل</th>
+                        <th class="p-4">المالك</th>
+                        <th class="p-4">الضمان</th>
+                        <th class="p-4">الإجراء</th>
                     </tr>
                 </thead>
-                <tbody id="carsList"></tbody>
+                <tbody id="carsList" class="text-slate-700"></tbody>
             </table>
         </div>
     </div>
@@ -88,12 +87,16 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // كود الربط المعتمد
         const SUPABASE_URL = 'https://tjntctaapsdynbywdfns.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_BJgdmxyFsCgzFDXh1Qn1CQ_cFRMsy2P'; 
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // 1. تحميل الملاك للقائمة المنسدلة
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('sidebar-closed');
+            document.getElementById('sidebar').classList.toggle('sidebar-open');
+            document.getElementById('overlay').classList.toggle('hidden');
+        }
+
         async function loadOwners() {
             const { data } = await _supabase.from('owners').select('id, name');
             const select = document.getElementById('owner_id');
@@ -102,7 +105,6 @@
             });
         }
 
-        // 2. وظيفة الحفظ (مطابقة تماماً لأسماء حقول cars في السكيما)
         async function saveCar() {
             const carData = {
                 plate_no: document.getElementById('plate_no').value,
@@ -115,26 +117,25 @@
                 engine_no: document.getElementById('engine_no').value,
                 license_expiry: document.getElementById('license_expiry').value || null,
                 insurance_expiry: document.getElementById('insurance_expiry').value || null,
-                standard_rent: document.getElementById('standard_rent').value || 0,
-                management_fee: document.getElementById('management_fee').value || 0,
+                standard_rent: parseFloat(document.getElementById('standard_rent').value) || 0,
+                management_fee: parseFloat(document.getElementById('management_fee').value) || 0,
                 owner_id: document.getElementById('owner_id').value || null,
                 car_notes: document.getElementById('car_notes').value
             };
 
-            if (!carData.plate_no) return Swal.fire('تنبيه', 'رقم اللوحة حقل إلزامي', 'warning');
+            if (!carData.plate_no) return Swal.fire('تنبيه', 'رقم اللوحة مطلوب', 'warning');
 
             const { error } = await _supabase.from('cars').insert([carData]);
 
             if (error) {
                 Swal.fire('خطأ', error.message, 'error');
             } else {
-                Swal.fire('تم بنجاح', 'تم تسجيل السيارة في الأسطول', 'success');
+                Swal.fire('تم', 'تم تسجيل السيارة بنجاح', 'success');
                 document.getElementById('carForm').reset();
                 fetchCars();
             }
         }
 
-        // 3. جلب وعرض البيانات
         async function fetchCars() {
             const { data, error } = await _supabase.from('cars').select('*, owners(name)').order('id', { ascending: false });
             if (error) return;
@@ -143,14 +144,31 @@
             tableBody.innerHTML = '';
             data.forEach(car => {
                 tableBody.innerHTML += `
-                    <tr class="border-b hover:bg-slate-50 transition">
+                    <tr class="border-b hover:bg-gray-50 transition">
                         <td class="p-4 font-bold text-blue-700">${car.plate_no}</td>
                         <td class="p-4">${car.brand} / ${car.model}</td>
                         <td class="p-4 font-medium">${car.owners?.name || '---'}</td>
                         <td class="p-4 text-green-700 font-bold">${car.standard_rent} د.أ</td>
-                        <td class="p-4 text-xs font-mono">${car.license_expiry || '---'}</td>
+                        <td class="p-4">
+                            <button onclick="deleteCar(${car.id})" class="text-red-500 hover:text-red-700"><i class="fa fa-trash"></i></button>
+                        </td>
                     </tr>`;
             });
+        }
+
+        async function deleteCar(id) {
+            const { isConfirmed } = await Swal.fire({
+                title: 'حذف مركبة؟',
+                text: "لا يمكن التراجع عن هذا الإجراء!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'نعم، احذف',
+                cancelButtonText: 'إلغاء'
+            });
+            if (isConfirmed) {
+                const { error } = await _supabase.from('cars').delete().eq('id', id);
+                if (!error) fetchCars();
+            }
         }
 
         window.onload = () => { loadOwners(); fetchCars(); };
