@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سجل السيارات v1.9.0 | التاكسي الذكي</title>
+    <title>سجل السيارات v2.0.0 | التاكسي الذكي</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
@@ -11,154 +11,137 @@
     <style>
         body { 
             font-family: 'Tajawal', sans-serif; 
-            /* خلفية مريحة ومميزة (Deep Slate to Soft Mint Gradient) */
-            background: linear-gradient(135deg, #1e293b 0%, #334155 40%, #f0fdf4 100%); 
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             background-attachment: fixed;
             min-height: 100vh; 
         }
-        
-        .glass-card {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+
+        /* تنسيق القائمة الجانبية المعتدل للـ PC */
+        .sidebar-link { transition: 0.3s; border-right: 4px solid transparent; font-size: 1rem; padding: 0.75rem 1rem; }
+        @media (min-width: 769px) { .sidebar-link { font-size: 0.95rem; } }
+        .sidebar-link:hover, .active-link { background: rgba(250, 204, 21, 0.1); border-right-color: #facc15; color: #facc15; }
+
+        /* خلفية بطاقة البيانات بنمط التاكسي (Yellow & Carbon) */
+        .taxi-pattern {
+            background-color: #facc15;
+            background-image:  linear-gradient(30deg, #eab308 12%, transparent 12.5%, transparent 87%, #eab308 87.5%, #eab308), linear-gradient(150deg, #eab308 12%, transparent 12.5%, transparent 87%, #eab308 87.5%, #eab308), linear-gradient(30deg, #eab308 12%, transparent 12.5%, transparent 87%, #eab308 87.5%, #eab308), linear-gradient(150deg, #eab308 12%, transparent 12.5%, transparent 87%, #eab308 87.5%, #eab308), linear-gradient(60deg, #fde047 25%, transparent 25.5%, transparent 75%, #fde047 75%, #fde047), linear-gradient(60deg, #fde047 25%, transparent 25.5%, transparent 75%, #fde047 75%, #fde047);
+            background-size: 20px 35px;
         }
 
-        .zebra-table tbody tr:nth-child(even) { background-color: rgba(241, 245, 249, 0.5); }
-        .zebra-table tr:hover { background-color: #f0fdf4 !important; transition: 0.3s; }
-
-        /* Modal Styling */
-        .modal { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; visibility: hidden; }
-        .modal.active { opacity: 1; visibility: visible; }
-
-        /* Adaptive Inputs: ضخمة للموبايل ورشيقة للكمبيوتر */
-        .smart-input { 
-            width: 100%; 
-            background: #ffffff; 
-            border: 2px solid #cbd5e1; 
-            border-radius: 1.25rem; 
-            text-align: center; 
-            transition: all 0.3s; 
+        .modal-card {
+            background: #ffffff;
+            border-top: 10px solid #facc15;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
+
+        /* تحجيم ذكي للحقول */
+        .smart-input { width: 100%; border: 2px solid #e2e8f0; border-radius: 0.75rem; text-align: center; transition: 0.3s; }
         @media (max-width: 768px) { 
-            .smart-input { padding: 1.5rem; font-size: 1.6rem; font-weight: 800; } 
-            .smart-label { font-size: 1.2rem; margin-bottom: 0.6rem; } 
+            .smart-input { padding: 1.25rem; font-size: 1.4rem; font-weight: 800; } 
+            .smart-header { font-size: 2rem !important; }
         }
         @media (min-width: 769px) { 
-            .smart-input { padding: 0.8rem; font-size: 1.1rem; font-weight: 700; } 
-            .smart-label { font-size: 0.9rem; margin-bottom: 0.3rem; } 
-        }
-        .smart-input:focus { 
-            border-color: #22c55e; 
-            box-shadow: 0 0 15px rgba(34, 197, 94, 0.2); 
-            outline: none; 
+            .smart-input { padding: 0.5rem; font-size: 1rem; font-weight: 600; } 
+            .smart-header { font-size: 1.5rem !important; }
         }
     </style>
 </head>
-<body class="flex flex-col md:flex-row">
+<body class="flex flex-col md:flex-row overflow-x-hidden">
 
-    <aside class="w-full md:w-72 bg-[#0f172a]/95 backdrop-blur-md md:sticky top-0 md:h-screen text-white p-6 shadow-2xl hidden md:flex flex-col border-l border-white/10">
-        <div class="flex items-center gap-3 mb-12 text-emerald-400">
-            <i class="fa-solid fa-taxi text-4xl"></i>
-            <h1 class="text-2xl font-black italic tracking-tighter">التاكسي الذكي</h1>
+    <aside class="w-full md:w-64 bg-[#020617] md:sticky top-0 md:h-screen text-white p-5 shadow-2xl hidden md:flex flex-col">
+        <div class="flex items-center gap-2 mb-8 text-yellow-400 px-2">
+            <i class="fa-solid fa-taxi text-2xl"></i>
+            <h1 class="text-lg font-black italic tracking-tighter">التاكسي الذكي</h1>
         </div>
-        <nav class="space-y-3 flex-1">
-            <a href="cars.html" class="flex items-center p-4 rounded-2xl gap-4 bg-emerald-500/20 text-emerald-400 border-r-4 border-emerald-400 font-black text-lg">
-                <i class="fa-solid fa-car-side"></i> سجل السيارات
+        <nav class="space-y-1 flex-1">
+            <a href="cars.html" class="sidebar-link active-link flex items-center rounded-lg gap-3 font-bold">
+                <i class="fa-solid fa-car-side w-5"></i> سجل السيارات
             </a>
-            <a href="owners.html" class="flex items-center p-4 rounded-2xl gap-4 text-slate-400 hover:text-white transition-all text-lg"><i class="fa-solid fa-user-tie"></i> المالكين</a>
+            <a href="owners.html" class="sidebar-link flex items-center rounded-lg gap-3 text-slate-400 hover:text-white transition-all">
+                <i class="fa-solid fa-user-tie w-5"></i> المالكين
+            </a>
         </nav>
     </aside>
 
-    <main class="flex-1 p-4 md:p-10">
-        <header class="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
+    <main class="flex-1 p-4 md:p-8">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
             <div class="text-center md:text-right">
-                <h2 class="text-5xl font-black text-white italic drop-shadow-lg">سجل السيارات</h2>
-                <div class="mt-2 inline-block bg-emerald-500 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-lg">Schema 1.9.0 - Stable</div>
+                <h2 class="text-3xl md:text-4xl font-black text-white italic">سجل السيارات</h2>
+                <span class="text-[10px] text-yellow-400 font-bold tracking-[0.2em] uppercase">Fleet Record System</span>
             </div>
-            <button onclick="toggleModal(true)" class="bg-emerald-500 text-[#0f172a] px-10 py-5 rounded-[2.5rem] flex items-center gap-4 hover:bg-white transition-all shadow-2xl font-black text-xl w-full md:w-auto justify-center group">
-                <i class="fa-solid fa-plus-circle text-2xl group-hover:rotate-90 transition-transform"></i> إضافة مركبة جديدة
+            <button onclick="toggleModal(true)" class="bg-yellow-400 text-slate-900 px-6 py-3 rounded-xl flex items-center gap-3 hover:bg-white transition-all shadow-lg font-black w-full md:w-auto justify-center">
+                <i class="fa-solid fa-plus-circle"></i> إضافة سيارة
             </button>
         </header>
 
-        <div class="glass-card rounded-[3rem] shadow-2xl overflow-hidden">
+        <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden border border-white/20">
             <div class="overflow-x-auto">
-                <table class="w-full zebra-table text-center">
-                    <thead class="bg-slate-900 text-emerald-400 text-xs uppercase font-black">
+                <table class="w-full text-center">
+                    <thead class="bg-slate-900 text-yellow-400 text-[11px] uppercase tracking-widest">
                         <tr>
-                            <th class="p-6">رقم اللوحة</th>
-                            <th class="p-6">مكتب السيارة</th>
-                            <th class="p-6">الماركة/الموديل</th>
-                            <th class="p-6">الضمان اليومي</th>
-                            <th class="p-6">الإجراءات</th>
+                            <th class="p-4">اللوحة</th>
+                            <th class="p-4">المكتب</th>
+                            <th class="p-4">الماركة/الموديل</th>
+                            <th class="p-4">الضمان</th>
+                            <th class="p-4">الإجراءات</th>
                         </tr>
                     </thead>
-                    <tbody id="carsTableBody" class="text-xl md:text-2xl font-bold text-slate-800">
+                    <tbody id="carsTableBody" class="text-sm md:text-base font-bold text-slate-700 divide-y divide-slate-100">
                         </tbody>
                 </table>
             </div>
         </div>
     </main>
 
-    <div id="carModal" class="modal fixed inset-0 flex items-center justify-center p-2 md:p-6">
-        <div class="fixed inset-0 bg-slate-900/95 backdrop-blur-md" onclick="toggleModal(false)"></div>
-        <div class="bg-white rounded-[3rem] md:rounded-[4rem] w-full max-w-6xl relative z-10 shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
-            <div class="p-8 bg-slate-50 border-b flex justify-between items-center sticky top-0 z-30">
-                <h3 class="font-black text-3xl text-slate-800 italic">بطاقة بيانات السيارة</h3>
-                <button onclick="toggleModal(false)" class="text-slate-300 hover:text-red-500 text-5xl transition">&times;</button>
+    <div id="carModal" class="modal fixed inset-0 flex items-center justify-center p-2 z-50">
+        <div class="fixed inset-0 bg-slate-900/90 backdrop-blur-md" onclick="toggleModal(false)"></div>
+        <div class="modal-card w-full max-w-4xl relative z-10 rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[98vh]">
+            <div class="taxi-pattern p-6 flex justify-between items-center border-b-4 border-slate-900">
+                <h3 class="font-black text-xl md:text-2xl text-slate-900 flex items-center gap-3">
+                    <i class="fa-solid fa-taxi"></i> بيانات المركبة الفنية والمالية
+                </h3>
+                <button onclick="toggleModal(false)" class="bg-slate-900 text-yellow-400 w-10 h-10 rounded-full flex items-center justify-center font-bold text-2xl hover:scale-110 transition">&times;</button>
             </div>
 
-            <form id="carForm" class="p-8 md:p-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-center overflow-y-auto">
-                <div class="flex flex-col items-center">
-                    <label class="smart-label font-bold text-slate-400 uppercase italic">رقم اللوحة (plate_no)</label>
-                    <input type="text" name="plate_no" required class="smart-input font-black text-emerald-600 shadow-inner">
+            <form id="carForm" class="p-6 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 text-center overflow-y-auto bg-slate-50">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">رقم اللوحة</label>
+                    <input type="text" name="plate_no" required class="smart-input font-black text-slate-900 border-2">
                 </div>
-                <div class="flex flex-col items-center">
-                    <label class="smart-label font-bold text-slate-400 uppercase">المكتب (car_office)</label>
-                    <input type="text" name="car_office" class="smart-input shadow-inner">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">مكتب السيارة</label>
+                    <input type="text" name="car_office" class="smart-input">
                 </div>
-                <div class="flex flex-col items-center">
-                    <label class="smart-label font-bold text-slate-400 uppercase">المالك (owner_id)</label>
-                    <select id="ownerSelect" name="owner_id" required class="smart-input cursor-pointer font-bold shadow-inner"><option value="">جاري التحميل...</option></select>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">المالك</label>
+                    <select id="ownerSelect" name="owner_id" required class="smart-input cursor-pointer font-bold bg-white"></select>
                 </div>
 
-                <div class="flex flex-col items-center">
-                    <label class="smart-label font-bold text-slate-400 uppercase">الماركة (brand)</label>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">الماركة</label>
                     <input type="text" name="brand" class="smart-input">
                 </div>
-                <div class="flex flex-col items-center">
-                    <label class="smart-label font-bold text-slate-400 uppercase">الموديل (model)</label>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">الموديل</label>
                     <input type="text" name="model" class="smart-input font-mono">
                 </div>
-                <div class="flex flex-col items-center">
-                    <label class="smart-label font-bold text-slate-400 uppercase">اللون (color)</label>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">اللون</label>
                     <input type="text" name="color" class="smart-input">
                 </div>
 
-                <div class="flex flex-col items-center">
-                    <label class="smart-label font-bold text-slate-400 uppercase">نوع العداد (meter_type)</label>
-                    <input type="text" name="meter_type" class="smart-input">
-                </div>
-                <div class="flex flex-col items-center">
-                    <label class="smart-label font-bold text-slate-400 uppercase italic">رقم الشاسيه (chassis)</label>
-                    <input type="text" name="chassis" class="smart-input font-mono">
-                </div>
-                <div class="flex flex-col items-center">
-                    <label class="smart-label font-bold text-slate-400 uppercase">تاريخ الانتهاء (exp_dates)</label>
-                    <input type="date" name="exp_dates" class="smart-input font-black">
-                </div>
-
-                <div class="bg-emerald-50 p-6 rounded-3xl md:col-span-1 border-2 border-emerald-100 shadow-xl">
-                    <label class="smart-label font-black text-emerald-700 mb-3 block">الضمان (standard_rent)</label>
-                    <input type="number" step="0.01" name="standard_rent" class="smart-input border-emerald-200 text-emerald-700 font-black text-3xl">
+                <div class="bg-yellow-100/50 p-4 rounded-xl border border-yellow-200">
+                    <label class="text-[11px] font-black text-yellow-700 mb-1 block">الضمان (standard_rent)</label>
+                    <input type="number" step="0.01" name="standard_rent" class="smart-input border-yellow-400 text-slate-900 font-black text-xl bg-white">
                 </div>
                 
-                <div class="bg-slate-50 p-6 rounded-3xl md:col-span-2 shadow-inner">
-                    <label class="smart-label font-bold text-slate-400">ملاحظات (car_notes)</label>
-                    <textarea name="car_notes" rows="2" class="smart-input"></textarea>
+                <div class="md:col-span-2">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">ملاحظات إضافية</label>
+                    <textarea name="car_notes" rows="2" class="smart-input text-right"></textarea>
                 </div>
 
-                <button type="submit" class="md:col-span-3 bg-[#0f172a] text-emerald-400 font-black py-8 rounded-[2.5rem] hover:bg-emerald-500 hover:text-[#0f172a] transition-all text-3xl shadow-2xl group border-2 border-emerald-500/30">
-                    <i class="fa-solid fa-save ml-4 group-hover:scale-125 transition"></i> حفظ السيارة في السجل
+                <button type="submit" class="md:col-span-3 bg-slate-900 text-yellow-400 font-black py-4 rounded-xl hover:bg-yellow-400 hover:text-slate-900 transition-all text-xl shadow-xl flex items-center justify-center gap-4">
+                    <i class="fa-solid fa-check-double"></i> تأكيد وحفظ في السجل
                 </button>
             </form>
         </div>
@@ -173,20 +156,20 @@
 
         async function loadOwners() {
             const { data } = await supabaseClient.from('owners').select('id, name');
-            document.getElementById('ownerSelect').innerHTML = '<option value="">اختر المالك المعتمد</option>' + (data || []).map(o => `<option value="${o.id}">${o.name}</option>`).join('');
+            document.getElementById('ownerSelect').innerHTML = '<option value="">اختر المالك</option>' + (data || []).map(o => `<option value="${o.id}">${o.name}</option>`).join('');
         }
 
         async function loadCars() {
             const { data } = await supabaseClient.from('cars').select('*').order('id', { ascending: false });
             document.getElementById('carsTableBody').innerHTML = (data || []).map(car => `
-                <tr class="transition">
-                    <td class="p-8 font-black text-3xl text-emerald-600">${car.plate_no}</td>
-                    <td class="p-8 text-slate-500 font-bold">${car.car_office || '-'}</td>
-                    <td class="p-8 font-bold">${car.brand} ${car.model}</td>
-                    <td class="p-8 text-emerald-700 font-black">${car.standard_rent} <small class="text-xs">د.أ</small></td>
-                    <td class="p-8 flex justify-center gap-6">
-                        <button class="text-blue-500 hover:scale-125 transition text-3xl"><i class="fa-solid fa-pen-to-square"></i></button>
-                        <button class="text-red-500 hover:scale-125 transition text-3xl"><i class="fa-solid fa-trash-can"></i></button>
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="p-3 font-black text-slate-900">${car.plate_no}</td>
+                    <td class="p-3 text-slate-500 font-medium">${car.car_office || '-'}</td>
+                    <td class="p-3">${car.brand} ${car.model}</td>
+                    <td class="p-3 text-slate-900 font-black">${car.standard_rent}</td>
+                    <td class="p-3 flex justify-center gap-3">
+                        <button class="text-slate-400 hover:text-blue-600"><i class="fa-solid fa-pen"></i></button>
+                        <button class="text-slate-400 hover:text-red-600"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 </tr>`).join('');
         }
