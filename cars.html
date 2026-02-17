@@ -38,81 +38,76 @@
     <div class="p-8 pt-24 max-w-7xl mx-auto">
         <div class="flex justify-between items-center mb-8 bg-white p-6 rounded-xl shadow-sm border-r-8 border-yellow-500">
             <h1 class="text-2xl font-bold text-slate-800">إدارة أسطول السيارات</h1>
-            <p class="text-gray-500 text-sm">بيانات المركبات الأساسية والمالية</p>
+            <p class="text-gray-500 text-sm">إدارة البيانات الأساسية والمالية للمركبات</p>
         </div>
 
         <div class="bg-white p-6 rounded-xl shadow-md mb-10 border border-gray-200">
             <h2 class="text-lg font-bold text-slate-700 mb-6 border-b pb-2"><i class="fa fa-plus-circle ml-2 text-yellow-600"></i> تسجيل مركبة جديدة</h2>
-            <form id="carForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <form id="carForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 
-                <div class="flex flex-col">
+                <div class="flex flex-col lg:col-span-1">
                     <label class="text-sm font-bold text-slate-600 mb-1">رقم اللوحة</label>
                     <input type="text" id="plate_no" placeholder="مثال: 10-12345" class="p-3 border rounded focus:ring-2 focus:ring-yellow-400 outline-none font-bold bg-blue-50">
                 </div>
 
-                <div class="flex flex-col">
+                <div class="flex flex-col lg:col-span-1">
                     <label class="text-sm font-bold text-slate-600 mb-1">مكتب السيارة</label>
                     <input type="text" id="car_office" placeholder="اسم المكتب" class="p-3 border rounded focus:ring-2 focus:ring-yellow-400 outline-none">
                 </div>
 
-                <div class="flex flex-col">
+                <div class="flex flex-col lg:col-span-1">
                     <label class="text-sm font-bold text-slate-600 mb-1">الماركة والنوع</label>
                     <input type="text" id="brand" placeholder="مثال: تويوتا بريوس" class="p-3 border rounded focus:ring-2 focus:ring-yellow-400 outline-none">
                 </div>
 
-                <div class="flex flex-col">
+                <div class="flex flex-col lg:col-span-1">
                     <label class="text-sm font-bold text-slate-600 mb-1">الموديل (السنة)</label>
                     <input type="number" id="model" placeholder="2024" class="p-3 border rounded focus:ring-2 focus:ring-yellow-400 outline-none">
                 </div>
 
-                <div class="flex flex-col">
+                <div class="flex flex-col lg:col-span-1">
                     <label class="text-sm font-bold text-slate-600 mb-1">انتهاء الترخيص</label>
-                    <input type="date" id="license_expiry" class="p-3 border rounded focus:ring-2 focus:ring-yellow-400 outline-none">
+                    <input type="date" id="license_expiry" class="p-3 border rounded focus:ring-2 focus:ring-yellow-400 outline-none font-mono">
                 </div>
 
-                <div class="flex flex-col">
-                    <label class="text-sm font-bold text-slate-600 mb-1">انتهاء التأمين</label>
-                    <input type="date" id="insurance_expiry" class="p-3 border rounded focus:ring-2 focus:ring-yellow-400 outline-none">
-                </div>
-
-                <div class="flex flex-col">
-                    <label class="text-sm font-bold text-slate-600 mb-1">الضمان المرجعي (يومي)</label>
+                <div class="flex flex-col lg:col-span-1">
+                    <label class="text-sm font-bold text-slate-600 mb-1">الضمان اليومي</label>
                     <input type="number" id="standard_rent" step="0.01" placeholder="0.00" class="p-3 border rounded bg-green-50 font-bold focus:ring-2 focus:ring-green-400 outline-none">
                 </div>
 
-                <div class="flex flex-col">
+                <div class="flex flex-col lg:col-span-1">
                     <label class="text-sm font-bold text-slate-600 mb-1">العمولة الإدارية</label>
                     <input type="number" id="management_fee" step="0.01" placeholder="0.00" class="p-3 border rounded focus:ring-2 focus:ring-yellow-400 outline-none">
                 </div>
 
-                <div class="flex flex-col">
+                <div class="flex flex-col lg:col-span-1">
                     <label class="text-sm font-bold text-slate-600 mb-1">المالك</label>
-                    <select id="owner_id" class="p-3 border rounded bg-yellow-50 focus:ring-2 focus:ring-yellow-400 outline-none">
+                    <select id="owner_id" class="p-3 border rounded bg-yellow-50 font-bold focus:ring-2 focus:ring-yellow-400 outline-none">
                         <option value="">-- اختر المالك --</option>
                     </select>
                 </div>
 
-                <div class="lg:col-span-3">
-                    <label class="text-sm font-bold text-slate-600 mb-1">ملاحظات إضافية</label>
-                    <input type="text" id="car_notes" placeholder="أي تفاصيل أخرى..." class="w-full p-3 border rounded focus:ring-2 focus:ring-yellow-400 outline-none">
+                <div class="lg:col-span-4">
+                    <label class="text-sm font-bold text-slate-600 mb-1">ملاحظات</label>
+                    <input type="text" id="car_notes" placeholder="ملاحظات إضافية عن السيارة..." class="w-full p-3 border rounded focus:ring-2 focus:ring-yellow-400 outline-none">
                 </div>
 
-                <button type="button" onclick="saveCar()" class="lg:col-span-3 bg-slate-800 text-yellow-400 font-bold p-4 rounded-lg hover:bg-slate-700 transition shadow-lg flex items-center justify-center">
-                    <i class="fa fa-save ml-2"></i> حفظ بيانات المركبة
+                <button type="button" onclick="saveCar()" class="lg:col-span-4 bg-slate-800 text-yellow-400 font-bold p-4 rounded-lg hover:bg-slate-700 transition shadow-lg flex items-center justify-center">
+                    <i class="fa fa-save ml-2"></i> حفظ المركبة في النظام
                 </button>
             </form>
         </div>
 
         <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
             <table class="w-full text-right border-collapse text-sm">
-                <thead class="bg-slate-100 text-slate-600 font-bold">
+                <thead class="bg-slate-100 text-slate-600 font-bold border-b">
                     <tr>
                         <th class="p-4">رقم اللوحة</th>
                         <th class="p-4">النوع/الموديل</th>
                         <th class="p-4">المالك</th>
                         <th class="p-4">الضمان</th>
-                        <th class="p-4">انتهاء الترخيص</th>
-                        <th class="p-4">الإجراء</th>
+                        <th class="p-4">الترخيص</th>
+                        <th class="p-4 text-center">إجراء</th>
                     </tr>
                 </thead>
                 <tbody id="carsList" class="text-slate-700"></tbody>
@@ -148,7 +143,6 @@
                 brand: document.getElementById('brand').value,
                 model: document.getElementById('model').value,
                 license_expiry: document.getElementById('license_expiry').value || null,
-                insurance_expiry: document.getElementById('insurance_expiry').value || null,
                 standard_rent: parseFloat(document.getElementById('standard_rent').value) || 0,
                 management_fee: parseFloat(document.getElementById('management_fee').value) || 0,
                 owner_id: document.getElementById('owner_id').value || null,
@@ -160,9 +154,9 @@
             const { error } = await _supabase.from('cars').insert([carData]);
 
             if (error) {
-                Swal.fire('خطأ في الربط', error.message, 'error');
+                Swal.fire('خطأ', error.message, 'error');
             } else {
-                Swal.fire('تم الحفظ', 'تمت إضافة السيارة بنجاح', 'success');
+                Swal.fire('تم بنجاح', 'تمت إضافة السيارة للأسطول', 'success');
                 document.getElementById('carForm').reset();
                 fetchCars();
             }
@@ -176,14 +170,14 @@
             tableBody.innerHTML = '';
             data.forEach(car => {
                 tableBody.innerHTML += `
-                    <tr class="border-b hover:bg-gray-50 transition">
+                    <tr class="border-b hover:bg-slate-50 transition">
                         <td class="p-4 font-bold text-blue-700">${car.plate_no}</td>
                         <td class="p-4">${car.brand} / ${car.model}</td>
                         <td class="p-4 font-medium">${car.owners?.name || '---'}</td>
                         <td class="p-4 text-green-700 font-bold">${car.standard_rent} د.أ</td>
                         <td class="p-4 text-xs font-mono">${car.license_expiry || '---'}</td>
                         <td class="p-4 text-center">
-                            <button onclick="deleteCar(${car.id})" class="text-red-500 hover:text-red-700"><i class="fa fa-trash"></i></button>
+                            <button onclick="deleteCar(${car.id})" class="text-red-400 hover:text-red-600"><i class="fa fa-trash"></i></button>
                         </td>
                     </tr>`;
             });
