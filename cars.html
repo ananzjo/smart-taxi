@@ -3,23 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3448/3448636.png" type="image/png">
-    <title>🚖 سجل السيارات | نظام إدارة التاكسي الذكي</title>
-    
+    <title>إدارة السيارات | نظام إدارة التاكسي الذكي</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <style>
-        :root { --primary-dark: #0f172a; --accent-yellow: #facc15; }
         body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; }
-
         .sidebar-link { transition: 0.3s; border-right: 4px solid transparent; }
-        .sidebar-link:hover, .active-link { background: rgba(250, 204, 21, 0.1); border-right-color: var(--accent-yellow); color: var(--accent-yellow); }
-
-        /* Modal Animation */
-        .modal { transition: opacity 0.3s ease, visibility 0.3s ease; opacity: 0; visibility: hidden; }
+        .sidebar-link:hover, .active-link { background: rgba(250, 204, 21, 0.1); border-right-color: #facc15; color: #facc15; }
+        .zebra-table tr:nth-child(even) { background-color: #f1f5f9; }
+        .modal { transition: opacity 0.3s ease; opacity: 0; visibility: hidden; }
         .modal.active { opacity: 1; visibility: visible; }
     </style>
 </head>
@@ -31,123 +25,156 @@
                 <div class="bg-yellow-400 p-2 rounded-lg text-slate-900"><i class="fa-solid fa-taxi text-2xl"></i></div>
                 <h1 class="text-xl font-bold">التاكسي الذكي</h1>
             </div>
-            <div class="flex items-center gap-2 mr-12 text-[10px]">
-                <span class="text-slate-500 uppercase tracking-widest">Version</span>
-                <span class="text-yellow-500 font-bold">1.3.0</span>
-            </div>
+            <div class="text-[10px] text-slate-500 mr-12 uppercase">Version 1.5.0</div>
         </div>
-
-        <nav class="space-y-1 flex-1 overflow-y-auto px-2">
-            <a href="index.html" class="sidebar-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400">
-                <i class="fa-solid fa-gauge-high w-6 text-center"></i> لوحة التحكم الذكية
+        <nav class="space-y-1 flex-1 overflow-y-auto px-2 text-sm">
+            <a href="index.html" class="sidebar-link flex items-center p-3 rounded-xl gap-3 text-slate-400">
+                <i class="fa-solid fa-gauge-high w-6"></i> لوحة التحكم الذكية
             </a>
-            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-widest text-right">إدارة الأسطول</div>
-            <a href="cars.html" class="sidebar-link active-link flex items-center p-3 rounded-xl gap-3 text-sm">
-                <i class="fa-solid fa-car w-6 text-center"></i> السيارات
+            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-widest">إدارة الأسطول</div>
+            <a href="cars.html" class="sidebar-link active-link flex items-center p-3 rounded-xl gap-3">
+                <i class="fa-solid fa-car w-6"></i> السيارات
             </a>
-            <a href="owners.html" class="sidebar-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400">
-                <i class="fa-solid fa-user-tie w-6 text-center"></i> المالكين
+            <a href="owners.html" class="sidebar-link flex items-center p-3 rounded-xl gap-3 text-slate-400">
+                <i class="fa-solid fa-user-tie w-6"></i> المالكين
             </a>
-            </nav>
+        </nav>
     </aside>
 
     <main class="flex-1 p-8">
         <header class="flex justify-between items-center mb-10">
             <div>
-                <h2 class="text-3xl font-bold text-slate-800 italic">إدارة السيارات</h2>
-                <p class="text-slate-500 mt-1 uppercase text-[10px] tracking-[0.2em] font-bold">Fleet Assets Management</p>
+                <h2 class="text-3xl font-bold text-slate-800">سجل السيارات</h2>
+                <p class="text-slate-400 text-xs mt-1 italic uppercase">Fleet Management - Schema 10-25</p>
             </div>
-            <button onclick="toggleModal(true)" class="bg-slate-900 text-white px-6 py-3 rounded-2xl flex items-center gap-3 hover:bg-slate-800 transition shadow-lg shadow-slate-200">
-                <i class="fa-solid fa-plus text-yellow-400"></i>
-                إضافة سيارة جديدة
+            <button onclick="toggleModal(true)" class="bg-slate-900 text-white px-6 py-3 rounded-2xl flex items-center gap-3 hover:bg-slate-800 shadow-xl">
+                <i class="fa-solid fa-plus-circle text-yellow-400"></i> إضافة سيارة
             </button>
         </header>
 
         <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
-            <div class="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
-                <h3 class="font-bold text-slate-800">قائمة أسطول السيارات</h3>
-                <div class="relative">
-                    <input type="text" placeholder="بحث برقم اللوحة..." class="pr-10 pl-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-yellow-400 transition w-64">
-                    <i class="fa-solid fa-search absolute right-4 top-3 text-slate-400 text-xs"></i>
-                </div>
-            </div>
-            
-            <table class="w-full text-right">
+            <table class="w-full text-right border-collapse">
                 <thead>
-                    <tr class="text-slate-400 text-[11px] uppercase tracking-widest border-b border-slate-50">
-                        <th class="p-6">رقم اللوحة</th>
-                        <th class="p-6">النوع / الموديل</th>
-                        <th class="p-6">المالك</th>
-                        <th class="p-6 text-center">الحالة</th>
-                        <th class="p-6 text-center">الإجراءات</th>
+                    <tr class="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-widest border-b border-slate-100">
+                        <th class="p-5">رقم اللوحة</th>
+                        <th class="p-5">الماركة/الموديل</th>
+                        <th class="p-5">المكتب</th>
+                        <th class="p-5">الضمان المرجعي</th>
+                        <th class="p-5 text-center">الإجراءات</th>
                     </tr>
                 </thead>
-                <tbody id="carsTableBody" class="text-sm">
-                    <tr class="hover:bg-slate-50 transition border-b border-slate-50">
-                        <td class="p-6 font-bold text-slate-700">90-55412</td>
-                        <td class="p-6">تويوتا كامري 2023</td>
-                        <td class="p-6">شركة الأفق للنقل</td>
-                        <td class="p-6 text-center">
-                            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[10px] font-bold">متاحة للعمل</span>
-                        </td>
-                        <td class="p-6 text-center">
-                            <button class="text-slate-400 hover:text-blue-600 transition mx-1"><i class="fa-solid fa-pen-to-square"></i></button>
-                            <button class="text-slate-400 hover:text-red-600 transition mx-1"><i class="fa-solid fa-trash"></i></button>
-                        </td>
-                    </tr>
-                </tbody>
+                <tbody id="carsTableBody" class="zebra-table text-sm text-slate-700">
+                    </tbody>
             </table>
         </div>
     </main>
 
     <div id="carModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="toggleModal(false)"></div>
-        <div class="bg-white rounded-[2.5rem] w-full max-w-lg relative z-10 shadow-2xl overflow-hidden">
-            <div class="p-8 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
-                <h3 class="font-bold text-slate-800 text-xl">إضافة سيارة جديدة للأسطول</h3>
-                <button onclick="toggleModal(false)" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+        <div class="bg-white rounded-[2.5rem] w-full max-w-3xl relative z-10 shadow-2xl overflow-y-auto max-h-[95vh]">
+            <div class="p-8 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
+                <h3 class="font-bold text-xl text-slate-800 italic">بيانات السيارة الفنية والمالية</h3>
+                <button onclick="toggleModal(false)" class="text-slate-400 hover:text-red-500 transition"><i class="fa-solid fa-circle-xmark text-2xl"></i></button>
             </div>
-            <form id="carForm" class="p-8 space-y-5">
+            <form id="carForm" class="p-8 grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-2 mr-2">رقم اللوحة</label>
-                    <input type="text" name="plate_number" required placeholder="مثلاً: 90-12345" class="w-full p-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-yellow-400 outline-none transition font-bold">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 mb-2 mr-2">النوع</label>
-                        <input type="text" name="make" required placeholder="تويوتا" class="w-full p-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-yellow-400 outline-none transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 mb-2 mr-2">الموديل</label>
-                        <input type="text" name="model" required placeholder="كامري 2024" class="w-full p-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-yellow-400 outline-none transition">
-                    </div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-2 mr-2">رقم اللوحة (plate_no)</label>
+                    <input type="text" name="plate_no" required class="w-full p-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-yellow-400 outline-none transition font-bold text-slate-800">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-2 mr-2">المالك</label>
-                    <select name="owner_id" class="w-full p-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-yellow-400 outline-none transition">
-                        <option value="">-- اختر المالك --</option>
-                        </select>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-2 mr-2">مكتب السيارة (car_office)</label>
+                    <input type="text" name="car_office" class="w-full p-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-yellow-400 outline-none transition">
                 </div>
-                <button type="submit" class="w-full bg-yellow-400 text-slate-900 font-bold p-5 rounded-2xl hover:bg-yellow-500 transition shadow-lg shadow-yellow-100 mt-4">
-                    حفظ السيارة في النظام
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-2 mr-2">نوع العداد (meter_type)</label>
+                    <input type="text" name="meter_type" class="w-full p-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-yellow-400 outline-none transition">
+                </div>
+
+                <div class="md:col-span-1">
+                    <label class="block text-[11px] font-bold text-slate-500 mb-2 mr-2">الماركة (brand)</label>
+                    <input type="text" name="brand" class="w-full p-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-yellow-400 outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-2 mr-2">الموديل (model)</label>
+                    <input type="text" name="model" class="w-full p-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-yellow-400 outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-2 mr-2">اللون (color)</label>
+                    <input type="text" name="color" class="w-full p-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-yellow-400 outline-none transition">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-2 mr-2">رقم الشاسيه (chassis)</label>
+                    <input type="text" name="chassis" class="w-full p-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-yellow-400 outline-none transition font-mono">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-2 mr-2">رقم المحرك (engine)</label>
+                    <input type="text" name="engine" class="w-full p-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-yellow-400 outline-none transition font-mono">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-2 mr-2">انتهاء الترخيص (exp_date)</label>
+                    <input type="date" name="exp_dates" class="w-full p-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-yellow-400 outline-none transition">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-2 mr-2">الضمان المرجعي (standard_rent)</label>
+                    <input type="number" step="0.01" name="standard_rent" class="w-full p-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-yellow-400 outline-none transition font-bold text-blue-600">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-2 mr-2">العمولة (fees)</label>
+                    <input type="number" step="0.01" name="fees" class="w-full p-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-yellow-400 outline-none transition font-bold text-red-600">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-2 mr-2">معرف المالك (owner_id)</label>
+                    <input type="number" name="owner_id" class="w-full p-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-yellow-400 outline-none transition">
+                </div>
+
+                <div class="md:col-span-3">
+                    <label class="block text-[11px] font-bold text-slate-500 mb-2 mr-2">ملاحظات السيارة (car_notes)</label>
+                    <textarea name="car_notes" class="w-full p-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-yellow-400 outline-none transition h-20"></textarea>
+                </div>
+
+                <button type="submit" class="md:col-span-3 bg-slate-900 text-white font-bold p-5 rounded-[2rem] hover:bg-yellow-400 hover:text-slate-900 transition-all duration-300 shadow-xl flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> حفظ السيارة في السجل
                 </button>
             </form>
         </div>
     </div>
 
     <script>
+        const SUPABASE_URL = 'https://tjntctaapsdynbywdfns.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_BJgdmxyFsCgzFDXh1Qn1CQ_cFRMsy2P';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         function toggleModal(show) {
             const modal = document.getElementById('carModal');
             if(show) modal.classList.add('active');
             else modal.classList.remove('active');
         }
 
-        // Supabase Initialization (نفس البيانات المحفوظة)
-        const SUPABASE_URL = 'https://tjntctaapsdynbywdfns.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_BJgdmxyFsCgzFDXh1Qn1CQ_cFRMsy2P';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // دالة جلب البيانات (سوف نفعّلها عند الربط الفعلي)
+        async function fetchCars() {
+            const body = document.getElementById('carsTableBody');
+            body.innerHTML = `<tr><td colspan="5" class="p-10 text-center italic text-slate-400">جاري تحميل أسطول السيارات من السحابة...</td></tr>`;
+            
+            // محاكاة لبيانات زيبرا مع أيقونات التعديل
+            setTimeout(() => {
+                body.innerHTML = `
+                <tr class="hover:bg-yellow-50/30 transition">
+                    <td class="p-5 font-bold">90-55412</td>
+                    <td class="p-5">تويوتا / كامري 2023</td>
+                    <td class="p-5 italic text-slate-500">مكتب النور</td>
+                    <td class="p-5 text-blue-600 font-bold">35.00 د.أ</td>
+                    <td class="p-5 text-center flex justify-center gap-4">
+                        <button title="تعديل" class="text-blue-500 hover:bg-blue-100 w-8 h-8 rounded-full transition"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button title="حذف" class="text-red-500 hover:bg-red-100 w-8 h-8 rounded-full transition"><i class="fa-solid fa-trash-can"></i></button>
+                    </td>
+                </tr>
+                `;
+            }, 1000);
+        }
 
-        // هنا سنضيف لاحقاً دوال CRUD للسيارات
+        window.onload = fetchCars;
     </script>
 </body>
 </html>
