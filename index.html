@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3448/3448636.png" type="image/png">
-    <title>🚖 نظام إدارة التاكسي الذكي | لوحة التحكم</title>
+    <title>🚖 لوحة التحكم | نظام إدارة التاكسي الذكي</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Chakra+Petch:wght@500;700&display=swap" rel="stylesheet">
     
@@ -17,30 +17,48 @@
         :root {
             --font-main: 'Cairo', sans-serif;
             --font-digital: 'Chakra Petch', sans-serif;
-            /* اللون الأزرق البحري الفخم */
-            --bg-color: #2e5dcc; 
+            --bg-navy: #3269e7; /* اللون الأزرق البحري */
         }
-        /* تطبيق اللون على الخلفية حصراً */
+        
         body { 
             font-family: var(--font-main); 
-            background-color: var(--bg-color); 
+            background-color: var(--bg-navy); 
+            color: white;
         }
         
         .digital-font { font-family: var(--font-digital); }
         
+        /* تنسيق البطاقات الملونة */
         .stat-card {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
-            min-height: 220px;
-            background-color: white; /* البطاقات تبقى بيضاء لتبرز */
+            min-height: 240px;
+            background: white; /* تباين البطاقات مع الخلفية */
+            color: #1e293b;
         }
 
-        /* تحسين مظهر الهيدر ليتناسب مع الخلفية الغامقة */
-        header h2 { color: white !important; }
-        header p { color: #94a3b8 !important; }
+        /* تنسيق جدول الأسطول */
+        .glass-table {
+            background: white;
+            border-radius: 2.5rem;
+            overflow: hidden;
+            color: #1e293b;
+        }
+
+        /* Snackbar */
+        #snackbar {
+            visibility: hidden; min-width: 280px; background-color: #1e293b;
+            color: #fff; text-align: center; border-radius: 16px; padding: 20px;
+            position: fixed; z-index: 100; right: 30px; bottom: 30px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+            border-bottom: 4px solid #facc15;
+        }
+        #snackbar.show { visibility: visible; animation: slideIn 0.5s, slideOut 0.5s 3.5s; }
+        @keyframes slideIn { from {right: -300px; opacity: 0;} to {right: 30px; opacity: 1;} }
+        @keyframes slideOut { from {right: 30px; opacity: 1;} to {right: -300px; opacity: 0;} }
     </style>
 </head>
 <body class="min-h-screen">
@@ -49,74 +67,156 @@
         
         <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
             <div>
-                <h2 class="text-3xl font-900 tracking-tight">لوحة التحكم الذكية</h2>
-                <p class="mt-1 uppercase text-[10px] tracking-[0.2em] font-bold italic">Smart Dashboard Control</p>
+                <h2 class="text-3xl font-black text-white tracking-tight">لوحة التحكم الذكية</h2>
+                <p class="text-slate-400 mt-1 uppercase text-[10px] tracking-[0.2em] font-bold italic">Smart Dashboard Control</p>
             </div>
-            <div class="bg-white/10 backdrop-blur-md px-5 py-2 rounded-2xl border border-white/20 flex items-center gap-3 text-sm font-bold text-white">
-                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                <span id="currentDate"></span>
+            <div class="bg-white/10 backdrop-blur-md px-5 py-2 rounded-2xl border border-white/20 flex items-center gap-3 text-sm font-bold">
+                <span class="w-6 h-6 rounded-full bg-green-500 animate-pulse"></span>
+                <span id="currentDate" class="text-white font-mono bold"></span>
             </div>
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-            <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border-b-8 border-[#FFD700] group transition-all hover:shadow-2xl hover:-translate-y-2 stat-card">
+            
+            <div class="stat-card p-8 rounded-[2.5rem] shadow-2xl border-b-8 border-[#FFD700] group transition-all hover:-translate-y-2">
                 <div class="p-4 bg-[#FFD700]/10 text-[#FFD700] rounded-3xl mb-4"><i class="fa-solid fa-calculator text-3xl"></i></div>
                 <p class="text-slate-500 text-sm font-bold mb-2 uppercase tracking-wide">الوارد المفترض</p>
-                <h3 class="text-5xl font-bold digital-font text-[#FFD700]" id="totalRevenue">0.00</h3>
+                <h3 class="text-4xl font-bold digital-font text-[#FFD700]" id="totalRevenue">0.00</h3>
                 <span class="text-slate-400 text-[10px] font-bold mt-2">GOLDEN REVENUE</span>
             </div>
 
-            <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border-b-8 border-[#8B0000] group transition-all hover:shadow-2xl hover:-translate-y-2 stat-card">
+            <div class="stat-card p-8 rounded-[2.5rem] shadow-2xl border-b-8 border-[#8B0000] group transition-all hover:-translate-y-2">
                 <div class="p-4 bg-[#8B0000]/10 text-[#8B0000] rounded-3xl mb-4"><i class="fa-solid fa-wrench text-3xl"></i></div>
                 <p class="text-slate-500 text-sm font-bold mb-2 uppercase tracking-wide">إجمالي المصاريف</p>
-                <h3 class="text-5xl font-bold digital-font text-[#8B0000]" id="totalExpenses">0.00</h3>
+                <h3 class="text-4xl font-bold digital-font text-[#8B0000]" id="totalExpenses">0.00</h3>
                 <span class="text-slate-400 text-[10px] font-bold mt-2">DEEP RED EXPENSES</span>
             </div>
 
-            <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border-b-8 border-[#388E3C] group transition-all hover:shadow-2xl hover:-translate-y-2 stat-card">
+            <div class="stat-card p-8 rounded-[2.5rem] shadow-2xl border-b-8 border-[#388E3C] group transition-all hover:-translate-y-2">
                 <div class="p-4 bg-[#388E3C]/10 text-[#388E3C] rounded-3xl mb-4"><i class="fa-solid fa-vault text-3xl"></i></div>
                 <p class="text-slate-500 text-sm font-bold mb-2 uppercase tracking-wide">المقبوض الفعلي</p>
-                <h3 class="text-5xl font-bold digital-font text-[#388E3C]" id="totalCollected">0.00</h3>
+                <h3 class="text-4xl font-bold digital-font text-[#388E3C]" id="totalCollected">0.00</h3>
                 <span class="text-slate-400 text-[10px] font-bold mt-2">GRASS GREEN CASH</span>
             </div>
 
-            <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border-b-8 border-[#F57C00] group transition-all hover:shadow-2xl hover:-translate-y-2 stat-card">
+            <div class="stat-card p-8 rounded-[2.5rem] shadow-2xl border-b-8 border-[#F57C00] group transition-all hover:-translate-y-2">
                 <div class="p-4 bg-[#F57C00]/10 text-[#F57C00] rounded-3xl mb-4"><i class="fa-solid fa-hand-holding-dollar text-3xl"></i></div>
                 <p class="text-slate-500 text-sm font-bold mb-2 uppercase tracking-wide">صافي الذمم</p>
-                <h3 class="text-5xl font-bold digital-font text-[#F57C00]" id="netReceivables">0.00</h3>
+                <h3 class="text-4xl font-bold digital-font text-[#F57C00]" id="netReceivables">0.00</h3>
                 <span class="text-slate-400 text-[10px] font-bold mt-2">ORANGE RECEIVABLES</span>
             </div>
+
         </div>
 
-        <div class="bg-white rounded-[2.5rem] shadow-xl overflow-hidden mb-8">
-            <div class="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
+        <div class="glass-table shadow-2xl mb-8">
+            <div class="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
                 <h3 class="font-bold text-slate-800 text-xl flex items-center gap-3">
                     <i class="fa-solid fa-car-side text-blue-600"></i> مراقبة الأسطول
                 </h3>
-                <div class="bg-red-50 text-red-600 px-4 py-2 rounded-2xl text-sm font-black flex items-center gap-2">
+                <div class="bg-red-50 text-red-600 px-4 py-2 rounded-2xl text-sm font-black">
                     متوقفة: <span id="idleCars">0</span>
                 </div>
             </div>
             <div class="overflow-x-auto px-4 pb-4">
-                <table class="w-full text-right text-slate-700 font-medium">
+                <table class="w-full text-right">
                     <thead>
-                        <tr class="text-slate-400 text-xs uppercase tracking-[0.2em]">
+                        <tr class="text-slate-400 text-xs uppercase tracking-widest border-b border-slate-50">
                             <th class="p-6">السيارة</th>
                             <th class="p-6">السائق</th>
-                            <th class="p-6">تاريخ الاستلام</th>
+                            <th class="p-6">التاريخ</th>
                             <th class="p-6 text-center">الحالة</th>
                         </tr>
                     </thead>
-                    <tbody id="fleetTableBody">
-                         </tbody>
+                    <tbody id="fleetTableBody" class="text-slate-700 font-medium italic">
+                        <tr><td colspan="4" class="p-10 text-center">جاري الاتصال بالسحابة...</td></tr>
+                    </tbody>
                 </table>
             </div>
         </div>
     </main>
 
-    <script>
-        // ... نفس كود الجافاسكريبت السابق ...
-    </script>
+    <div id="snackbar">نظام التاكسي الذكي v1.3.0 جاهز 🚖</div>
+
     <script src="sidebar.js"></script>
+    <script>
+        // إعدادات Supabase
+        const SUPABASE_URL = 'https://tjntctaapsdynbywdfns.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_BJgdmxyFsCgzFDXh1Qn1CQ_cFRMsy2P';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        function showSnackbar() {
+            const sb = document.getElementById("snackbar");
+            sb.className = "show";
+            setTimeout(() => { sb.className = sb.className.replace("show", ""); }, 4000);
+        }
+
+        async function initializeDashboard() {
+            try {
+                // تاريخ اليوم
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-EG', options);
+                showSnackbar();
+
+                // 1. الوارد
+                const { data: workDays } = await supabaseClient.from('work_days').select('daily_rent');
+                const totalRev = workDays ? workDays.reduce((s, d) => s + Number(d.daily_rent || 0), 0) : 0;
+                document.getElementById('totalRevenue').innerText = totalRev.toLocaleString();
+
+                // 2. المقبوض
+                const { data: revenues } = await supabaseClient.from('revenues').select('amount');
+                const totalColl = revenues ? revenues.reduce((s, r) => s + Number(r.amount || 0), 0) : 0;
+                document.getElementById('totalCollected').innerText = totalColl.toLocaleString();
+
+                // 3. المصاريف
+                const { data: expenses } = await supabaseClient.from('expenses').select('total_amount');
+                const totalExp = expenses ? expenses.reduce((s, e) => s + Number(e.total_amount || 0), 0) : 0;
+                document.getElementById('totalExpenses').innerText = totalExp.toLocaleString();
+
+                // 4. صافي الذمم
+                document.getElementById('netReceivables').innerText = (totalRev - totalColl).toLocaleString();
+
+                await fetchFleetStatus();
+            } catch (err) { console.error(err); }
+        }
+
+        async function fetchFleetStatus() {
+            const tableBody = document.getElementById('fleetTableBody');
+            const { data: cars, error } = await supabaseClient.from('cars').select(`
+                plate_no, brand,
+                handover ( event_type, handover_date, drivers ( name ) )
+            `).order('plate_no');
+
+            if (error) return;
+            tableBody.innerHTML = '';
+            let idleCount = 0;
+
+            cars.forEach(car => {
+                const lastMove = car.handover && car.handover.length > 0 ? car.handover[car.handover.length - 1] : null;
+                const isActive = lastMove && lastMove.event_type === 'Out';
+                if (!isActive) idleCount++;
+
+                const driver = isActive ? lastMove.drivers.name : '---';
+                const date = isActive ? new Date(lastMove.handover_date).toLocaleDateString('ar-EG') : '---';
+                const badge = isActive 
+                    ? '<span class="px-4 py-1 bg-green-500 text-white rounded-xl text-[10px] shadow-sm">نشطة</span>'
+                    : '<span class="px-4 py-1 bg-red-100 text-red-600 rounded-xl text-[10px]">متوقفة</span>';
+
+                tableBody.insertAdjacentHTML('beforeend', `
+                    <tr class="border-b border-slate-50 hover:bg-slate-50/80 transition-colors">
+                        <td class="p-6">
+                            <div class="font-black text-slate-800">${car.plate_no}</div>
+                            <div class="text-[10px] text-slate-400 uppercase tracking-tighter">${car.brand}</div>
+                        </td>
+                        <td class="p-6 text-slate-600">${driver}</td>
+                        <td class="p-6 text-slate-500 digital-font text-xs">${date}</td>
+                        <td class="p-6 text-center">${badge}</td>
+                    </tr>
+                `);
+            });
+            document.getElementById('idleCars').innerText = idleCount;
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeDashboard);
+    </script>
 </body>
 </html>
