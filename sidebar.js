@@ -80,7 +80,7 @@
                 right: 50% !important;
                 transform: translate(50%, 0) scale(0.3) !important;
                 pointer-events: none !important;
-                transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+                transition: all 1.8s cubic-bezier(0.34, 1.56, 1.64, 1) !important;
             `;
         } else {
             // --- إجراء الإغلاق ---
@@ -95,7 +95,7 @@
                 right: 1.25rem !important;
                 transform: translate(0, 0) scale(1) !important;
                 pointer-events: auto !important;
-                transition: all 0.6s ease !important;
+                transition: all 0.99s ease !important;
             `;
         }
     }
