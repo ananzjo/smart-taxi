@@ -9,30 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <style>
-        :root { --primary-dark: #0f172a; --accent-yellow: #facc15; }
-        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
-        
-        /* تنسيقات القالب المنزلق */
-        #main-sidebar { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        .sidebar-closed { transform: translateX(100%); }
-        .sidebar-open { transform: translateX(0); }
-        .active-link { background: rgba(250, 204, 21, 0.1) !important; border-right: 4px solid #facc15 !important; color: #facc15 !important; }
-
-        /* Custom Scrollbar */
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
-        
-        /* Tooltip Style */
-        [data-tooltip] { position: relative; cursor: pointer; }
-        [data-tooltip]:before {
-            content: attr(data-tooltip); position: absolute; bottom: 125%; left: 50%; transform: translateX(-50%);
-            padding: 8px 12px; background: var(--primary-dark); color: #fff; font-size: 11px; border-radius: 8px;
-            white-space: nowrap; opacity: 0; visibility: hidden; transition: 0.3s; z-index: 50;
-        }
-        [data-tooltip]:hover:before { opacity: 1; visibility: visible; }
-    </style>
+    
 <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-gray-50">

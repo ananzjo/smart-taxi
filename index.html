@@ -11,53 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <style>
-        :root { --primary-dark: #0f172a; --accent-yellow: #facc15; }
-        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
-
-        /* تسيق القائمة المنزلقة (Sliding Sidebar) */
-        #main-sidebar { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        .sidebar-closed { transform: translateX(100%); } /* تختفي لليمين */
-        .sidebar-open { transform: translateX(0); }
-        
-        /* الرابط النشط */
-        .active-link { 
-            background: rgba(250, 204, 21, 0.1) !important; 
-            border-right: 4px solid var(--accent-yellow) !important; 
-            color: var(--accent-yellow) !important; 
-        }
-
-        /* Tooltip & Pulse */
-        [data-tooltip] { position: relative; cursor: pointer; }
-        [data-tooltip]:before {
-            content: attr(data-tooltip);
-            position: absolute; bottom: 125%; left: 50%; transform: translateX(-50%);
-            padding: 8px 12px; background: var(--primary-dark); color: #fff;
-            font-size: 11px; border-radius: 8px; white-space: nowrap;
-            opacity: 0; visibility: hidden; transition: 0.3s; z-index: 50;
-        }
-        [data-tooltip]:hover:before { opacity: 1; visibility: visible; }
-
-        .pulse-status { display: inline-block; width: 12px; height: 12px; border-radius: 50%; position: relative; margin-left: 8px; }
-        .pulse-red { background: #ef4444; animation: shadow-pulse-red 2s infinite; }
-        @keyframes shadow-pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
-
-        /* Snackbar */
-        #snackbar {
-            visibility: hidden; min-width: 280px; background-color: var(--primary-dark);
-            color: #fff; text-align: center; border-radius: 16px; padding: 20px;
-            position: fixed; z-index: 100; right: 30px; bottom: 30px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-            border-bottom: 4px solid var(--accent-yellow);
-        }
-        #snackbar.show { visibility: visible; animation: slideIn 0.5s, slideOut 0.5s 3.5s; }
-        @keyframes slideIn { from {right: -300px; opacity: 0;} to {right: 30px; opacity: 1;} }
-        @keyframes slideOut { from {right: 30px; opacity: 1;} to {right: -300px; opacity: 0;} }
-    </style>
+    
 <link rel="stylesheet" href="style.css">
 </head>
 <body class="min-h-screen">
