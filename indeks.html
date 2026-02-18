@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3448/3448636.png" type="image/png">
+    <title>🚖 نظام إدارة التاكسي الذكي | لوحة التحكم الذكية</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --primary-dark: #0f172a; --accent-yellow: #facc15; }
+        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
+
+        /* تنسيقات القالب المنزلق */
+        #main-sidebar { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sidebar-closed { transform: translateX(100%); }
+        .sidebar-open { transform: translateX(0); }
+        .active-link { background: rgba(250, 204, 21, 0.1) !important; border-right: 4px solid #facc15 !important; color: #facc15 !important; }
+
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: var(--primary-dark); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+
+        /* Tooltip & Animations */
+        [data-tooltip] { position: relative; cursor: pointer; }
+        [data-tooltip]:before {
+            content: attr(data-tooltip); position: absolute; bottom: 125%; left: 50%; transform: translateX(-50%);
+            padding: 8px 12px; background: var(--primary-dark); color: #fff; font-size: 11px; border-radius: 8px;
+            white-space: nowrap; opacity: 0; visibility: hidden; transition: 0.3s; z-index: 50;
+        }
+        [data-tooltip]:hover:before { opacity: 1; visibility: visible; }
+
+        .pulse-status { display: inline-block; width: 12px; height: 12px; border-radius: 50%; position: relative; margin-left: 8px; }
+        .pulse-red { background: #ef4444; animation: shadow-pulse-red 2s infinite; }
+        @keyframes shadow-pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        #snackbar {
+            visibility: hidden; min-width: 280px; background-color: var(--primary-dark);
+            color: #fff; text-align: center; border-radius: 16px; padding: 20px;
+            position: fixed; z-index: 100; right: 30px; bottom: 30px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); border-bottom: 4px solid var(--accent-yellow);
+        }
+        #snackbar.show { visibility: visible; animation: slideIn 0.5s, slideOut 0.5s 3.5s; }
+        @keyframes slideIn { from {right: -300px; opacity: 0;} to {right: 30px; opacity: 1;} }
+        @keyframes slideOut { from {right: 30px; opacity: 1;} to {right: -300px; opacity: 0;} }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <button onclick="toggleSidebar()" class="fixed top-5 right-5 z-[60] bg-[#0f172a] text-yellow-400 p-3 rounded-xl shadow-2xl hover:scale-105 transition-all border border-slate-700 flex items-center gap-3 group font-bold">
+        <i class="fa-solid fa-bars-staggered text-xl"></i>
+        <span id="menu-text" class="font-bold text-sm transition-opacity duration-300">لوحة التحكم</span>
+    </button>
+
+    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden transition-opacity duration-300"></div>
+
+    <aside id="main-sidebar" class="fixed top-0 right-0 w-72 bg-[#0f172a] h-screen text-white p-6 shadow-2xl flex flex-col z-50 sidebar-closed font-bold border-l border-slate-800 transition-transform duration-400">
+        <div class="flex items-center justify-between mb-8 px-2 border-b border-slate-800 pb-4 text-right">
+            <div class="flex items-center gap-3">
+                <div class="bg-yellow-400 p-2 rounded-lg text-slate-900 shadow-lg shadow-yellow-400/20">
+                    <i class="fa-solid fa-taxi text-xl"></i>
+                </div>
+                <h1 class="text-lg font-bold tracking-tight text-white">التاكسي الذكي</h1>
+            </div>
+            <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white transition-colors">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+        </div>
+
+        <nav class="space-y-1 flex-1 overflow-y-auto pr-2 custom-scrollbar text-right">
+            <a href="index.html" class="active-link flex items-center p-3 rounded-xl gap-3 text-sm transition">
+                <i class="fa-solid fa-gauge-high w-6 text-lg text-center"></i> لوحة التحكم
+            </a>
+            
+            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-[0.2em]">إدارة الأسطول</div>
+            <a href="cars.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-car w-6 text-lg text-center"></i> السيارات
+            </a>
+            <a href="owners.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-user-tie w-6 text-lg text-center"></i> المالكين
+            </a>
+            <a href="drivers.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-users w-6 text-lg text-center"></i> السائقين
+            </a>
+
+            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-[0.2em]">الحركة والتشغيل</div>
+            <a href="handover.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-key w-6 text-center text-lg"></i> سجل الاستلام
+            </a>
+            <a href="work_days.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-calendar-check w-6 text-center text-lg"></i> أيام العمل
+            </a>
+
+            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-[0.2em]">المالية والمطابقة</div>
+            <a href="revenues.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-hand-holding-dollar w-6 text-center text-lg"></i> الإيرادات
+            </a>
+            <a href="expenses.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-file-invoice-dollar w-6 text-center text-lg"></i> المصاريف
+            </a>
+            <a href="reconciliation.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition border-t border-slate-800/50 mt-2">
+                <i class="fa-solid fa-scale-balanced w-6 text-center text-lg text-yellow-500"></i> المطابقة المالية
+            </a>
+        </nav>
+        
+        <div class="mt-auto border-t border-slate-800 pt-4 text-[10px] text-slate-500 flex justify-between items-center">
+            <span>v1.3.0</span>
+            <div class="flex items-center gap-1">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+                <span class="text-green-500 font-bold">Cloud System</span>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 p-8 pt-24 max-w-7xl mx-auto">
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <h2 class="text-3xl font-bold text-slate-800">لوحة التحكم الذكية</h2>
+                <p class="text-slate-500 mt-1 uppercase text-[10px] tracking-[0.2em] font-bold italic">Smart Dashboard Control</p>
+            </div>
+            <div class="bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-100 flex items-center gap-3 text-sm font-bold">
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                <span id="currentDate" class="text-slate-700 font-mono italic"></span>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 group transition hover:shadow-xl">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-3 bg-blue-50 text-blue-600 rounded-2xl"><i class="fa-solid fa-dollar-sign text-xl"></i></div>
+                    <span class="text-[10px] font-bold text-blue-600 uppercase">Revenue</span>
+                </div>
+                <p class="text-slate-400 text-sm" data-tooltip="إجمالي الإيرادات المولدة">إجمالي الوارد</p>
+                <h3 class="text-2xl font-bold text-slate-800 mt-1" id="totalRevenue">0.00 <small class="text-xs font-normal">د.أ</small></h3>
+            </div>
+
+            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 group transition hover:shadow-xl">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-3 bg-red-50 text-red-600 rounded-2xl"><i class="fa-solid fa-wrench text-xl"></i></div>
+                    <span class="text-[10px] font-bold text-red-600 uppercase">Expenses</span>
+                </div>
+                <p class="text-slate-400 text-sm">إجمالي المصروف</p>
+                <h3 class="text-2xl font-bold text-slate-800 mt-1" id="totalExpenses">0.00 <small class="text-xs font-normal">د.أ</small></h3>
+            </div>
+
+            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 group transition hover:shadow-xl">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-3 bg-green-50 text-green-600 rounded-2xl"><i class="fa-solid fa-vault text-xl"></i></div>
+                    <span class="text-[10px] font-bold text-green-600 uppercase">Collected</span>
+                </div>
+                <p class="text-slate-400 text-sm">المقبوض (كاش)</p>
+                <h3 class="text-2xl font-bold text-slate-800 mt-1" id="totalCollected">0.00 <small class="text-xs font-normal">د.أ</small></h3>
+            </div>
+
+            <div class="bg-white p-6 rounded-[2rem] shadow-sm border-yellow-400 border-2 relative group transition hover:shadow-xl">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-3 bg-yellow-50 text-yellow-600 rounded-2xl"><i class="fa-solid fa-briefcase text-xl"></i></div>
+                    <span class="text-[10px] font-bold text-yellow-600 uppercase">Receivables</span>
+                </div>
+                <p class="text-slate-400 text-sm">صافي الذمم</p>
+                <h3 class="text-2xl font-bold text-slate-800 mt-1" id="netReceivables">0.00 <small class="text-xs font-normal">د.أ</small></h3>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden mb-8">
+            <div class="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/20">
+                <h3 class="font-bold text-slate-800 text-lg">مراقبة الأسطول والسيارات المتوقفة</h3>
+                <span class="flex items-center text-xs font-bold text-slate-500">
+                    <i class="pulse-status pulse-red"></i> 
+                    سيارات متوقفة: <span id="idleCars" class="mr-1 text-red-600">0</span>
+                </span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-right">
+                    <thead>
+                        <tr class="text-slate-400 text-[11px] uppercase tracking-widest border-b border-slate-50">
+                            <th class="p-6 text-right">السيارة</th>
+                            <th class="p-6 text-right">السائق المستلم</th>
+                            <th class="p-6 text-right">تاريخ الاستلام</th>
+                            <th class="p-6 text-center">الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fleetTableBody" class="text-sm italic text-slate-400">
+                        <tr><td colspan="4" class="p-10 text-center text-xs">جاري سحب البيانات...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div id="snackbar">لوحة التحكم الذكية v1.3.0 جاهزة 🚖</div>
+
+    <script>
+        const SUPABASE_URL = 'https://tjntctaapsdynbywdfns.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_BJgdmxyFsCgzFDXh1Qn1CQ_cFRMsy2P';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // وظيفة التبديل للقائمة
+        function toggleSidebar() {
+            const sidebar = document.getElementById('main-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const menuText = document.getElementById('menu-text');
+
+            sidebar.classList.toggle('sidebar-closed');
+            sidebar.classList.toggle('sidebar-open');
+            overlay.classList.toggle('hidden');
+
+            if (sidebar.classList.contains('sidebar-open')) {
+                menuText.style.opacity = '0';
+                setTimeout(() => { menuText.style.display = 'none'; }, 300);
+            } else {
+                menuText.style.display = 'inline';
+                setTimeout(() => { menuText.style.opacity = '1'; }, 10);
+            }
+        }
+
+        async function initializeDashboard() {
+            try {
+                // الحسابات المالية
+                const { data: workDays } = await supabaseClient.from('work_days').select('daily_rent');
+                const totalRevenue = workDays ? workDays.reduce((sum, day) => sum + Number(day.daily_rent), 0) : 0;
+                document.getElementById('totalRevenue').innerHTML = `${totalRevenue.toFixed(2)} <small class="text-xs font-normal">د.أ</small>`;
+
+                const { data: revenues } = await supabaseClient.from('revenues').select('amount');
+                const totalCollected = revenues ? revenues.reduce((sum, rev) => sum + Number(rev.amount), 0) : 0;
+                document.getElementById('totalCollected').innerHTML = `${totalCollected.toFixed(2)} <small class="text-xs font-normal">د.أ</small>`;
+
+                const { data: expenses } = await supabaseClient.from('expenses').select('total_amount');
+                const totalExpenses = expenses ? expenses.reduce((sum, exp) => sum + Number(exp.total_amount), 0) : 0;
+                document.getElementById('totalExpenses').innerHTML = `${totalExpenses.toFixed(2)} <small class="text-xs font-normal">د.أ</small>`;
+
+                const netReceivables = totalRevenue - totalCollected;
+                document.getElementById('netReceivables').innerHTML = `${netReceivables.toFixed(2)} <small class="text-xs font-normal">د.أ</small>`;
+
+                await fetchFleetStatus();
+            } catch (err) { console.error("Error:", err); }
+        }
+
+        async function fetchFleetStatus() {
+            const tableBody = document.getElementById('fleetTableBody');
+            const { data: cars, error } = await supabaseClient.from('cars').select('plate_no, brand, handover(handover_date, event_type, drivers(name))').order('plate_no');
+
+            if (error) return;
+            tableBody.innerHTML = '';
+            let idleCount = 0;
+
+            cars.forEach(car => {
+                const lastMovement = car.handover && car.handover.length > 0 ? car.handover[car.handover.length - 1] : null;
+                const isActive = lastMovement && lastMovement.event_type === 'Out';
+                if (!isActive) idleCount++;
+
+                tableBody.insertAdjacentHTML('beforeend', `
+                    <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition">
+                        <td class="p-6 font-bold text-slate-700">${car.plate_no} <br><span class="text-[10px] font-normal text-slate-400">${car.brand}</span></td>
+                        <td class="p-6 text-slate-600">${isActive ? lastMovement.drivers.name : '---'}</td>
+                        <td class="p-6 text-slate-500 font-mono text-xs">${isActive ? new Date(lastMovement.handover_date).toLocaleDateString('ar-EG') : '---'}</td>
+                        <td class="p-6 text-center">${isActive ? '<span class="px-3 py-1 bg-green-100 text-green-600 rounded-full text-[10px] font-bold font-sans">نشطة</span>' : '<span class="px-3 py-1 bg-red-100 text-red-600 rounded-full text-[10px] font-bold font-sans">متوقفة</span>'}</td>
+                    </tr>
+                `);
+            });
+            document.getElementById('idleCars').innerText = idleCount;
+        }
+
+        window.onload = () => {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-EG', options);
+            const sb = document.getElementById("snackbar");
+            sb.className = "show";
+            setTimeout(() => { sb.className = ""; }, 4000);
+            initializeDashboard();
+        };
+    </script>
+</body>
+</html>
