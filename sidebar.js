@@ -1,4 +1,4 @@
-// 1. منع الدخول المباشر للصفحات الفرعية (يجب المرور عبر index.html)
+// 1. منع الدخول المباشر للصفحات الفرعية (نظام إدارة التاكسي الذكي)
 if (!window.location.pathname.endsWith('index.html') && 
     window.location.pathname !== '/' && 
     document.referrer === "") {
@@ -7,20 +7,20 @@ if (!window.location.pathname.endsWith('index.html') &&
 
 function injectSidebar() {
     const sidebarHTML = `
-    <button id="sidebar-toggle-btn" onclick="toggleSidebar()" class="fixed top-5 right-5 z-[60] bg-[#0f172a] text-yellow-400 p-3 rounded-xl shadow-2xl hover:scale-105 border border-slate-700 flex items-center gap-3 font-bold">
+    <button id="sidebar-toggle-btn" onclick="toggleSidebar()" class="fixed top-5 right-5 z-[60] bg-[#0f172a] text-yellow-400 p-3 rounded-xl shadow-2xl border border-slate-700 flex items-center gap-3 font-bold" style="transition: all 0.5s ease;">
         <i class="fa-solid fa-bars-staggered text-xl"></i>
         <span class="text-sm">لوحة التحكم</span>
     </button>
 
     <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden transition-opacity duration-300"></div>
 
-    <aside id="main-sidebar" class="fixed top-0 right-0 w-72 bg-[#0f172a] h-screen text-white p-6 shadow-2xl flex flex-col z-50 sidebar-closed font-bold border-l border-slate-800 transition-transform duration-400">
+    <aside id="main-sidebar" class="fixed top-0 right-0 w-72 bg-[#0f172a] h-screen text-white p-6 shadow-2xl flex flex-col z-50 sidebar-closed font-bold border-l border-slate-800">
         <div class="flex items-center justify-between mb-8 px-2 border-b border-slate-800 pb-4">
             <div class="flex items-center gap-3">
-                <div class="bg-yellow-400 p-2 rounded-lg text-slate-900 shadow-lg shadow-yellow-400/20">
+                <div class="bg-yellow-400 p-2 rounded-lg text-slate-900 shadow-lg">
                     <i class="fa-solid fa-taxi text-xl"></i>
                 </div>
-                <h1 class="text-lg font-bold tracking-tight text-white">التاكسي الذكي</h1>
+                <h1 class="text-lg font-bold text-white">التاكسي الذكي</h1>
             </div>
             <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white transition-colors">
                 <i class="fa-solid fa-xmark text-xl"></i>
@@ -68,16 +68,16 @@ function toggleSidebar() {
         sidebar.classList.add('sidebar-open');
         overlay.classList.remove('hidden');
         
-        // استخدام الفئة الجديدة للاختفاء والانزلاق
-        toggleBtn.classList.add('sidebar-btn-hidden');
+        // فرض الشفافية والانزلاق عبر cssText لكسر أي تعارض
+        toggleBtn.style.cssText = "opacity: 0 !important; transform: translateX(100px) scale(0.8) !important; pointer-events: none !important; transition: all 0.5s ease !important; position: fixed; top: 1.25rem; right: 1.25rem; z-index: 60;";
     } else {
         // --- إغلاق القائمة ---
         sidebar.classList.remove('sidebar-open');
         sidebar.classList.add('sidebar-closed');
         overlay.classList.add('hidden');
         
-        // إزالة الفئة لإظهار الزر مجدداً
-        toggleBtn.classList.remove('sidebar-btn-hidden');
+        // إعادة الزر لوضعه الطبيعي (نفس قيم Tailwind الأصلية)
+        toggleBtn.style.cssText = "opacity: 1 !important; transform: translateX(0) scale(1) !important; pointer-events: auto !important; transition: all 0.5s ease !important; position: fixed; top: 1.25rem; right: 1.25rem; z-index: 60;";
     }
 }
 
@@ -92,5 +92,5 @@ function highlightActiveLink() {
     });
 }
 
-// تشغيل وظيفة الحقن
+// تشغيل النظام
 injectSidebar();
