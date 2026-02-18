@@ -11,126 +11,138 @@
     
     <style>
         :root { --primary-dark: #0f172a; --accent-yellow: #facc15; }
-        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; transition: all 0.3s; }
+        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
         
-        .sidebar-collapsed { width: 85px; }
-        .sidebar-collapsed .link-text, .sidebar-collapsed .logo-text, .sidebar-collapsed .section-title { display: none; }
-        .sidebar-collapsed .sidebar-link { justify-content: center; }
+        /* تأثيرات القائمة المنزلقة */
+        #main-sidebar { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sidebar-closed { transform: translateX(100%); }
+        .sidebar-open { transform: translateX(0); }
+        
+        .active-link { background: rgba(250, 204, 21, 0.1); border-right: 4px solid var(--accent-yellow); color: var(--accent-yellow); }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
 
-        [data-tooltip] { position: relative; cursor: pointer; }
-        [data-tooltip]:before {
-            content: attr(data-tooltip);
-            position: absolute; bottom: 125%; left: 50%; transform: translateX(-50%);
-            padding: 8px 12px; background: var(--primary-dark); color: #fff;
-            font-size: 11px; border-radius: 8px; white-space: nowrap;
-            opacity: 0; visibility: hidden; transition: 0.3s; z-index: 50;
-        }
-        [data-tooltip]:hover:before { opacity: 1; visibility: visible; }
-
-        .sidebar-link { transition: 0.3s; border-right: 4px solid transparent; }
-        .sidebar-link:hover, .active-link { background: rgba(250, 204, 21, 0.1); border-right-color: var(--accent-yellow); color: var(--accent-yellow); }
+        #menu-text { white-space: nowrap; }
     </style>
 </head>
-<body class="flex min-h-screen">
+<body class="bg-gray-100 text-right">
 
-    <aside id="sidebar" class="w-72 bg-[#0f172a] sticky top-0 h-screen text-white p-4 shadow-2xl flex flex-col z-40 transition-all duration-300">
-        <div class="flex items-center gap-3 mb-8 px-2">
-            <button onclick="toggleSidebar()" class="text-yellow-400 hover:text-white transition">
-                <i class="fa-solid fa-bars text-xl"></i>
-            </button>
-            <h1 class="text-xl font-bold logo-text truncate">التاكسي الذكي</h1>
+    <button onclick="toggleSidebar()" class="fixed top-5 right-5 z-[60] bg-[#0f172a] text-yellow-400 p-3 rounded-xl shadow-2xl hover:scale-105 transition-all border border-slate-700 flex items-center gap-3 group">
+        <i class="fa-solid fa-bars-staggered text-xl"></i>
+        <span id="menu-text" class="font-bold text-sm">لوحة التحكم</span>
+    </button>
+
+    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden transition-opacity"></div>
+
+    <aside id="main-sidebar" class="fixed top-0 right-0 w-72 bg-[#0f172a] h-screen text-white p-6 shadow-2xl flex flex-col z-50 sidebar-closed font-bold">
+        <div class="flex items-center justify-between mb-8 px-2 border-b border-slate-800 pb-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-yellow-400 p-2 rounded-lg text-slate-900"><i class="fa-solid fa-taxi text-xl"></i></div>
+                <h1 class="text-lg font-bold">التاكسي الذكي</h1>
+            </div>
+            <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
         </div>
-        <nav class="space-y-1 flex-1 overflow-y-auto px-2 overflow-x-hidden">
-            <a href="index.html" class="sidebar-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400">
-                <i class="fa-solid fa-gauge-high w-6"></i> <span class="link-text">لوحة التحكم</span>
+
+        <nav class="space-y-1 flex-1 overflow-y-auto pr-2 custom-scrollbar">
+            <a href="index.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-gauge-high w-6 text-lg"></i> لوحة التحكم
             </a>
-            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase section-title">إدارة الأسطول</div>
-            <a href="cars.html" class="sidebar-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400">
-                <i class="fa-solid fa-car w-6"></i> <span class="link-text">السيارات</span>
+            
+            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-widest">إدارة الأسطول</div>
+            <a href="cars.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-car w-6 text-lg"></i> السيارات
             </a>
-            <a href="owners.html" class="sidebar-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400">
-                <i class="fa-solid fa-user-tie w-6"></i> <span class="link-text">الملاك</span>
+            <a href="owners.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-user-tie w-6 text-lg"></i> الملاك
             </a>
-            <a href="drivers.html" class="sidebar-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400">
-                <i class="fa-solid fa-users w-6"></i> <span class="link-text">السائقين</span>
+            <a href="drivers.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-users w-6 text-lg"></i> السائقين
             </a>
-            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase section-title">الحركة والتشغيل</div>
-            <a href="deliveries.html" class="sidebar-link active-link flex items-center p-3 rounded-xl gap-3 text-sm">
-                <i class="fa-solid fa-key w-6"></i> <span class="link-text">سجل الاستلام</span>
+
+            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-widest">الحركة والتشغيل</div>
+            <a href="deliveries.html" class="active-link flex items-center p-3 rounded-xl gap-3 text-sm">
+                <i class="fa-solid fa-key w-6 text-lg"></i> سجل الاستلام
             </a>
         </nav>
+        
+        <div class="mt-auto border-t border-slate-800 pt-4 text-[10px] text-slate-500 flex justify-between">
+            <span>v1.3.0</span>
+            <span class="text-green-500 font-bold">● Cloud Online</span>
+        </div>
     </aside>
 
-    <main class="flex-1 p-8">
-        <header class="flex justify-between items-center mb-10">
+    <main class="p-6 md:p-12 pt-24 max-w-7xl mx-auto">
+        <header class="flex justify-between items-center mb-8 bg-white p-6 rounded-2xl shadow-sm border-r-8 border-yellow-500">
             <div>
-                <h2 class="text-3xl font-bold text-slate-800">سجل استلام وتسليم السيارات</h2>
-                <p class="text-slate-500 mt-1 uppercase text-[10px] tracking-[0.2em] font-bold italic">Car Handover Log</p>
+                <h1 class="text-2xl font-bold text-slate-800 underline decoration-yellow-400 decoration-4">سجل استلام وتسليم السيارات</h1>
+                <p class="text-slate-400 text-xs mt-1 italic uppercase tracking-widest">Car Handover Log</p>
             </div>
         </header>
 
-        <section class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 mb-8">
+        <section class="bg-white p-8 rounded-2xl shadow-md border border-slate-200 mb-10">
             <h3 class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2">
                 <i class="fa-solid fa-exchange-alt text-yellow-500"></i> تسجيل حركة استلام/تسليم
             </h3>
             <form id="handoverForm" class="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <input type="hidden" id="id">
                 
-                <div data-tooltip="اختر رقم لوحة السيارة المعنية">
+                <div>
                     <label class="block text-xs font-bold text-slate-500 mb-2">رقم اللوحة</label>
                     <select id="car_plate" required class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-yellow-400 outline-none">
                         <option value="">اختر السيارة...</option>
                     </select>
                 </div>
 
-                <div data-tooltip="اختر السائق المعني بالحركة">
+                <div>
                     <label class="block text-xs font-bold text-slate-500 mb-2">السائق</label>
                     <select id="driver_nat_id" required class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-yellow-400 outline-none">
                         <option value="">اختر السائق...</option>
                     </select>
                 </div>
 
-                <div data-tooltip="دخول: استعادة السيارة من السائق | خروج: تسليم السيارة للسائق">
+                <div>
                     <label class="block text-xs font-bold text-slate-500 mb-2">نوع الحركة</label>
-                    <select id="event_type" required class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-yellow-400 outline-none">
-                        <option value="Out">خروج (تسليم للسائق)</option>
-                        <option value="In">دخول (استلام من السائق)</option>
+                    <select id="event_type" required class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-yellow-400 outline-none font-bold">
+                        <option value="Out" class="text-blue-600">خروج (تسليم للسائق)</option>
+                        <option value="In" class="text-green-600">دخول (استلام من السائق)</option>
                     </select>
                 </div>
 
-                <div data-tooltip="تاريخ وقوع العملية">
+                <div>
                     <label class="block text-xs font-bold text-slate-500 mb-2">التاريخ</label>
                     <input type="date" id="handover_date" required class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-yellow-400 outline-none">
                 </div>
 
-                <div data-tooltip="قراءة عداد الكيلومتر وقت التبديل">
+                <div>
                     <label class="block text-xs font-bold text-slate-500 mb-2">قراءة العداد</label>
-                    <input type="number" id="odometer" class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-yellow-400 outline-none">
+                    <input type="number" id="odometer" class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-yellow-400 outline-none font-mono">
                 </div>
 
-                <div data-tooltip="قيمة الضمان اليومي المتفق عليها لهذه الفترة">
+                <div>
                     <label class="block text-xs font-bold text-slate-500 mb-2">الضمان اليومي</label>
-                    <input type="number" id="current_rent" step="0.01" class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-yellow-400 outline-none">
+                    <input type="number" id="current_rent" step="0.01" class="w-full border-slate-200 rounded-xl p-3 bg-green-50 focus:ring-2 focus:ring-green-400 outline-none text-green-700 font-bold">
                 </div>
 
-                <div class="md:col-span-2" data-tooltip="وصف دقيق لحالة جسم السيارة">
+                <div class="md:col-span-2">
                     <label class="block text-xs font-bold text-slate-500 mb-2">حالة جسم السيارة</label>
                     <input type="text" id="body_status" placeholder="مثال: جيد، خدش بالخلف..." class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-yellow-400 outline-none">
                 </div>
 
                 <div class="md:col-span-4 flex justify-end">
-                    <button type="submit" class="w-full md:w-64 bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold py-3 rounded-xl transition shadow-lg shadow-yellow-400/20">
-                        حفظ السجل
+                    <button type="submit" class="w-full md:w-64 bg-[#0f172a] text-yellow-400 font-bold py-4 rounded-xl hover:bg-slate-800 transition shadow-xl flex items-center justify-center gap-3">
+                        <i class="fa-solid fa-floppy-disk"></i> حفظ السجل
                     </button>
                 </div>
             </form>
         </section>
 
-        <section class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+        <section class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
             <div class="overflow-x-auto">
-                <table class="w-full text-right">
+                <table class="w-full text-right border-collapse">
                     <thead>
-                        <tr class="bg-slate-50 text-slate-400 text-[11px] uppercase tracking-widest border-b border-slate-100">
+                        <tr class="bg-slate-100 text-slate-500 text-[11px] uppercase tracking-widest border-b">
                             <th class="p-6 text-center">نوع الحركة</th>
                             <th class="p-6">التاريخ</th>
                             <th class="p-6">اللوحة</th>
@@ -139,7 +151,7 @@
                             <th class="p-6 text-center">العمليات</th>
                         </tr>
                     </thead>
-                    <tbody id="handoverTableBody" class="text-sm text-slate-600">
+                    <tbody id="handoverTableBody" class="text-sm divide-y divide-slate-100 text-slate-600">
                         <tr><td colspan="6" class="p-10 text-center text-xs italic">جاري تحميل سجلات التبديل...</td></tr>
                     </tbody>
                 </table>
@@ -152,9 +164,24 @@
         const SUPABASE_KEY = 'sb_publishable_BJgdmxyFsCgzFDXh1Qn1CQ_cFRMsy2P';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('sidebar-collapsed'); }
+        // وظيفة التبديل المحدثة
+        function toggleSidebar() {
+            const sidebar = document.getElementById('main-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const menuText = document.getElementById('menu-text');
 
-        // التحميل الأولي للبيانات المساعدة (السيارات والسائقين)
+            sidebar.classList.toggle('sidebar-closed');
+            sidebar.classList.toggle('sidebar-open');
+            overlay.classList.toggle('hidden');
+
+            // إخفاء نص "لوحة التحكم" عند فتح القائمة
+            if (sidebar.classList.contains('sidebar-open')) {
+                menuText.style.display = 'none';
+            } else {
+                menuText.style.display = 'inline';
+            }
+        }
+
         async function loadFormData() {
             const { data: cars } = await supabaseClient.from('cars').select('plate_no');
             const { data: drivers } = await supabaseClient.from('drivers').select('driver_id, name');
@@ -170,19 +197,19 @@
             
             const tbody = document.getElementById('handoverTableBody');
             tbody.innerHTML = data.map(h => `
-                <tr class="border-b border-slate-50 hover:bg-slate-50 transition">
+                <tr class="hover:bg-yellow-50/30 transition">
                     <td class="p-6 text-center">
                         <span class="px-3 py-1 rounded-full text-[10px] font-bold ${h.event_type === 'Out' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'}">
-                            ${h.event_type === 'Out' ? 'خروج' : 'دخول'}
+                            ${h.event_type === 'Out' ? 'خروج ⇖' : 'دخول ⇙'}
                         </span>
                     </td>
                     <td class="p-6 font-mono text-xs">${h.handover_date}</td>
                     <td class="p-6 font-bold text-slate-700">${h.car_plate}</td>
-                    <td class="p-6 text-slate-600">${h.drivers?.name || h.driver_nat_id}</td>
-                    <td class="p-6 text-slate-400 font-mono italic">${h.odometer || '---'}</td>
-                    <td class="p-6 text-center flex justify-center gap-2">
-                        <button onclick="editHandover(${JSON.stringify(h).replace(/"/g, '&quot;')})" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition"><i class="fa-solid fa-pen"></i></button>
-                        <button onclick="deleteHandover(${h.id})" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
+                    <td class="p-6 text-slate-600 font-medium">${h.drivers?.name || '---'}</td>
+                    <td class="p-6 text-slate-400 font-mono italic">${h.odometer || '---'} كم</td>
+                    <td class="p-6 text-center flex justify-center gap-4">
+                        <button onclick="editHandover(${JSON.stringify(h).replace(/"/g, '&quot;')})" class="text-blue-500 hover:scale-120 transition"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="deleteHandover(${h.id})" class="text-red-400 hover:scale-120 transition"><i class="fa-solid fa-trash-can"></i></button>
                     </td>
                 </tr>
             `).join('');
@@ -197,7 +224,7 @@
                 event_type: document.getElementById('event_type').value,
                 handover_date: document.getElementById('handover_date').value,
                 odometer: document.getElementById('odometer').value,
-                current_rent: document.getElementById('current_rent').value,
+                current_rent: parseFloat(document.getElementById('current_rent').value) || 0,
                 body_status: document.getElementById('body_status').value
             };
 
