@@ -22,23 +22,23 @@
                 <h2 class="text-3xl font-bold text-slate-800">لوحة التحكم الذكية</h2>
                 <p class="text-slate-500 mt-1 uppercase text-[10px] tracking-[0.2em] font-bold italic">Smart Dashboard Control</p>
             </div>
-            <div class="bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-100 flex items-center gap-3 text-sm font-bold">
+            <div class="bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-250 flex items-center gap-3 text-sm font-bold">
                 <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                 <span id="currentDate" class="text-slate-700 font-mono italic"></span>
             </div>
         </header>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 group transition hover:shadow-xl">
+            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-250 group transition hover:shadow-xl">
                 <div class="flex justify-between items-start mb-4">
                     <div class="p-3 bg-blue-50 text-blue-600 rounded-2xl"><i class="fa-solid fa-calculator text-xl"></i></div>
                     <span class="text-[10px] font-bold text-blue-600 uppercase">Total Revenue</span>
                 </div>
-                <p class="text-slate-400 text-sm" data-tooltip="إجمالي الإيجارات المستحقة من أيام العمل">إجمالي الوارد (المفترض)</p>
-                <h3 class="text-2xl font-bold text-slate-800 mt-1" id="totalRevenue">0.00 <small class="text-xs font-normal">د.أ</small></h3>
+                <p class="text-slate-400 text-sm" data-tooltip="إجمالي الضمان المستحق من أيام العمل">إجمالي الضمان (المفترض)</p>
+                <h3 class="text-2xl font-bold text-slate-800 mt-1 font-mono transition-all" id="totalRevenue" data-value="1250.50">0.00 <small class="text-xs font-normal text-slate-500">د.أ</small></h3>
             </div>
 
-            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 group transition hover:shadow-xl">
+            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-250 group transition hover:shadow-xl">
                 <div class="flex justify-between items-start mb-4">
                     <div class="p-3 bg-red-50 text-red-600 rounded-2xl"><i class="fa-solid fa-wrench text-xl"></i></div>
                     <span class="text-[10px] font-bold text-red-600 uppercase">Expenses</span>
@@ -47,7 +47,7 @@
                 <h3 class="text-2xl font-bold text-slate-800 mt-1" id="totalExpenses">0.00 <small class="text-xs font-normal">د.أ</small></h3>
             </div>
 
-            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 group transition hover:shadow-xl">
+            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-250 group transition hover:shadow-xl">
                 <div class="flex justify-between items-start mb-4">
                     <div class="p-3 bg-green-50 text-green-600 rounded-2xl"><i class="fa-solid fa-vault text-xl"></i></div>
                     <span class="text-[10px] font-bold text-green-600 uppercase">Cash Collected</span>
@@ -66,7 +66,7 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden mb-8">
+        <div class="bg-white rounded-[2rem] shadow-sm border border-slate-250 overflow-hidden mb-8">
             <div class="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/20">
                 <h3 class="font-bold text-slate-800 text-lg">مراقبة الأسطول والسيارات المتوقفة</h3>
                 <span class="flex items-center text-xs font-bold text-slate-500">
