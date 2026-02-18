@@ -7,7 +7,7 @@ if (!window.location.pathname.endsWith('index.html') &&
 
 function injectSidebar() {
     const sidebarHTML = `
-    <button id="sidebar-toggle-btn" onclick="toggleSidebar()" class="fixed top-5 right-5 z-[60] bg-[#0f172a] text-yellow-400 p-3 rounded-xl shadow-2xl hover:scale-105 transition-all duration-500 border border-slate-700 flex items-center gap-3 font-bold" style="will-change: transform, opacity;">
+    <button id="sidebar-toggle-btn" onclick="toggleSidebar()" class="fixed top-5 right-5 z-[60] bg-[#0f172a] text-yellow-400 p-3 rounded-xl shadow-2xl hover:scale-105 border border-slate-700 flex items-center gap-3 font-bold">
         <i class="fa-solid fa-bars-staggered text-xl"></i>
         <span class="text-sm">لوحة التحكم</span>
     </button>
@@ -68,20 +68,16 @@ function toggleSidebar() {
         sidebar.classList.add('sidebar-open');
         overlay.classList.remove('hidden');
         
-        // تأثير الشفافية الكاملة مع الانزلاق لليمين (Slide Out)
-        toggleBtn.style.opacity = '0';
-        toggleBtn.style.transform = 'translateX(100px) scale(0.8)';
-        toggleBtn.style.pointerEvents = 'none';
+        // استخدام الفئة الجديدة للاختفاء والانزلاق
+        toggleBtn.classList.add('sidebar-btn-hidden');
     } else {
         // --- إغلاق القائمة ---
         sidebar.classList.remove('sidebar-open');
         sidebar.classList.add('sidebar-closed');
         overlay.classList.add('hidden');
         
-        // إعادة الزر لوضعه الطبيعي
-        toggleBtn.style.opacity = '1';
-        toggleBtn.style.transform = 'translateX(0) scale(1)';
-        toggleBtn.style.pointerEvents = 'auto';
+        // إزالة الفئة لإظهار الزر مجدداً
+        toggleBtn.classList.remove('sidebar-btn-hidden');
     }
 }
 
