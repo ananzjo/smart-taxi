@@ -1,6 +1,6 @@
 /**
  * نظام إدارة التاكسي الذكي
- * تحديث: حركة الزر إلى منتصف الصفحة عند فتح القائمة
+ * تحديث: دمج حركات الجمباز (الدحرجة) والشفافية مع الكود الأصلي
  */
 
 (function() {
@@ -11,10 +11,11 @@
         return;
     }
 
-    // 2. حقن القائمة الجانبية
+    // 2. حقن القائمة الجانبية (مع إضافة الشفافية المبدئية للزر)
     function injectSidebar() {
         const sidebarHTML = `
-        <button id="sidebar-toggle-btn" onclick="toggleSidebar()" class="fixed top-5 right-5 z-[60] bg-[#0f172a] text-yellow-400 p-3 rounded-xl shadow-2xl border border-slate-700 flex items-center gap-3 font-bold">
+        <button id="sidebar-toggle-btn" onclick="toggleSidebar()" 
+            class="fixed top-5 right-5 z-[60] bg-[#0f172a]/80 backdrop-blur-md text-yellow-400 p-3 rounded-xl shadow-2xl border border-slate-700 flex items-center gap-3 font-bold transition-all duration-500">
             <i class="fa-solid fa-bars-staggered text-xl"></i>
             <span class="text-sm">لوحة التحكم</span>
         </button>
@@ -62,7 +63,7 @@
         highlightActiveLink();
     }
 
-    // 3. التحكم في التبديل والحركة المركزية
+    // 3. التحكم في التبديل والحركة المركزية (النسخة الرياضية المدمجة)
     window.toggleSidebar = function() {
         const sidebar = document.getElementById('main-sidebar');
         const overlay = document.getElementById('sidebar-overlay');
@@ -76,15 +77,17 @@
             sidebar.classList.add('sidebar-open');
             overlay.classList.remove('hidden');
             
-            // طيران الزر لمنتصف الشاشة
+            // طيران الزر لمنتصف الشاشة مع "دحرجة جمباز" 360 درجة وعتامة كاملة
             toggleBtn.style.cssText = `
                 top: 50% !important; 
                 right: 50% !important; 
-                transform: translate(50%, -50%) scale(1.8) !important; 
+                transform: translate(50%, -50%) rotate(360deg) scale(1.8) !important; 
                 background-color: #facc15 !important; 
                 color: #0f172a !important;
                 z-index: 60 !important;
+                opacity: 1 !important;
                 box-shadow: 0 0 50px rgba(250, 204, 21, 0.4) !important;
+                transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
             `;
         } else {
             // إغلاق القائمة
@@ -92,12 +95,14 @@
             sidebar.classList.add('sidebar-closed');
             overlay.classList.add('hidden');
             
-            // عودة الزر لمكانه في الزاوية
+            // عودة الزر لمكانه في الزاوية مع "شفافية هادئة" ودوران عكسي
             toggleBtn.style.cssText = `
                 top: 1.25rem !important; 
                 right: 1.25rem !important; 
-                transform: translate(0, 0) scale(1) !important;
+                transform: translate(0, 0) rotate(0deg) scale(1) !important;
                 z-index: 60 !important;
+                opacity: 0.8 !important;
+                transition: all 0.5s ease-in-out !important;
             `;
         }
     }
