@@ -213,6 +213,114 @@
             document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-EG', options);
             showSnackbar();
         };
+        /*******************************************************************************
+   نظام إدارة التاكسي الذكي - منطق الربط مع Supabase
+   الوصف: جلب الإحصائيات المالية وحالة الأسطول وعرضها في الواجهة
+*******************************************************************************/
+
+// دالة لجلب البيانات وتحديث الواجهة عند التحميل
+async function initializeDashboard() {
+    try {
+        // 1. جلب إجمالي أيام العمل (الاستحقاق المالي)
+        const { data: workDays, error: workError } = await supabaseClient
+            .from('work_days')
+            .select('daily_rent');
+        
+        const totalRevenue = workDays ? workDays.reduce((sum, day) => sum + Number(day.daily_rent), 0) : 0;
+        document.getElementById('totalRevenue').innerHTML = `${totalRevenue.toFixed(2)} <small class="text-xs font-normal">د.أ</small>`;
+
+        // 2. جلب إجمالي المقبوضات (الكاش)
+        const { data: revenues, error: revError } = await supabaseClient
+            .from('revenues')
+            .select('amount');
+        
+        const totalCollected = revenues ? revenues.reduce((sum, rev) => sum + Number(rev.amount), 0) : 0;
+        document.getElementById('totalCollected').innerHTML = `${totalCollected.toFixed(2)} <small class="text-xs font-normal">د.أ</small>`;
+
+        // 3. جلب إجمالي المصاريف
+        const { data: expenses, error: expError } = await supabaseClient
+            .from('expenses')
+            .select('total_amount');
+        
+        const totalExpenses = expenses ? expenses.reduce((sum, exp) => sum + Number(exp.total_amount), 0) : 0;
+        document.getElementById('totalExpenses').innerHTML = `${totalExpenses.toFixed(2)} <small class="text-xs font-normal">د.أ</small>`;
+
+        // 4. حساب صافي الذمم (المطلوب من السائقين)
+        const netReceivables = totalRevenue - totalCollected;
+        document.getElementById('netReceivables').innerHTML = `${netReceivables.toFixed(2)} <small class="text-xs font-normal">د.أ</small>`;
+
+        // 5. جلب حالة الأسطول (دمج السيارات مع آخر حركات التبديل)
+        await fetchFleetStatus();
+
+    } catch (err) {
+        console.error("خطأ في جلب بيانات لوحة التحكم:", err);
+    }
+}
+
+// دالة لجلب حالة الأسطول وتحديث الجدول
+async function fetchFleetStatus() {
+    const tableBody = document.getElementById('fleetTableBody');
+    
+    // جلب السيارات وآخر حركة تبديل لكل سيارة
+    const { data: cars, error } = await supabaseClient
+        .from('cars')
+        .select(`
+            plate_no,
+            brand,
+            handover (
+                driver_nat_id,
+                handover_date,
+                event_type,
+                drivers ( name )
+            )
+        `)
+        .order('plate_no');
+
+    if (error) {
+        tableBody.innerHTML = `<tr><td colspan="4" class="p-10 text-center text-red-500 text-xs">فشل الاتصال بالسحابة</td></tr>`;
+        return;
+    }
+
+    tableBody.innerHTML = ''; // تفريغ الجدول
+    let idleCount = 0;
+
+    cars.forEach(car => {
+        // الحصول على آخر حركة (بفرض أن النظام يسجل الحركات بالترتيب)
+        const lastMovement = car.handover && car.handover.length > 0 ? car.handover[car.handover.length - 1] : null;
+        
+        // إذا كان نوع الحركة Out فهي نشطة، إذا كان In أو لا يوجد فهي متوقفة
+        const isActive = lastMovement && lastMovement.event_type === 'Out';
+        if (!isActive) idleCount++;
+
+        const driverName = isActive ? lastMovement.drivers.name : '---';
+        const handoverDate = isActive ? new Date(lastMovement.handover_date).toLocaleDateString('ar-EG') : '---';
+        const statusBadge = isActive 
+            ? '<span class="px-3 py-1 bg-green-100 text-green-600 rounded-full text-[10px] font-bold">نشطة حالياً</span>'
+            : '<span class="px-3 py-1 bg-red-100 text-red-600 rounded-full text-[10px] font-bold">متوقفة</span>';
+
+        const row = `
+            <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition">
+                <td class="p-6">
+                    <div class="font-bold text-slate-700">${car.plate_no}</div>
+                    <div class="text-[10px] text-slate-400">${car.brand}</div>
+                </td>
+                <td class="p-6 text-slate-600 font-medium">${driverName}</td>
+                <td class="p-6 text-slate-500 font-mono text-xs">${handoverDate}</td>
+                <td class="p-6 text-center">${statusBadge}</td>
+            </tr>
+        `;
+        tableBody.insertAdjacentHTML('beforeend', row);
+    });
+
+    // تحديث عدد السيارات المتوقفة في العنوان
+    document.getElementById('idleCars').innerText = idleCount;
+}
+
+// تشغيل الدالة عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', () => {
+    initializeDashboard();
+});
     </script>
 </body>
 </html>
+
