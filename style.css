@@ -1,20 +1,41 @@
-/* style.css */
+/* Smart Taxi Management System - Global Styles 
+   System Name: نظام إدارة التاكسي الذكي 
+*/
+
 :root {
     --primary-dark: #0f172a;
     --accent-yellow: #facc15;
     --slate-bg: #f8fafc;
+    --sidebar-width: 288px; /* 72 units in tailwind */
 }
 
+/* الإعدادات العامة */
 body {
     font-family: 'Tajawal', sans-serif;
     background-color: var(--slate-bg);
-    overflow-x: hidden;
     margin: 0;
+    overflow-x: hidden;
 }
 
-/* تنسيق القائمة المنزلقة (Sidebar) */
+/* --- تنسيقات الزر العائم (Sidebar Toggle) --- */
+#sidebar-toggle-btn {
+    /* ضمان نعومة الحركة عند الاختفاء والظهور */
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    will-change: transform, opacity;
+}
+
+/* الفئة التي يتم تفعيلها عبر JS عند فتح القائمة */
+.sidebar-btn-hidden {
+    opacity: 0 !important;
+    transform: translateX(100px) scale(0.8) !important;
+    pointer-events: none !important;
+}
+
+/* --- تنسيقات القائمة الجانبية (Sidebar) --- */
 #main-sidebar {
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    scrollbar-width: thin;
+    scrollbar-color: #1e293b var(--primary-dark);
 }
 
 .sidebar-closed {
@@ -25,14 +46,7 @@ body {
     transform: translateX(0);
 }
 
-/* الرابط النشط */
-.active-link {
-    background: rgba(250, 204, 21, 0.1) !important;
-    border-right: 4px solid var(--accent-yellow) !important;
-    color: var(--accent-yellow) !important;
-}
-
-/* شريط التمرير المخصص */
+/* تخصيص شريط التمرير للقائمة */
 .custom-scrollbar::-webkit-scrollbar {
     width: 4px;
 }
@@ -44,53 +58,25 @@ body {
     border-radius: 10px;
 }
 
-/* Tooltip */
-[data-tooltip] {
-    position: relative;
-    cursor: pointer;
-}
-[data-tooltip]:before {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: 125%;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 8px 12px;
-    background: var(--primary-dark);
-    color: #fff;
-    font-size: 11px;
-    border-radius: 8px;
-    white-space: nowrap;
-    opacity: 0;
-    visibility: hidden;
-    transition: 0.3s;
-    z-index: 50;
-}
-[data-tooltip]:hover:before {
-    opacity: 1;
-    visibility: visible;
+/* --- حالة الرابط النشط (Active Link) --- */
+.active-link {
+    background: rgba(250, 204, 21, 0.1) !important;
+    border-right: 4px solid var(--accent-yellow) !important;
+    color: var(--accent-yellow) !important;
 }
 
-/* الأنشطة والنبض (Pulse) */
-.pulse-status {
-    display: inline-block;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    position: relative;
-    margin-left: 8px;
-}
-.pulse-red {
-    background: #ef4444;
-    animation: shadow-pulse-red 2s infinite;
-}
-@keyframes shadow-pulse-red {
-    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+.nav-link {
+    transition: all 0.2s ease;
 }
 
-/* Snackbar */
+/* --- المكونات الإضافية --- */
+
+/* تظليل الخلفية عند فتح القائمة */
+#sidebar-overlay {
+    transition: opacity 0.3s ease;
+}
+
+/* تنبيهات النظام (Snackbar) */
 #snackbar {
     visibility: hidden;
     min-width: 280px;
@@ -98,7 +84,7 @@ body {
     color: #fff;
     text-align: center;
     border-radius: 16px;
-    padding: 20px;
+    padding: 16px;
     position: fixed;
     z-index: 100;
     right: 30px;
@@ -106,9 +92,30 @@ body {
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
     border-bottom: 4px solid var(--accent-yellow);
 }
+
 #snackbar.show {
     visibility: visible;
-    animation: slideIn 0.5s, slideOut 0.5s 3.5s;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
 }
-@keyframes slideIn { from {right: -300px; opacity: 0;} to {right: 30px; opacity: 1;} }
-@keyframes slideOut { from {right: 30px; opacity: 1;} to {right: -300px; opacity: 0;} }
+
+/* أنيميشن التنبيهات */
+@keyframes fadein {
+    from { bottom: 0; opacity: 0; }
+    to { bottom: 30px; opacity: 1; }
+}
+
+@keyframes fadeout {
+    from { bottom: 30px; opacity: 1; }
+    to { bottom: 0; opacity: 0; }
+}
+
+/* تأثير النبض للحالة (اختياري للجماليات) */
+.pulse-online {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
