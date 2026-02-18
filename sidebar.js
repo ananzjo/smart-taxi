@@ -1,7 +1,6 @@
-// sidebar.js
 function injectSidebar() {
     const sidebarHTML = `
-    <button onclick="toggleSidebar()" class="fixed top-5 right-5 z-[60] bg-[#0f172a] text-yellow-400 p-3 rounded-xl shadow-2xl hover:scale-105 transition-all border border-slate-700 flex items-center gap-3 font-bold">
+    <button id="sidebar-toggle-btn" onclick="toggleSidebar()" class="fixed top-5 right-5 z-[60] bg-[#0f172a] text-yellow-400 p-3 rounded-xl shadow-2xl hover:scale-105 transition-all duration-300 border border-slate-700 flex items-center gap-3 font-bold">
         <i class="fa-solid fa-bars-staggered text-xl"></i>
         <span class="text-sm">لوحة التحكم</span>
     </button>
@@ -16,7 +15,9 @@ function injectSidebar() {
                 </div>
                 <h1 class="text-lg font-bold tracking-tight text-white">التاكسي الذكي</h1>
             </div>
-            <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white transition-colors">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
         </div>
 
         <nav class="space-y-1 flex-1 overflow-y-auto pr-2 custom-scrollbar">
@@ -25,40 +26,20 @@ function injectSidebar() {
             </a>
             
             <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-[0.2em]">إدارة الأسطول</div>
-            <a href="cars.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
-                <i class="fa-solid fa-car w-6 text-center"></i> السيارات
-            </a>
-            <a href="owners.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
-                <i class="fa-solid fa-user-tie w-6 text-center"></i> المالكين
-            </a>
-            <a href="drivers.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
-                <i class="fa-solid fa-users w-6 text-center"></i> السائقين
-            </a>
+            <a href="cars.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition"><i class="fa-solid fa-car w-6 text-center"></i> السيارات</a>
+            <a href="owners.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition"><i class="fa-solid fa-user-tie w-6 text-center"></i> المالكين</a>
+            <a href="drivers.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition"><i class="fa-solid fa-users w-6 text-center"></i> السائقين</a>
 
             <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-[0.2em]">التشغيل والعهد</div>
-            <a href="handover.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
-                <i class="fa-solid fa-key w-6 text-center"></i> سجل الاستلام
-            </a>
-            <a href="work_days.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
-                <i class="fa-solid fa-calendar-check w-6 text-center"></i> أيام العمل
-            </a>
+            <a href="handover.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition"><i class="fa-solid fa-key w-6 text-center"></i> سجل الاستلام</a>
+            <a href="work_days.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition"><i class="fa-solid fa-calendar-check w-6 text-center"></i> أيام العمل</a>
 
             <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-[0.2em]">المالية والمطابقة</div>
-            <a href="revenues.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
-                <i class="fa-solid fa-hand-holding-dollar w-6 text-center"></i> الإيرادات
-            </a>
-            <a href="expenses.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
-                <i class="fa-solid fa-receipt w-6 text-center"></i> المصاريف
-            </a>
-            <a href="payments.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
-                <i class="fa-solid fa-money-bill-transfer w-6 text-center"></i> المدفوعات
-            </a>
-            <a href="matching.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
-                <i class="fa-solid fa-scale-balanced w-6 text-center"></i> تسوية المطابقة
-            </a>
-            <a href="closing.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
-                <i class="fa-solid fa-lock w-6 text-center"></i> الإقفال المالي
-            </a>
+            <a href="revenues.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition"><i class="fa-solid fa-hand-holding-dollar w-6 text-center"></i> الإيرادات</a>
+            <a href="expenses.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition"><i class="fa-solid fa-receipt w-6 text-center"></i> المصاريف</a>
+            <a href="payments.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition"><i class="fa-solid fa-money-bill-transfer w-6 text-center"></i> المدفوعات</a>
+            <a href="matching.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition"><i class="fa-solid fa-scale-balanced w-6 text-center"></i> تسوية المطابقة</a>
+            <a href="closing.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition"><i class="fa-solid fa-lock w-6 text-center"></i> الإقفال المالي</a>
         </nav>
     </aside>
     `;
@@ -70,9 +51,25 @@ function injectSidebar() {
 function toggleSidebar() {
     const sidebar = document.getElementById('main-sidebar');
     const overlay = document.getElementById('sidebar-overlay');
-    sidebar.classList.toggle('sidebar-closed');
-    sidebar.classList.toggle('sidebar-open');
-    overlay.classList.toggle('hidden');
+    const toggleBtn = document.getElementById('sidebar-toggle-btn');
+
+    const isOpen = sidebar.classList.contains('sidebar-open');
+
+    if (!isOpen) {
+        // فتح القائمة وإخفاء الزر
+        sidebar.classList.remove('sidebar-closed');
+        sidebar.classList.add('sidebar-open');
+        overlay.classList.remove('hidden');
+        toggleBtn.style.opacity = '0';
+        toggleBtn.style.pointerEvents = 'none';
+    } else {
+        // إغلاق القائمة وإظهار الزر
+        sidebar.classList.remove('sidebar-open');
+        sidebar.classList.add('sidebar-closed');
+        overlay.classList.add('hidden');
+        toggleBtn.style.opacity = '1';
+        toggleBtn.style.pointerEvents = 'auto';
+    }
 }
 
 function highlightActiveLink() {
@@ -86,5 +83,4 @@ function highlightActiveLink() {
     });
 }
 
-// تنفيذ الحقن فور تحميل السكريبت
 injectSidebar();
