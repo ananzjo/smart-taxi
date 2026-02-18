@@ -13,7 +13,6 @@
 
    
 
-    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden transition-opacity"></div>
 
     
 
@@ -103,7 +102,7 @@
 
         let currentEditId = null;
 
-        function toggleSidebar() {
+        function () {
             document.getElementById('main-sidebar').classList.toggle('sidebar-closed');
             document.getElementById('main-sidebar').classList.toggle('sidebar-open');
             document.getElementById('sidebar-overlay').classList.toggle('hidden');
