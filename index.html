@@ -1,53 +1,11 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3448/3448636.png" type="image/png">
-    <title>🚖 نظام إدارة التاكسي الذكي | لوحة التحكم</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        :root { --primary-dark: #0f172a; --accent-yellow: #facc15; }
-        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
-
-        /* Sliding Sidebar Styles */
-        #main-sidebar { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        .sidebar-closed { transform: translateX(100%); }
-        .sidebar-open { transform: translateX(0); }
-        
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: var(--primary-dark); }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
-
-        .active-link { background: rgba(250, 204, 21, 0.1) !important; border-right: 4px solid var(--accent-yellow) !important; color: var(--accent-yellow) !important; }
-
-        /* Snackbar & Pulse */
-        #snackbar {
-            visibility: hidden; min-width: 280px; background-color: var(--primary-dark);
-            color: #fff; text-align: center; border-radius: 16px; padding: 20px;
-            position: fixed; z-index: 100; right: 30px; bottom: 30px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); border-bottom: 4px solid var(--accent-yellow);
-        }
-        #snackbar.show { visibility: visible; animation: slideIn 0.5s, slideOut 0.5s 3.5s; }
-        @keyframes slideIn { from {right: -300px; opacity: 0;} to {right: 30px; opacity: 1;} }
-        @keyframes slideOut { from {right: 30px; opacity: 1;} to {right: -300px; opacity: 0;} }
-    </style>
-</head>
-<body class="bg-gray-50 text-right">
-
-    <button onclick="toggleSidebar()" class="fixed top-5 right-5 z-[60] bg-[#0f172a] text-yellow-400 p-3 rounded-xl shadow-2xl hover:scale-105 transition-all border border-slate-700 flex items-center gap-3 font-bold">
+<button onclick="toggleSidebar()" class="fixed top-5 right-5 z-[60] bg-[#0f172a] text-yellow-400 p-3 rounded-xl shadow-2xl hover:scale-105 transition-all border border-slate-700 flex items-center gap-3 font-bold">
         <i class="fa-solid fa-bars-staggered text-xl"></i>
         <span class="text-sm">لوحة التحكم</span>
     </button>
 
     <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden transition-opacity duration-300"></div>
 
-    <aside id="main-sidebar" class="fixed top-0 right-0 w-72 bg-[#0f172a] h-screen text-white p-6 shadow-2xl flex flex-col z-50 sidebar-closed font-bold border-l border-slate-800">
+    <aside id="main-sidebar" class="fixed top-0 right-0 w-72 bg-[#0f172a] h-screen text-white p-6 shadow-2xl flex flex-col z-50 sidebar-closed font-bold border-l border-slate-800 transition-transform duration-400">
         <div class="flex items-center justify-between mb-8 px-2 border-b border-slate-800 pb-4">
             <div class="flex items-center gap-3">
                 <div class="bg-yellow-400 p-2 rounded-lg text-slate-900 shadow-lg shadow-yellow-400/20">
@@ -62,7 +20,7 @@
 
         <nav class="space-y-1 flex-1 overflow-y-auto pr-2 custom-scrollbar">
             <a href="index.html" class="active-link flex items-center p-3 rounded-xl gap-3 text-sm transition font-bold">
-                <i class="fa-solid fa-gauge-high w-6 text-lg text-center"></i> لوحة التحكم الذكية
+                <i class="fa-solid fa-gauge-high w-6 text-lg text-center"></i> لوحة التحكم
             </a>
 
             <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-[0.2em]">إدارة الأسطول</div>
@@ -78,21 +36,21 @@
 
             <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-[0.2em]">التشغيل والعهد</div>
             <a href="handover.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition font-bold">
-                <i class="fa-solid fa-key w-6 text-center"></i> سجل الاستلام (Handover)
+                <i class="fa-solid fa-key w-6 text-center"></i> سجل الاستلام
             </a>
             <a href="work_days.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition font-bold">
-                <i class="fa-solid fa-calendar-check w-6 text-center"></i> استحقاق أيام العمل
+                <i class="fa-solid fa-calendar-check w-6 text-center"></i> أيام العمل
             </a>
 
             <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-[0.2em]">المالية والمطابقة</div>
             <a href="revenues.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition font-bold">
-                <i class="fa-solid fa-hand-holding-dollar w-6 text-center"></i> الإيرادات (المقبوضات)
+                <i class="fa-solid fa-hand-holding-dollar w-6 text-center"></i> الإيرادات
             </a>
             <a href="expenses.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition font-bold">
-                <i class="fa-solid fa-receipt w-6 text-center"></i> المصاريف التشغيلية
+                <i class="fa-solid fa-receipt w-6 text-center"></i> المصاريف
             </a>
             <a href="payments.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition font-bold">
-                <i class="fa-solid fa-money-bill-transfer w-6 text-center"></i> المدفوعات العامة
+                <i class="fa-solid fa-money-bill-transfer w-6 text-center"></i> المدفوعات
             </a>
             <a href="matching.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition font-bold">
                 <i class="fa-solid fa-scale-balanced w-6 text-center"></i> تسوية المطابقة
@@ -101,63 +59,10 @@
                 <i class="fa-solid fa-lock w-6 text-center"></i> الإقفال المالي
             </a>
         </nav>
-
-        <div class="mt-auto border-t border-slate-800 pt-4 text-center">
-            <span class="text-[9px] text-slate-500 uppercase tracking-widest">Powered by Gemini AI</span>
-        </div>
     </aside>
 
-    <main class="flex-1 p-8 pt-24 max-w-7xl mx-auto">
-        <header class="flex justify-between items-center mb-10">
-            <div>
-                <h2 class="text-3xl font-bold text-slate-800">لوحة التحكم الذكية</h2>
-                <p class="text-slate-500 mt-1 uppercase text-[10px] tracking-[0.2em] font-bold italic text-right">Smart Dashboard Control</p>
-            </div>
-            <div class="bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-100 flex items-center gap-3 text-sm font-bold">
-                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                <span id="currentDate" class="text-slate-700 font-mono italic"></span>
-            </div>
-        </header>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 group transition hover:shadow-xl">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="p-3 bg-blue-50 text-blue-600 rounded-2xl"><i class="fa-solid fa-dollar-sign text-xl"></i></div>
-                    <span class="text-[10px] font-bold text-blue-600 uppercase">Revenue</span>
-                </div>
-                <p class="text-slate-400 text-sm">إجمالي الوارد</p>
-                <h3 class="text-2xl font-bold text-slate-800 mt-1" id="totalRevenue">0.00 <small class="text-xs font-normal">د.أ</small></h3>
-            </div>
-            </div>
-
-        <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden mb-8">
-            <div class="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/20">
-                <h3 class="font-bold text-slate-800 text-lg">مراقبة الأسطول والسيارات المتوقفة</h3>
-                <span class="flex items-center text-xs font-bold text-slate-500">
-                    <span id="idleCars" class="mr-1 text-red-600 font-bold ml-2">0</span> سيارات متوقفة
-                </span>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-right">
-                    <thead>
-                        <tr class="text-slate-400 text-[11px] uppercase tracking-widest border-b border-slate-50">
-                            <th class="p-6">السيارة</th>
-                            <th class="p-6">السائق المستلم</th>
-                            <th class="p-6">تاريخ الاستلام</th>
-                            <th class="p-6 text-center">الحالة</th>
-                        </tr>
-                    </thead>
-                    <tbody id="fleetTableBody" class="text-sm italic text-slate-400">
-                        </tbody>
-                </table>
-            </div>
-        </div>
-    </main>
-
-    <div id="snackbar">لوحة التحكم الذكية v1.3.0 جاهزة 🚖</div>
-
     <script>
-        // دالة التحكم في القائمة
+        // دالة التحكم في فتح وإغلاق القائمة
         function toggleSidebar() {
             const sidebar = document.getElementById('main-sidebar');
             const overlay = document.getElementById('sidebar-overlay');
@@ -165,25 +70,4 @@
             sidebar.classList.toggle('sidebar-open');
             overlay.classList.toggle('hidden');
         }
-
-        // نفس منطق Supabase الخاص بك...
-        const SUPABASE_URL = 'https://tjntctaapsdynbywdfns.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_BJgdmxyFsCgzFDXh1Qn1CQ_cFRMsy2P';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        async function initializeDashboard() {
-            // كود الجلب (نفس الكود الذي وضعته أنت)
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-EG', options);
-        }
-
-        window.onload = () => {
-            initializeDashboard();
-            // إظهار سناك بار
-            const sb = document.getElementById("snackbar");
-            sb.className = "show";
-            setTimeout(() => { sb.className = sb.className.replace("show", ""); }, 4000);
-        };
     </script>
-</body>
-</html>
