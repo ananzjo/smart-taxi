@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أيام العمل | نظام إدارة التاكسي الذكي</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --primary-dark: #0f172a; --accent-yellow: #facc15; }
+        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
+        
+        #main-sidebar { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sidebar-closed { transform: translateX(100%); }
+        .sidebar-open { transform: translateX(0); }
+        .active-link { background: rgba(250, 204, 21, 0.1) !important; border-right: 4px solid #facc15 !important; color: #facc15 !important; }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-gray-50 text-right">
+
+    <button onclick="toggleSidebar()" class="fixed top-5 right-5 z-[60] bg-[#0f172a] text-yellow-400 p-3 rounded-xl shadow-2xl hover:scale-105 transition-all border border-slate-700 flex items-center gap-3 group font-bold">
+        <i class="fa-solid fa-bars-staggered text-xl"></i>
+        <span id="menu-text" class="font-bold text-sm">لوحة التحكم</span>
+    </button>
+
+    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden transition-opacity duration-300"></div>
+
+    <aside id="main-sidebar" class="fixed top-0 right-0 w-72 bg-[#0f172a] h-screen text-white p-6 shadow-2xl flex flex-col z-50 sidebar-closed font-bold border-l border-slate-800 transition-transform duration-400">
+        <div class="flex items-center justify-between mb-8 px-2 border-b border-slate-800 pb-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-yellow-400 p-2 rounded-lg text-slate-900 shadow-lg shadow-yellow-400/20">
+                    <i class="fa-solid fa-taxi text-xl"></i>
+                </div>
+                <h1 class="text-lg font-bold tracking-tight text-white">التاكسي الذكي</h1>
+            </div>
+            <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white transition-colors">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+        </div>
+
+        <nav class="space-y-1 flex-1 overflow-y-auto pr-2 custom-scrollbar">
+            <a href="index.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition font-bold">
+                <i class="fa-solid fa-gauge-high w-6 text-lg text-center"></i> لوحة التحكم
+            </a>
+            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-[0.2em]">إدارة الأسطول</div>
+            <a href="cars.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition font-bold">
+                <i class="fa-solid fa-car w-6 text-lg text-center"></i> السيارات
+            </a>
+            <a href="drivers.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition font-bold">
+                <i class="fa-solid fa-users w-6 text-lg text-center"></i> السائقين
+            </a>
+            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-[0.2em]">الحركة والتشغيل</div>
+            <a href="handover.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition font-bold">
+                <i class="fa-solid fa-key w-6 text-lg text-center"></i> سجل الاستلام
+            </a>
+            <a href="work_days.html" class="active-link flex items-center p-3 rounded-xl gap-3 text-sm transition font-bold">
+                <i class="fa-solid fa-calendar-check w-6 text-lg text-center"></i> أيام العمل
+            </a>
+        </nav>
+    </aside>
+
+    <main class="flex-1 p-8 pt-24 max-w-7xl mx-auto">
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <h2 class="text-3xl font-bold text-slate-800">سجل أيام العمل</h2>
+                <p class="text-slate-500 mt-1 uppercase text-[10px] tracking-[0.2em] font-bold italic text-right">Work Day Rent Ledger</p>
+            </div>
+        </header>
+
+        <section class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 mb-8">
+            <h3 class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-plus-circle text-yellow-500"></i> تسجيل استحقاق يوم جديد
+            </h3>
+            <form id="workDayForm" class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <input type="hidden" id="id">
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2">تاريخ اليوم</label>
+                    <input type="date" id="work_date" required class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-yellow-400 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2">رقم اللوحة</label>
+                    <select id="car_plate" required class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-yellow-400 outline-none">
+                        <option value="">اختر السيارة...</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2">هوية السائق</label>
+                    <select id="driver_nat_id" required class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-yellow-400 outline-none">
+                        <option value="">اختر السائق...</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2">الأجر اليومي (Daily Rent)</label>
+                    <input type="number" id="daily_rent" step="0.01" required class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-yellow-400 outline-none font-bold text-blue-600">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2">مرجع التبديل (Handover Ref)</label>
+                    <select id="handover_ref" class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-yellow-400 outline-none">
+                        <option value="">اختر السجل المرتبط...</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-2 mt-4 md:mt-8">
+                    <input type="checkbox" id="is_paid" class="w-5 h-5 accent-green-500">
+                    <label class="text-xs font-bold text-slate-500">تم تسديد أجر اليوم</label>
+                </div>
+
+                <div class="md:col-span-2 flex justify-end items-end">
+                    <button type="submit" class="w-full md:w-64 bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold py-3 rounded-xl transition shadow-lg shadow-yellow-400/20">
+                        حفظ السجل المالي
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-right border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-400 text-[11px] uppercase tracking-widest border-b border-slate-100">
+                            <th class="p-6">تاريخ الاستحقاق</th>
+                            <th class="p-6">اللوحة</th>
+                            <th class="p-6">السائق المسؤول</th>
+                            <th class="p-6">الأجر</th>
+                            <th class="p-6">حالة الدفع</th>
+                            <th class="p-6 text-center">العمليات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="workDaysTableBody" class="text-sm text-slate-600">
+                        <tr><td colspan="6" class="p-10 text-center italic">جاري تحميل السجلات المالية...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const SUPABASE_URL = 'https://tjntctaapsdynbywdfns.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_BJgdmxyFsCgzFDXh1Qn1CQ_cFRMsy2P';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('main-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.toggle('sidebar-closed');
+            sidebar.classList.toggle('sidebar-open');
+            overlay.classList.toggle('hidden');
+        }
+
+        async function loadFormData() {
+            const { data: cars } = await supabaseClient.from('cars').select('plate_no').order('plate_no');
+            const { data: drivers } = await supabaseClient.from('drivers').select('driver_id, name').eq('is_active', true).order('name');
+            const { data: handovers } = await supabaseClient.from('handover').select('id, car_plate, handover_date').order('handover_date', {ascending: false});
+
+            if (cars) document.getElementById('car_plate').innerHTML += cars.map(c => `<option value="${c.plate_no}">${c.plate_no}</option>`).join('');
+            if (drivers) document.getElementById('driver_nat_id').innerHTML += drivers.map(d => `<option value="${d.driver_id}">${d.name}</option>`).join('');
+            if (handovers) document.getElementById('handover_ref').innerHTML += handovers.map(h => `<option value="${h.id}">${h.car_plate} - ${h.handover_date}</option>`).join('');
+            
+            document.getElementById('work_date').valueAsDate = new Date();
+        }
+
+        async function fetchWorkDays() {
+            const { data, error } = await supabaseClient.from('work_days').select(`*, drivers(name)`).order('work_date', { ascending: false });
+            if (error) return console.error(error);
+            
+            const tbody = document.getElementById('workDaysTableBody');
+            tbody.innerHTML = data.map(day => `
+                <tr class="border-b border-slate-50 hover:bg-slate-50 transition">
+                    <td class="p-6 font-mono text-xs text-slate-500">${day.work_date}</td>
+                    <td class="p-6 font-bold text-slate-700">${day.car_plate}</td>
+                    <td class="p-6">${day.drivers?.name || '---'}</td>
+                    <td class="p-6 font-bold text-blue-600">${parseFloat(day.daily_rent).toFixed(2)}</td>
+                    <td class="p-6">
+                        <span class="px-3 py-1 rounded-full text-[10px] font-bold ${day.is_paid ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}">
+                            ${day.is_paid ? 'تم الدفع ✓' : 'معلق ✖'}
+                        </span>
+                    </td>
+                    <td class="p-6 text-center flex justify-center gap-2">
+                        <button onclick="editWorkDay(${JSON.stringify(day).replace(/"/g, '&quot;')})" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteWorkDay(${day.id})" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        document.getElementById('workDayForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('id').value;
+            const formData = {
+                work_date: document.getElementById('work_date').value,
+                car_plate: document.getElementById('car_plate').value,
+                driver_nat_id: document.getElementById('driver_nat_id').value,
+                daily_rent: parseFloat(document.getElementById('daily_rent').value),
+                is_paid: document.getElementById('is_paid').checked,
+                handover_ref: document.getElementById('handover_ref').value || null
+            };
+
+            if (id) await supabaseClient.from('work_days').update(formData).eq('id', id);
+            else await supabaseClient.from('work_days').insert([formData]);
+            
+            e.target.reset();
+            document.getElementById('id').value = '';
+            document.getElementById('work_date').valueAsDate = new Date();
+            fetchWorkDays();
+        };
+
+        function editWorkDay(day) {
+            document.getElementById('id').value = day.id;
+            document.getElementById('work_date').value = day.work_date;
+            document.getElementById('car_plate').value = day.car_plate;
+            document.getElementById('driver_nat_id').value = day.driver_nat_id;
+            document.getElementById('daily_rent').value = day.daily_rent;
+            document.getElementById('is_paid').checked = day.is_paid;
+            document.getElementById('handover_ref').value = day.handover_ref;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function deleteWorkDay(id) {
+            if (confirm('حذف هذا اليوم سيؤثر على التقارير المالية، هل أنت متأكد؟')) {
+                await supabaseClient.from('work_days').delete().eq('id', id);
+                fetchWorkDays();
+            }
+        }
+
+        window.onload = () => { loadFormData(); fetchWorkDays(); };
+    </script>
+</body>
+</html>
