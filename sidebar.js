@@ -1,3 +1,10 @@
+// منع الدخول المباشر للصفحات الفرعية (يجب المرور عبر index.html)
+if (!window.location.pathname.endsWith('index.html') && 
+    window.location.pathname !== '/' && 
+    document.referrer === "") {
+    window.location.href = 'index.html';
+}
+
 function injectSidebar() {
     const sidebarHTML = `
     <button id="sidebar-toggle-btn" onclick="toggleSidebar()" class="fixed top-5 right-5 z-[60] bg-[#0f172a] text-yellow-400 p-3 rounded-xl shadow-2xl hover:scale-105 transition-all duration-300 border border-slate-700 flex items-center gap-3 font-bold">
@@ -56,14 +63,12 @@ function toggleSidebar() {
     const isOpen = sidebar.classList.contains('sidebar-open');
 
     if (!isOpen) {
-        // فتح القائمة وإخفاء الزر
         sidebar.classList.remove('sidebar-closed');
         sidebar.classList.add('sidebar-open');
         overlay.classList.remove('hidden');
         toggleBtn.style.opacity = '0';
         toggleBtn.style.pointerEvents = 'none';
     } else {
-        // إغلاق القائمة وإظهار الزر
         sidebar.classList.remove('sidebar-open');
         sidebar.classList.add('sidebar-closed');
         overlay.classList.add('hidden');
