@@ -1,5 +1,9 @@
 /* style.css */
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+.font-digital {
+    color: #0f172a; /* لون Slate-900 غامق جداً */
+    text-shadow: 0 0 10px rgba(15, 23, 42, 0.1); /* ظل خفيف جداً يعطي عمق للرقم */
+}
 
 body {
     font-family: 'Tajawal', sans-serif;
