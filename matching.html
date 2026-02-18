@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسوية المطابقة | نظام التاكسي الذكي</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --primary-dark: #0f172a; --accent-yellow: #facc15; }
+        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; }
+        #main-sidebar { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sidebar-closed { transform: translateX(100%); }
+        .sidebar-open { transform: translateX(0); }
+        .active-link { background: rgba(250, 204, 21, 0.1) !important; border-right: 4px solid #facc15 !important; color: #facc15 !important; }
+    </style>
+</head>
+<body class="bg-gray-50 text-right">
+
+    <button onclick="toggleSidebar()" class="fixed top-5 right-5 z-[60] bg-[#0f172a] text-yellow-400 p-3 rounded-xl shadow-2xl border border-slate-700 flex items-center gap-3 font-bold">
+        <i class="fa-solid fa-scale-balanced text-xl"></i>
+        <span class="text-sm">لوحة التحكم</span>
+    </button>
+
+    <aside id="main-sidebar" class="fixed top-0 right-0 w-72 bg-[#0f172a] h-screen text-white p-6 shadow-2xl flex flex-col z-50 sidebar-closed font-bold border-l border-slate-800 transition-transform">
+        <div class="flex items-center justify-between mb-8 px-2 border-b border-slate-800 pb-4">
+            <h1 class="text-lg font-bold">التاكسي الذكي</h1>
+            <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+        </div>
+        <nav class="space-y-1 flex-1 overflow-y-auto pr-2 custom-scrollbar">
+            <a href="index.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-gauge-high w-6"></i> لوحة التحكم
+            </a>
+            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-widest">التسويات المالية</div>
+            <a href="matching.html" class="active-link flex items-center p-3 rounded-xl gap-3 text-sm transition">
+                <i class="fa-solid fa-arrows-to-dot w-6"></i> مطابقة الحسابات
+            </a>
+        </nav>
+    </aside>
+
+    <main class="flex-1 p-8 pt-24 max-w-7xl mx-auto">
+        <header class="mb-10 bg-white p-6 rounded-2xl shadow-sm border-r-8 border-indigo-600">
+            <h2 class="text-2xl font-bold text-slate-800">مطابقة وتسوية الحسابات (Matching)</h2>
+            <p class="text-slate-400 text-[10px] mt-1 uppercase font-bold tracking-widest italic">Financial Transaction Alignment</p>
+        </header>
+
+        <section class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-200 mb-8">
+            <h3 class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-link text-indigo-500"></i> ربط العمليات المالية (إغلاق الذمم)
+            </h3>
+            <form id="matchingForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <input type="hidden" id="id">
+                
+                <div class="space-y-4 border-l pl-4 border-slate-100">
+                    <h4 class="text-xs font-bold text-indigo-600 uppercase">الطرف الأول (المدفوعات/المصاريف)</h4>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-2">مرجع الدفعة (Payment ID)</label>
+                        <select id="payment_id" class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-indigo-400 outline-none">
+                            <option value="">-- اختر دفعة عامة --</option>
+                        </select>
+                    </div>
+                    <div class="text-center text-slate-300 text-xs font-bold">أو</div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-2">مرجع المصروف (Expense ID)</label>
+                        <select id="expense_id" class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-indigo-400 outline-none">
+                            <option value="">-- اختر مصروف تشغيلي --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="space-y-4 border-l pl-4 border-slate-100">
+                    <h4 class="text-xs font-bold text-green-600 uppercase">الطرف الثاني (الاستحقاق/الإيراد)</h4>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-2">يوم العمل (Work Day ID)</label>
+                        <select id="work_day_id" class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-indigo-400 outline-none">
+                            <option value="">-- اختر سجل عمل --</option>
+                        </select>
+                    </div>
+                    <div class="text-center text-slate-300 text-xs font-bold">أو</div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-2">مرجع الإيراد (Revenue ID)</label>
+                        <select id="revenue_id" class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-indigo-400 outline-none">
+                            <option value="">-- اختر سند قبض --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex flex-col justify-center">
+                    <div class="bg-indigo-50 p-6 rounded-2xl border border-indigo-100">
+                        <label class="block text-sm font-bold text-indigo-700 mb-2">المبلغ المطبق (Amount Applied)</label>
+                        <input type="number" id="amount_applied" step="0.01" required placeholder="0.00" class="w-full border-indigo-200 rounded-xl p-4 bg-white focus:ring-4 focus:ring-indigo-200 outline-none text-2xl font-bold text-indigo-800 text-center">
+                        <p class="text-[10px] text-indigo-400 mt-3 text-center">القيمة التي سيتم تسويتها بين الحسابين المختارين</p>
+                    </div>
+                    <button type="submit" class="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl transition shadow-xl shadow-indigo-100 flex items-center justify-center gap-3">
+                        <i class="fa-solid fa-check-double"></i> إتمام عملية المطابقة
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <table class="w-full text-right border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 text-slate-400 text-[11px] uppercase tracking-widest border-b">
+                        <th class="p-6 text-center">رقم المطابقة</th>
+                        <th class="p-6">الطرف المدين (مصروف/دفع)</th>
+                        <th class="p-6">الطرف الدائن (إيراد/عمل)</th>
+                        <th class="p-6">المبلغ المطبق</th>
+                        <th class="p-6 text-center">الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="matchingTableBody" class="text-sm divide-y divide-slate-100 text-slate-600">
+                    <tr><td colspan="5" class="p-10 text-center italic">جاري تحميل سجلات التسوية...</td></tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <script>
+        const SUPABASE_URL = 'https://tjntctaapsdynbywdfns.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_BJgdmxyFsCgzFDXh1Qn1CQ_cFRMsy2P';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('main-sidebar');
+            sidebar.classList.toggle('sidebar-closed');
+            sidebar.classList.toggle('sidebar-open');
+        }
+
+        async function loadOptions() {
+            const { data: pay } = await supabaseClient.from('payments').select('id, amount_paid');
+            const { data: exp } = await supabaseClient.from('expenses').select('id, total_amount, supplier_name');
+            const { data: work } = await supabaseClient.from('work_days').select('id, daily_rent, car_plate');
+            const { data: rev } = await supabaseClient.from('revenues').select('id, amount');
+
+            if(pay) document.getElementById('payment_id').innerHTML += pay.map(p => `<option value="${p.id}">سند #${p.id} (${p.amount_paid})</option>`).join('');
+            if(exp) document.getElementById('expense_id').innerHTML += exp.map(e => `<option value="${e.id}">مصروف #${e.id} - ${e.supplier_name}</option>`).join('');
+            if(work) document.getElementById('work_day_id').innerHTML += work.map(w => `<option value="${w.id}">عمل #${w.id} - سيارة ${w.car_plate}</option>`).join('');
+            if(rev) document.getElementById('revenue_id').innerHTML += rev.map(r => `<option value="${r.id}">إيراد #${r.id} (${r.amount})</option>`).join('');
+        }
+
+        async function fetchMatching() {
+            const { data, error } = await supabaseClient.from('matching').select('*').order('id', { ascending: false });
+            if (error) return;
+            
+            const tbody = document.getElementById('matchingTableBody');
+            tbody.innerHTML = data.map(m => `
+                <tr class="hover:bg-indigo-50/30 transition">
+                    <td class="p-6 text-center font-mono font-bold text-slate-400">#${m.id}</td>
+                    <td class="p-6 text-xs italic">${m.payment_id ? 'دفعة: '+m.payment_id : m.expense_id ? 'مصروف: '+m.expense_id : '---'}</td>
+                    <td class="p-6 text-xs italic">${m.work_day_id ? 'عمل: '+m.work_day_id : m.revenue_id ? 'إيراد: '+m.revenue_id : '---'}</td>
+                    <td class="p-6 font-bold text-indigo-600">${parseFloat(m.amount_applied).toFixed(2)}</td>
+                    <td class="p-6 text-center">
+                        <button onclick="deleteMatching(${m.id})" class="text-red-400 hover:scale-110 transition"><i class="fa-solid fa-trash-can"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        document.getElementById('matchingForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = {
+                payment_id: document.getElementById('payment_id').value || null,
+                expense_id: document.getElementById('expense_id').value || null,
+                work_day_id: document.getElementById('work_day_id').value || null,
+                revenue_id: document.getElementById('revenue_id').value || null,
+                amount_applied: parseFloat(document.getElementById('amount_applied').value)
+            };
+            await supabaseClient.from('matching').insert([formData]);
+            e.target.reset();
+            fetchMatching();
+        };
+
+        async function deleteMatching(id) {
+            if(confirm('إلغاء المطابقة سيعيد الذمة المالية لوضعها السابق، هل أنت متأكد؟')) {
+                await supabaseClient.from('matching').delete().eq('id', id);
+                fetchMatching();
+            }
+        }
+
+        window.onload = () => { loadOptions(); fetchMatching(); };
+    </script>
+</body>
+</html>
