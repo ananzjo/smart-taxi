@@ -24,27 +24,30 @@
             </div>
             <div class="bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-250 flex items-center gap-3 text-sm font-bold">
                 <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                <span id="currentDate" class="text-slate-700 font-mono italic"></span>
+                <span id="currentDate" class="text-slate-700 font-mono "></span>
             </div>
         </header>
 
-        <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 group transition hover:shadow-xl flex flex-col justify-between h-full">
+        <div class="bg-white p-8 rounded-[3rem] shadow-sm border border-slate-100 group transition-all duration-300 hover:shadow-2xl flex flex-col justify-between min-h-[350px]">
     
-    <div class="flex justify-between items-start mb-6">
-        <div class="p-4 bg-blue-50 text-blue-600 rounded-2xl transition-transform group-hover:scale-110">
-            <i class="fa-solid fa-calculator text-4xl"></i> </div>
-        <span class="text-[pt-24px] font-bold text-blue-600 uppercase tracking-wider">Total Revenue</span> </div>
+    <div class="flex justify-between items-start mb-8">
+        <div class="p-5 bg-blue-50 text-blue-600 rounded-[1.5rem] transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110">
+            <i class="fa-solid fa-calculator text-4xl"></i> 
+        </div>
+        <span class="text-sm font-black text-blue-600 uppercase tracking-widest mt-2">Total Revenue</span> 
+    </div>
 
-    <div class="text-center py-4"> 
-        <p class="text-slate-400 text-3xl mb-2" data-tooltip="إجمالي الضمان المستحق من أيام العمل">
+    <div class="text-center flex-grow flex flex-col justify-center"> 
+        <p class="text-slate-400 text-3xl mb-4 font-medium" data-tooltip="إجمالي الضمان المستحق من أيام العمل">
             إجمالي الضمان (المفترض)
         </p>
-        <h3 class="text-4xl font-bold text-slate-800 font-mono tracking-tight" id="totalRevenue" data-value="1250.50">
-            0.00 <small class="text-4xl font-bold text-slate-500">د.أ</small>
+        
+        <h3 class="text-5xl font-black text-slate-800 font-mono tracking-tighter" id="totalRevenue" data-value="1250.50">
+            0.00 
+            <small class="text-2xl font-bold text-slate-400 ml-1">د.أ</small>
         </h3>
     </div>
 </div>
-
             <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-250 group transition hover:shadow-xl">
                 <div class="flex justify-between items-start mb-4">
                     <div class="p-3 bg-red-50 text-red-600 rounded-2xl"><i class="fa-solid fa-wrench text-xl"></i></div>
