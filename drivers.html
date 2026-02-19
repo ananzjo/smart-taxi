@@ -8,68 +8,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    
-<link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-gray-50">
-
-   
-
-    <aside id="main-sidebar" class="fixed top-0 right-0 w-72 bg-[#0f172a] h-screen text-white p-6 shadow-2xl flex flex-col z-50 sidebar-closed font-bold border-l border-slate-800 transition-transform duration-400">
-        <div class="flex items-center justify-between mb-8 px-2 border-b border-slate-800 pb-4 text-right">
-            <div class="flex items-center gap-3">
-                <div class="bg-yellow-400 p-2 rounded-lg text-slate-900 shadow-lg shadow-yellow-400/20">
-                    <i class="fa-solid fa-taxi text-xl"></i>
-                </div>
-                <h1 class="text-lg font-bold tracking-tight text-white">التاكسي الذكي</h1>
-            </div>
-            
-        </div>
-
-        <nav class="space-y-1 flex-1 overflow-y-auto pr-2 custom-scrollbar text-right">
-            <a href="index.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
-                <i class="fa-solid fa-gauge-high w-6 text-lg text-center"></i> لوحة التحكم
-            </a>
-            
-            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-[0.2em]">إدارة الأسطول</div>
-            <a href="cars.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
-                <i class="fa-solid fa-car w-6 text-lg text-center"></i> السيارات
-            </a>
-            <a href="owners.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
-                <i class="fa-solid fa-user-tie w-6 text-lg text-center"></i> الملاك
-            </a>
-            <a href="drivers.html" class="active-link flex items-center p-3 rounded-xl gap-3 text-sm transition font-bold">
-                <i class="fa-solid fa-users w-6 text-lg text-center"></i> السائقين
-            </a>
-
-            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-[0.2em]">الحركة والتشغيل</div>
-            <a href="handover.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
-                <i class="fa-solid fa-key w-6 text-center text-lg"></i> سجل الاستلام
-            </a>
-            <a href="work_days.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
-                <i class="fa-solid fa-calendar-check w-6 text-center text-lg"></i> أيام العمل
-            </a>
-
-            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-[0.2em]">المالية والمطابقة</div>
-            <a href="revenues.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
-                <i class="fa-solid fa-hand-holding-dollar w-6 text-center text-lg"></i> الإيرادات
-            </a>
-            <a href="expenses.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
-                <i class="fa-solid fa-file-invoice-dollar w-6 text-center text-lg"></i> المصاريف
-            </a>
-        </nav>
-        
-        <div class="mt-auto border-t border-slate-800 pt-4 text-left">
-            <div class="flex items-center gap-1 justify-end">
-                <span class="relative flex h-2 w-2">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                </span>
-                <span class="text-green-500 text-[10px]">Cloud Active</span>
-            </div>
-        </div>
-    </aside>
 
     <main class="flex-1 p-8 pt-24 max-w-7xl mx-auto">
         <header class="flex justify-between items-center mb-10">
@@ -161,12 +102,11 @@
     </main>
 
     <script>
+        // إعدادات Supabase من ملفك الأصلي
         const SUPABASE_URL = 'https://tjntctaapsdynbywdfns.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_BJgdmxyFsCgzFDXh1Qn1CQ_cFRMsy2P';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        
-        // جلب بيانات السائقين
         async function fetchDrivers() {
             const { data, error } = await supabaseClient.from('drivers').select('*').order('name');
             if (error) return console.error(error);
@@ -184,14 +124,13 @@
                         </span>
                     </td>
                     <td class="p-6 text-center flex justify-center gap-2">
-                        <button onclick="editDriver(${JSON.stringify(driver).replace(/"/g, '&quot;')})" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick='editDriver(${JSON.stringify(driver)})' class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition"><i class="fa-solid fa-pen"></i></button>
                         <button onclick="deleteDriver(${driver.id})" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 </tr>
             `).join('');
         }
 
-        // إرسال النموذج
         document.getElementById('driverForm').onsubmit = async (e) => {
             e.preventDefault();
             const id = document.getElementById('id').value;
@@ -218,7 +157,6 @@
             fetchDrivers();
         };
 
-        // التعديل
         function editDriver(driver) {
             document.getElementById('id').value = driver.id;
             document.getElementById('driver_id').value = driver.driver_id;
@@ -233,7 +171,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // الحذف
         async function deleteDriver(id) {
             if (confirm('هل أنت متأكد من حذف هذا السائق؟')) {
                 await supabaseClient.from('drivers').delete().eq('id', id);
@@ -241,8 +178,10 @@
             }
         }
 
-        window.onload = fetchDrivers;
+        // تشغيل جلب البيانات عند التحميل
+        window.addEventListener('load', fetchDrivers);
     </script>
-<script src="sidebar.js"></script>
+
+    <script src="sidebar.js"></script>
 </body>
 </html>
