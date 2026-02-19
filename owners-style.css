@@ -27,6 +27,21 @@
 .btn-submit {
     width: 100%;
     background-color: #facc15;
+
+    /* تحسينات حركة القائمة */
+#main-sidebar {
+    transition: transform 0.3s ease-in-out !important;
+}
+
+.translate-x-full { transform: translateX(100%); }
+.translate-x-0 { transform: translateX(0); }
+
+/* كلاس الرابط النشط */
+.active-link {
+    background-color: #1e293b !important;
+    color: #facc15 !important;
+    border-right: 4px solid #facc15;
+}
     color: #0f172a;
     font-weight: 700;
     padding: 0.85rem;
