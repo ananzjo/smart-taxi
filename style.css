@@ -1,134 +1,81 @@
-/* style.css */
+/* FILE: style.css
+   DESCRIPTION: الملف الموحد لجميع شاشات نظام إدارة التاكسي الذكي 2026
+   AUTHOR: Gemini AI
+*/
+
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
-.font-digital {
-    color: #0f172a; /* لون Slate-900 غامق جداً */
-    text-shadow: 0 0 10px rgba(15, 23, 42, 0.1); /* ظل خفيف جداً يعطي عمق للرقم */
+
+:root {
+    /* تعريف الألوان المتفق عليها كمتغيرات | Color Variables */
+    --clr-cars: #facc15;      /* أصفر */
+    --clr-drivers: #18181b;   /* أسود */
+    --clr-owners: #9d4b4b;    /* وردي رجالي */
+    --clr-users: #e2e8f0;     /* رمادي فاتح */
+    --clr-revenues: #2563eb;  /* أزرق */
+    --clr-expenses: #ef4444;  /* أحمر */
+    --clr-payments: #7f1d1d;  /* أحمر دم */
+    --sidebar-bg: #0f172a;    /* كحلي غامق للقائمة */
 }
 
+/* التنسيق العام | Global Reset */
 body {
     font-family: 'Tajawal', sans-serif;
-    background-color: #65acf3;
+    background-color: #f8fafc;
     margin: 0;
+    direction: rtl;
 }
 
-/* القائمة الجانبية */
-#main-sidebar {
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+/* ----------------------------------------------------
+   نظام الثيمات (Theme System)
+   شرح: كل صفحة ستأخذ لونها بناءً على الكلاس الموجود في الـ Body
+   ---------------------------------------------------- */
+
+/* ثيم السيارات - الأصفر */
+body.theme-cars .page-header { border-right: 8px solid var(--clr-cars); }
+body.theme-cars .btn-action { background: var(--clr-cars); color: #000; }
+
+/* ثيم السائقين - الأسود */
+body.theme-drivers .page-header { border-right: 8px solid var(--clr-drivers); background: var(--clr-drivers); color: #fff; }
+body.theme-drivers .btn-action { background: var(--clr-drivers); color: #fff; }
+
+/* ثيم الملاك - الوردي الرجالي */
+body.theme-owners .page-header { border-right: 8px solid var(--clr-owners); }
+body.theme-owners .btn-action { background: var(--clr-owners); color: #fff; }
+
+/* ثيم المستخدمين - الرمادي الفاتح */
+body.theme-users .page-header { border-right: 8px solid var(--clr-users); background: #f1f5f9; }
+body.theme-users .btn-action { background: var(--clr-users); color: #1e293b; border: 1px solid #cbd5e1; }
+
+/* ثيم الإيرادات - الأزرق */
+body.theme-revenues .page-header { border-right: 8px solid var(--clr-revenues); }
+body.theme-revenues .btn-action { background: var(--clr-revenues); color: #fff; }
+
+/* ثيم المصاريف - الأحمر */
+body.theme-expenses .page-header { border-right: 8px solid var(--clr-expenses); }
+body.theme-expenses .btn-action { background: var(--clr-expenses); color: #fff; }
+
+/* ثيم الدفعات - أحمر دم */
+body.theme-payments .page-header { border-right: 8px solid var(--clr-payments); }
+body.theme-payments .btn-action { background: var(--clr-payments); color: #fff; }
+
+/* ----------------------------------------------------
+   تنسيق الجداول الموحد | Unified Tables
+   ---------------------------------------------------- */
+.custom-table {
+    width: 100%;
+    background: white;
+    border-radius: 1rem;
+    overflow: hidden;
 }
 
-.sidebar-closed {
-    transform: translateX(100%);
+.custom-table th {
+    background: #f1f5f9;
+    padding: 1rem;
+    font-size: 0.8rem;
+    color: #64748b;
 }
 
-.sidebar-open {
-    transform: translateX(0);
+.custom-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #f1f5f9;
 }
-
-/* الرابط النشط */
-.active-link {
-    background: rgba(250, 204, 21, 0.1) !important;
-    border-right: 4px solid #facc15 !important;
-    color: #facc15 !important;
-}
-
-/* شريط التمرير */
-.custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #1e293b;
-    border-radius: 10px;
-}
-
-<<<<<<< HEAD
-/* Tooltip */
-[data-tooltip] {
-    position: relative;
-    cursor: pointer;
-}
-[data-tooltip]:before {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: 125%;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 8px 12px;
-    background: var(--primary-dark);
-    color: #fff;
-    font-size: 11px;
-    border-radius: 8px;
-    white-space: nowrap;
-    opacity: 0;
-    visibility: hidden;
-    transition: 0.3s;
-    z-index: 50;
-}
-[data-tooltip]:hover:before {
-    opacity: 1;
-    visibility: visible;
-}
-
-.pulse-fast {
-    animation: pulse-fast-animation 0.8s infinite cubic-bezier(0.66, 0, 0, 1);
-    box-shadow: 0 0 0 0 rgba(24, 175, 79, 0.7); /* لون أخضر شفاف */
-}
-
-@keyframes pulse-fast-animation {
-    0% {
-        transform: scale(0.95);
-        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
-    }
-    70% {
-        transform: scale(1);
-        box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); /* هالة أكبر */
-    }
-    100% {
-        transform: scale(0.95);
-        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
-    }
-}
-
-/* الأنشطة والنبض (Pulse) */
-.pulse-status {
-    display: inline-block;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    position: relative;
-    margin-left: 8px;
-}
-.pulse-red {
-    background: #ef4444;
-    animation: shadow-pulse-red 2s infinite;
-}
-@keyframes shadow-pulse-red {
-    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-}
-
-/* Snackbar */
-#snackbar {
-    visibility: hidden;
-    min-width: 280px;
-    background-color: var(--primary-dark);
-    color: #fff;
-    text-align: center;
-    border-radius: 16px;
-    padding: 20px;
-    position: fixed;
-    z-index: 100;
-    right: 30px;
-    bottom: 30px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-    border-bottom: 4px solid var(--accent-yellow);
-}
-#snackbar.show {
-    visibility: visible;
-    animation: slideIn 0.5s, slideOut 0.5s 3.5s;
-}
-@keyframes slideIn { from {right: -300px; opacity: 0;} to {right: 30px; opacity: 1;} }
-@keyframes slideOut { from {right: 30px; opacity: 1;} to {right: -300px; opacity: 0;} }
-
-=======
->>>>>>> d897e3a6033dfa49cc0e64b18cb6d80d8d7b93d8
