@@ -3,40 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة السيارات | نظام التاكسي الذكي</title>
+    <title>إدارة الأسطول | نظام التاكسي الذكي</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="vehicles-style.css">
+    
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gray-100 font-sans">
 
-    <main class="p-6 md:p-12 pt-24 max-w-7xl mx-auto text-right">
-        <header class="flex justify-between items-center mb-8 bg-white p-6 rounded-2xl shadow-sm border-r-8 border-yellow-500">
-            <h1 class="text-2xl font-bold">أسطول المركبات</h1>
-            <div id="currentDate" class="text-xs font-mono"></div>
+<body class="theme-cars"> <main class="p-6 md:p-12 pt-24 max-w-7xl mx-auto text-right">
+        
+        <header class="page-header flex justify-between items-center mb-8 bg-white p-6 rounded-2xl shadow-sm">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-800">أسطول المركبات</h1>
+                <p class="text-xs text-slate-400 mt-1 uppercase tracking-widest font-bold">Fleet Management System</p>
+            </div>
+            
+            <div id="currentDate"></div> 
         </header>
 
-        <section class="bg-white p-6 rounded-2xl shadow-md border mb-10">
-            <form id="carForm" class="grid grid-cols-1 md:grid-cols-4 gap-5">
-                <input type="text" id="plate_no" placeholder="رقم اللوحة" class="p-3 border rounded-xl">
-                <select id="owner_id" class="p-3 border rounded-xl"><option>-- اختر المالك --</option></select>
-                <input type="text" id="brand" placeholder="النوع" class="p-3 border rounded-xl">
-                <button type="button" id="saveBtn" class="bg-yellow-400 font-bold rounded-xl">حفظ السيارة</button>
+        <section class="bg-white p-8 rounded-2xl shadow-md border border-slate-100 mb-10">
+            <form id="carForm" class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs font-bold mr-2 text-slate-500">رقم اللوحة</label>
+                    <input type="text" id="plate_no" placeholder="00-0000" class="p-3 border rounded-xl focus:ring-2 focus:ring-yellow-400 outline-none transition-all">
+                </div>
+                
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs font-bold mr-2 text-slate-500">المالك</label>
+                    <select id="owner_id" class="p-3 border rounded-xl focus:ring-2 focus:ring-yellow-400 outline-none transition-all">
+                        <option>-- اختر المالك --</option>
+                    </select>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs font-bold mr-2 text-slate-500">نوع السيارة</label>
+                    <input type="text" id="brand" placeholder="مثلاً: تويوتا كامري" class="p-3 border rounded-xl focus:ring-2 focus:ring-yellow-400 outline-none transition-all">
+                </div>
+
+                <button type="button" id="saveBtn" class="btn-action mt-6 h-[52px] font-bold rounded-xl shadow-lg shadow-yellow-400/20 transition-all active:scale-95">
+                    <i class="fa-solid fa-plus-circle ml-2"></i> حفظ المركبة
+                </button>
             </form>
         </section>
 
-        <div class="bg-white rounded-2xl shadow-md overflow-hidden">
-            <table class="w-full text-right">
-                <thead class="bg-slate-100 text-xs">
-                    <tr><th class="p-4">اللوحة</th><th class="p-4">المالك</th><th class="p-4">النوع</th><th class="p-4">إجراء</th></tr>
+        <div class="bg-white rounded-2xl shadow-md border border-slate-100 overflow-hidden">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th class="p-4 text-right">رقم اللوحة</th>
+                        <th class="p-4 text-right">المالك</th>
+                        <th class="p-4 text-right">النوع</th>
+                        <th class="p-4 text-center">الإجراءات</th>
+                    </tr>
                 </thead>
-                <tbody id="carsList"></tbody>
+                <tbody id="carsTableBody" class="divide-y divide-slate-50">
+                    </tbody>
             </table>
         </div>
     </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="sidebar.js"></script>
-    <script src="vehicles-logic.js"></script>
+
+    <script>
+        // هنا نضع فقط "منطق البيانات" الخاص بالسيارات (بدون بعبصة في الشكل)
+        // الربط مع سوبابيس وإحضار البيانات
+        const SUPABASE_URL = 'https://tjntctaapsdynbywdfns.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_BJgdmxyFsCgzFDXh1Qn1CQ_cFRMsy2P';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function fetchCars() {
+            const { data, error } = await supabaseClient.from('cars').select('*, owners(name)');
+            if (error) return console.error(error);
+            
+            const tbody = document.getElementById('carsTableBody');
+            tbody.innerHTML = data.map(car => `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="p-4 font-bold text-slate-700">${car.plate_no}</td>
+                    <td class="p-4 text-slate-600">${car.owners?.name || 'غير محدد'}</td>
+                    <td class="p-4 text-slate-500 text-sm">${car.brand}</td>
+                    <td class="p-4 text-center">
+                        <button class="text-blue-500 hover:text-blue-700 ml-3"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button class="text-red-400 hover:text-red-600"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        window.onload = fetchCars;
+    </script>
 </body>
 </html>
