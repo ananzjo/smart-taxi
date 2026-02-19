@@ -4,109 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إدارة الملاك | نظام التاكسي الذكي</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    
-<link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="owners-style.css">
 </head>
-<body class="bg-gray-50">
-
-
-        <div class="flex items-center justify-between mb-8 px-2 border-b border-slate-800 pb-4 text-right">
-            <div class="flex items-center gap-3">
-                <div class="bg-yellow-400 p-2 rounded-lg text-slate-900 shadow-lg shadow-yellow-400/20">
-                    <i class="fa-solid fa-taxi text-xl"></i>
-                </div>
-                <h1 class="text-lg font-bold tracking-tight text-white">التاكسي الذكي</h1>
-            </div>
-            <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white transition-colors">
-                <i class="fa-solid fa-xmark text-xl"></i>
-            </button>
-        </div>
-
-        <nav class="space-y-1 flex-1 overflow-y-auto pr-2 custom-scrollbar text-right">
-            <a href="index.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
-                <i class="fa-solid fa-gauge-high w-6 text-lg text-center"></i> لوحة التحكم
-            </a>
-            
-            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-[0.2em]">إدارة الأسطول</div>
-            <a href="cars.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
-                <i class="fa-solid fa-car w-6 text-lg text-center"></i> السيارات
-            </a>
-            <a href="owners.html" class="active-link flex items-center p-3 rounded-xl gap-3 text-sm transition">
-                <i class="fa-solid fa-user-tie w-6 text-lg text-center"></i> المالكين
-            </a>
-            <a href="drivers.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
-                <i class="fa-solid fa-users w-6 text-lg text-center"></i> السائقين
-            </a>
-
-            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-[0.2em]">الحركة والتشغيل</div>
-            <a href="handover.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
-                <i class="fa-solid fa-key w-6 text-center text-lg"></i> سجل الاستلام
-            </a>
-            <a href="work_days.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
-                <i class="fa-solid fa-calendar-check w-6 text-center text-lg"></i> أيام العمل
-            </a>
-
-            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-[0.2em]">المالية والمطابقة</div>
-            <a href="revenues.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
-                <i class="fa-solid fa-hand-holding-dollar w-6 text-center text-lg"></i> الإيرادات
-            </a>
-            <a href="expenses.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
-                <i class="fa-solid fa-file-invoice-dollar w-6 text-center text-lg"></i> المصاريف
-            </a>
-            <a href="reconciliation.html" class="flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition border-t border-slate-800/50 mt-2">
-                <i class="fa-solid fa-scale-balanced w-6 text-center text-lg text-yellow-500"></i> المطابقة المالية
-            </a>
-        </nav>
-        
-        <div class="mt-auto border-t border-slate-800 pt-4 text-[10px] text-slate-500 flex justify-between items-center">
-            <span>v1.3.0</span>
-            <div class="flex items-center gap-1">
-                <span class="relative flex h-2 w-2">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                </span>
-                <span class="text-green-500 font-bold">Cloud System</span>
-            </div>
-        </div>
-    </aside>
+<body class="bg-gray-50 font-[Tajawal]">
 
     <main class="flex-1 p-8 pt-24 max-w-7xl mx-auto">
-        <header class="flex justify-between items-center mb-10">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
             <div>
                 <h2 class="text-3xl font-bold text-slate-800">إدارة الملاك</h2>
                 <p class="text-slate-500 mt-1 uppercase text-[10px] tracking-[0.2em] font-bold italic">Owners Management System</p>
             </div>
+
+            <div class="connection-status-badge">
+                <span id="connectionStatus" class="status-dot online"></span>
+                <span id="statusText" class="text-slate-700 font-bold text-sm">متصل</span>
+                <span class="text-slate-300">|</span>
+                <span id="currentDate" class="text-slate-500 font-mono text-xs font-bold"></span>
+            </div>
         </header>
 
         <section class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 mb-8">
-            <h3 class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2">
+            <h3 id="formTitle" class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2">
                 <i class="fa-solid fa-plus-circle text-yellow-500"></i> إضافة / تعديل مالك
             </h3>
             <form id="ownerForm" class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <input type="hidden" id="ownerId">
-                <div data-tooltip="الاسم الكامل لمالك المركبة">
-                    <label class="block text-xs font-bold text-slate-500 mb-2 text-right">اسم المالك</label>
-                    <input type="text" id="name" required class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-yellow-400 outline-none text-right">
+                <div class="input-field">
+                    <label>اسم المالك</label>
+                    <input type="text" id="name" required placeholder="الاسم الكامل">
                 </div>
-                <div data-tooltip="وسيلة الاتصال الأساسية للمالك">
-                    <label class="block text-xs font-bold text-slate-500 mb-2 text-right">رقم الهاتف</label>
-                    <input type="text" id="phone" class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-yellow-400 outline-none text-right">
+                <div class="input-field">
+                    <label>رقم الهاتف</label>
+                    <input type="text" id="phone" placeholder="07XXXXXXXX">
                 </div>
-                <div data-tooltip="العنوان الفعلي للمالك">
-                    <label class="block text-xs font-bold text-slate-500 mb-2 text-right">العنوان</label>
-                    <input type="text" id="address" class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-yellow-400 outline-none text-right">
+                <div class="input-field">
+                    <label>العنوان</label>
+                    <input type="text" id="address" placeholder="المدينة / المنطقة">
                 </div>
-                <div class="md:col-span-2" data-tooltip="أي تفاصيل إضافية عن المالك">
-                    <label class="block text-xs font-bold text-slate-500 mb-2 text-right">ملاحظات</label>
-                    <input type="text" id="notes" class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-yellow-400 outline-none text-right">
+                <div class="md:col-span-2 input-field">
+                    <label>ملاحظات إضافية</label>
+                    <input type="text" id="notes" placeholder="أي تفاصيل أخرى...">
                 </div>
                 <div class="flex items-end">
-                    <button type="submit" class="w-full bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold py-3 rounded-xl transition shadow-lg shadow-yellow-400/20">
+                    <button type="submit" id="submitBtn" class="btn-submit">
                         حفظ بيانات المالك
                     </button>
                 </div>
@@ -132,92 +77,9 @@
         </section>
     </main>
 
-    <script>
-        const SUPABASE_URL = 'https://tjntctaapsdynbywdfns.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_BJgdmxyFsCgzFDXh1Qn1CQ_cFRMsy2P';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        // وظيفة التبديل للقائمة (Sidebar Logic)
-        function toggleSidebar() {
-            const sidebar = document.getElementById('main-sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            const menuText = document.getElementById('menu-text');
-
-            sidebar.classList.toggle('sidebar-closed');
-            sidebar.classList.toggle('sidebar-open');
-            overlay.classList.toggle('hidden');
-
-            if (sidebar.classList.contains('sidebar-open')) {
-                menuText.style.opacity = '0';
-                setTimeout(() => { menuText.style.display = 'none'; }, 300);
-            } else {
-                menuText.style.display = 'inline';
-                setTimeout(() => { menuText.style.opacity = '1'; }, 10);
-            }
-        }
-
-        // جلب البيانات من جدول الملاك
-        async function fetchOwners() {
-            const { data, error } = await supabaseClient.from('owners').select('*').order('id', { ascending: false });
-            if (error) return console.error(error);
-            
-            const tbody = document.getElementById('ownersTableBody');
-            tbody.innerHTML = data.map(owner => `
-                <tr class="border-b border-slate-50 hover:bg-slate-50 transition">
-                    <td class="p-6 font-mono text-xs text-slate-400">${owner.id}</td>
-                    <td class="p-6 font-bold text-slate-700">${owner.name}</td>
-                    <td class="p-6">${owner.phone || '---'}</td>
-                    <td class="p-6 text-slate-500 text-xs">${owner.address || '---'}</td>
-                    <td class="p-6 text-center flex justify-center gap-2">
-                        <button onclick="editOwner(${JSON.stringify(owner).replace(/"/g, '&quot;')})" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition" title="تعديل"><i class="fa-solid fa-pen"></i></button>
-                        <button onclick="deleteOwner(${owner.id})" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition" title="حذف"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        // حفظ البيانات (إضافة أو تحديث)
-        document.getElementById('ownerForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const id = document.getElementById('ownerId').value;
-            const ownerData = {
-                name: document.getElementById('name').value,
-                phone: document.getElementById('phone').value,
-                address: document.getElementById('address').value,
-                notes: document.getElementById('notes').value
-            };
-
-            if (id) {
-                await supabaseClient.from('owners').update(ownerData).eq('id', id);
-            } else {
-                await supabaseClient.from('owners').insert([ownerData]);
-            }
-            
-            e.target.reset();
-            document.getElementById('ownerId').value = '';
-            fetchOwners();
-        };
-
-        // تعبئة النموذج للتعديل
-        function editOwner(owner) {
-            document.getElementById('ownerId').value = owner.id;
-            document.getElementById('name').value = owner.name;
-            document.getElementById('phone').value = owner.phone;
-            document.getElementById('address').value = owner.address;
-            document.getElementById('notes').value = owner.notes;
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        // حذف مالك
-        async function deleteOwner(id) {
-            if (confirm('هل أنت متأكد من حذف هذا المالك؟')) {
-                await supabaseClient.from('owners').delete().eq('id', id);
-                fetchOwners();
-            }
-        }
-
-        window.onload = fetchOwners;
-    </script>
-<script src="sidebar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="sidebar.js"></script>
+    <script src="owners-logic.js"></script>
 </body>
 </html>
