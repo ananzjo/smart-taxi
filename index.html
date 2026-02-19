@@ -42,11 +42,7 @@
 
         /* تنسيق جدول الأسطول */
         .glass-table {
-<<<<<<< HEAD
-            background: rgba(57, 236, 72, 0.411);
-=======
             background: rgb(0, 0, 0);
->>>>>>> 58f6c5d2302e36a4159d6f0123f63a9c0c5b8e27
             border-radius: 2.5rem;
             overflow: hidden;
             color: #1e293b;
@@ -75,7 +71,9 @@
                 <p class="text-slate-400 mt-1 uppercase text-[16px] tracking-[0.2em] font-bold italic">Smart Dashboard Control</p>
             </div>
             <div class="bg-white/10 backdrop-blur-md px-5 py-2 rounded-2xl border border-white/20 flex items-center gap-3 text-sm font-bold">
-                <span class="w-6 h-6 rounded-full bg-green-500 animate-pulse"></span>
+                <span id="connectionStatus" class="w-3 h-3 rounded-full bg-green-500 animate-pulse"></span>
+                <span id="statusText" class="text-white font-mono">متصل</span>
+                <span class="text-white/30">|</span>
                 <span id="currentDate" class="text-white font-mono bold"></span>
             </div>
         </header>
@@ -108,39 +106,39 @@
 
         </div>
 
-<div class="glass-table shadow-xl mb-8 rounded-2xl overflow-hidden border border-white/10 bg-gradient-to-br from-slate-800 via-slate-900 to-indigo-950">
-    
-    <div class="p-6 border-b border-white/5 flex justify-between items-center bg-white/5 backdrop-blur-sm">
-        <h3 class="font-bold text-white text-2xl flex items-center gap-3">
-            <i class="fa-solid fa-car-side text-emerald-400 opacity-80"></i> 
-            مراقبة الأسطول
-        </h3>
-        <div class="bg-red-500/10 text-red-400 border border-red-500/30 px-5 py-2 rounded-xl text-lg font-bold">
-            متوقفة: <span id="idleCars" class="text-xl">0</span>
-        </div>
-    </div>
+        <div class="glass-table shadow-xl mb-8 rounded-2xl overflow-hidden border border-white/10 bg-gradient-to-br from-slate-800 via-slate-900 to-indigo-950">
+            
+            <div class="p-6 border-b border-white/5 flex justify-between items-center bg-white/5 backdrop-blur-sm">
+                <h3 class="font-bold text-white text-2xl flex items-center gap-3">
+                    <i class="fa-solid fa-car-side text-emerald-400 opacity-80"></i> 
+                    مراقبة الأسطول
+                </h3>
+                <div class="bg-red-500/10 text-red-400 border border-red-500/30 px-5 py-2 rounded-xl text-lg font-bold">
+                    متوقفة: <span id="idleCars" class="text-xl">0</span>
+                </div>
+            </div>
 
-    <div class="overflow-x-auto px-4 pb-6">
-        <table class="w-full text-right border-collapse">
-            <thead>
-                <tr class="text-slate-400 text-sm uppercase tracking-wider border-b border-white/5">
-                    <th class="p-5 font-medium">السيارة</th>
-                    <th class="p-5 font-medium">السائق</th>
-                    <th class="p-5 font-medium">التاريخ</th>
-                    <th class="p-5 text-center font-medium">الحالة</th>
-                </tr>
-            </thead>
-            <tbody id="fleetTableBody" class="text-slate-200 text-base font-normal">
-                <tr class="hover:bg-white/5 transition-colors">
-                    <td colspan="4" class="p-12 text-center text-slate-400 animate-pulse">
-                        <i class="fa-solid fa-cloud-arrow-down ml-2"></i>
-                        جاري الاتصال بالسحابة الذكية...
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
+            <div class="overflow-x-auto px-4 pb-6">
+                <table class="w-full text-right border-collapse">
+                    <thead>
+                        <tr class="text-slate-400 text-sm uppercase tracking-wider border-b border-white/5">
+                            <th class="p-5 font-medium">السيارة</th>
+                            <th class="p-5 font-medium">السائق</th>
+                            <th class="p-5 font-medium">التاريخ</th>
+                            <th class="p-5 text-center font-medium">الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fleetTableBody" class="text-slate-200 text-base font-normal">
+                        <tr class="hover:bg-white/5 transition-colors">
+                            <td colspan="4" class="p-12 text-center text-slate-400 animate-pulse">
+                                <i class="fa-solid fa-cloud-arrow-down ml-2"></i>
+                                جاري الاتصال بالسحابة الذكية...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </main>
 
     <div id="snackbar">نظام التاكسي الذكي v1.3.0 جاهز 🚖</div>
@@ -158,7 +156,27 @@
             setTimeout(() => { sb.className = sb.className.replace("show", ""); }, 4000);
         }
 
+        // دالة تحديث حالة الاتصال
+        function updateOnlineStatus() {
+            const statusCircle = document.getElementById('connectionStatus');
+            const statusText = document.getElementById('statusText');
+            
+            if (navigator.onLine) {
+                statusCircle.className = "w-3 h-3 rounded-full bg-green-500 animate-pulse";
+                statusText.innerText = "متصل";
+                statusText.className = "text-white font-mono";
+            } else {
+                statusCircle.className = "w-3 h-3 rounded-full bg-red-500";
+                statusText.innerText = "غير متصل";
+                statusText.className = "text-red-500 font-mono";
+            }
+        }
+
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+
         async function initializeDashboard() {
+            updateOnlineStatus(); // التأكد من الحالة عند التشغيل
             try {
                 // تاريخ اليوم
                 const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
