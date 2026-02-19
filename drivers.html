@@ -165,23 +165,7 @@
         const SUPABASE_KEY = 'sb_publishable_BJgdmxyFsCgzFDXh1Qn1CQ_cFRMsy2P';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // تبديل القائمة (Sidebar Logic)
-        function () {
-            const sidebar = document.getElementById('main-sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            const menuText = document.getElementById('menu-text');
-
-            sidebar.classList.toggle('sidebar-closed');
-            sidebar.classList.toggle('sidebar-open');
-            overlay.classList.toggle('hidden');
-
-            if (sidebar.classList.contains('sidebar-open')) {
-                menuText.style.opacity = '0';
-            } else {
-                menuText.style.opacity = '1';
-            }
-        }
-
+        
         // جلب بيانات السائقين
         async function fetchDrivers() {
             const { data, error } = await supabaseClient.from('drivers').select('*').order('name');
