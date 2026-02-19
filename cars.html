@@ -3,106 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة السيارات - نظام إدارة التاكسي الذكي</title>
-    
+    <title>إدارة السيارات | نظام التاكسي الذكي</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <link rel="stylesheet" href="vehicles-style.css">
 </head>
-<body class="bg-gray-100 font-sans text-right overflow-x-hidden">
+<body class="bg-gray-100 font-sans">
 
-    <main class="p-6 md:p-12 pt-24 max-w-7xl mx-auto">
-        <header class="flex flex-col md:flex-row justify-between items-center mb-8 bg-white p-6 rounded-2xl shadow-sm border-r-8 border-yellow-500 gap-4">
-            <div>
-                <h1 class="text-2xl font-bold text-slate-800 underline decoration-yellow-400 decoration-4">أسطول المركبات</h1>
-                <p class="text-slate-400 text-xs mt-1">إضافة، تعديل، ومراقبة جميع السيارات في النظام</p>
-            </div>
+    <aside id="main-sidebar" class="fixed top-0 right-0 w-72 bg-[#0f172a] h-screen text-white p-6 z-50 sidebar-closed transition-all">
+        </aside>
 
-            <div class="connection-status-badge flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
-                <span id="connectionStatus" class="w-3 h-3 rounded-full bg-green-500"></span>
-                <span id="statusText" class="text-slate-700 font-bold text-sm">متصل</span>
-                <span class="text-slate-300">|</span>
-                <span id="currentDate" class="text-slate-500 font-mono text-xs font-bold"></span>
-            </div>
+    <main class="p-6 md:p-12 pt-24 max-w-7xl mx-auto text-right">
+        <header class="flex justify-between items-center mb-8 bg-white p-6 rounded-2xl shadow-sm border-r-8 border-yellow-500">
+            <h1 class="text-2xl font-bold">أسطول المركبات</h1>
+            <div id="currentDate" class="text-xs font-mono"></div>
         </header>
 
-        <section class="bg-white p-6 rounded-2xl shadow-md border border-slate-200 mb-10">
-            <h2 id="formTitle" class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2">
-                <i class="fa-solid fa-circle-plus text-yellow-500"></i> تسجيل مركبة جديدة
-            </h2>
-            <form id="carForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                <input type="hidden" id="carId"> <div class="flex flex-col gap-2">
-                    <label class="text-xs font-bold text-slate-500 mr-2">رقم اللوحة</label>
-                    <input type="text" id="plate_no" class="p-3 border rounded-xl bg-blue-50/50 font-bold outline-none focus:border-blue-400" placeholder="00-00000">
-                </div>
-                <div class="flex flex-col gap-2">
-                    <label class="text-xs font-bold text-slate-500 mr-2">مكتب السيارة</label>
-                    <input type="text" id="car_office" class="p-3 border rounded-xl outline-none focus:border-yellow-400">
-                </div>
-                <div class="flex flex-col gap-2">
-                    <label class="text-xs font-bold text-slate-500 mr-2">الماركة / النوع</label>
-                    <input type="text" id="brand" class="p-3 border rounded-xl outline-none focus:border-yellow-400">
-                </div>
-                <div class="flex flex-col gap-2">
-                    <label class="text-xs font-bold text-slate-500 mr-2">الموديل (السنة)</label>
-                    <input type="number" id="model" class="p-3 border rounded-xl outline-none focus:border-yellow-400">
-                </div>
-                <div class="flex flex-col gap-2">
-                    <label class="text-xs font-bold text-slate-500 mr-2">انتهاء الترخيص</label>
-                    <input type="date" id="license_expiry" class="p-3 border rounded-xl font-mono outline-none focus:border-yellow-400">
-                </div>
-                <div class="flex flex-col gap-2">
-                    <label class="text-xs font-bold text-slate-500 mr-2">الضمان اليومي</label>
-                    <input type="number" id="standard_rent" step="0.01" class="p-3 border rounded-xl bg-green-50 text-green-700 font-bold outline-none focus:border-green-400">
-                </div>
-                <div class="flex flex-col gap-2">
-                    <label class="text-xs font-bold text-slate-500 mr-2">العمولة الإدارية</label>
-                    <input type="number" id="management_fee" step="0.01" class="p-3 border rounded-xl outline-none focus:border-yellow-400">
-                </div>
-                <div class="flex flex-col gap-2">
-                    <label class="text-xs font-bold text-slate-500 mr-2">المالك المسؤول</label>
-                    <select id="owner_id" class="p-3 border rounded-xl bg-yellow-50 font-bold outline-none focus:border-yellow-400">
-                        <option value="">-- اختر المالك --</option>
-                    </select>
-                </div>
-                <div class="lg:col-span-4 flex flex-col gap-2">
-                    <label class="text-xs font-bold text-slate-500 mr-2">ملاحظات المركبة</label>
-                    <input type="text" id="car_notes" class="p-3 border rounded-xl w-full outline-none focus:border-yellow-400">
-                </div>
-
-                <button type="submit" id="submitBtn" class="lg:col-span-4 bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold py-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-floppy-disk"></i> حفظ وإضافة السيارة للأسطول
-                </button>
+        <section class="bg-white p-6 rounded-2xl shadow-md border mb-10">
+            <form id="carForm" class="grid grid-cols-1 md:grid-cols-4 gap-5">
+                <input type="text" id="plate_no" placeholder="رقم اللوحة" class="p-3 border rounded-xl">
+                <select id="owner_id" class="p-3 border rounded-xl"><option>-- اختر المالك --</option></select>
+                <input type="text" id="brand" placeholder="النوع" class="p-3 border rounded-xl">
+                <button type="button" id="saveBtn" class="bg-yellow-400 font-bold rounded-xl">حفظ السيارة</button>
             </form>
         </section>
 
-        <section class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-right border-collapse">
-                    <thead>
-                        <tr class="bg-slate-100 text-slate-500 text-[11px] uppercase tracking-widest border-b">
-                            <th class="p-4">اللوحة</th>
-                            <th class="p-4">النوع / الموديل</th>
-                            <th class="p-4">المالك</th>
-                            <th class="p-4">الضمان</th>
-                            <th class="p-4">الترخيص</th>
-                            <th class="p-4 text-center">إجراء</th>
-                        </tr>
-                    </thead>
-                    <tbody id="carsList" class="text-sm divide-y divide-slate-100 text-slate-600">
-                        </tbody>
-                </table>
-            </div>
-        </section>
+        <div class="bg-white rounded-2xl shadow-md overflow-hidden">
+            <table class="w-full text-right">
+                <thead class="bg-slate-100 text-xs">
+                    <tr><th class="p-4">اللوحة</th><th class="p-4">المالك</th><th class="p-4">النوع</th><th class="p-4">إجراء</th></tr>
+                </thead>
+                <tbody id="carsList"></tbody>
+            </table>
+        </div>
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
     <script src="sidebar.js"></script>
-    
     <script src="vehicles-logic.js"></script>
-
 </body>
 </html>
