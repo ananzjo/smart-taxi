@@ -19,8 +19,8 @@
                 <p class="text-slate-400 text-xs mt-1">إضافة، تعديل، ومراقبة جميع السيارات في النظام</p>
             </div>
 
-            <div class="connection-status-badge">
-                <span id="connectionStatus" class="status-dot online"></span>
+            <div class="connection-status-badge flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
+                <span id="connectionStatus" class="w-3 h-3 rounded-full bg-green-500"></span>
                 <span id="statusText" class="text-slate-700 font-bold text-sm">متصل</span>
                 <span class="text-slate-300">|</span>
                 <span id="currentDate" class="text-slate-500 font-mono text-xs font-bold"></span>
@@ -32,46 +32,46 @@
                 <i class="fa-solid fa-circle-plus text-yellow-500"></i> تسجيل مركبة جديدة
             </h2>
             <form id="carForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                <div class="input-group">
-                    <label>رقم اللوحة</label>
-                    <input type="text" id="plate_no" class="bg-blue-50/50 font-bold" placeholder="00-00000">
+                <input type="hidden" id="carId"> <div class="flex flex-col gap-2">
+                    <label class="text-xs font-bold text-slate-500 mr-2">رقم اللوحة</label>
+                    <input type="text" id="plate_no" class="p-3 border rounded-xl bg-blue-50/50 font-bold outline-none focus:border-blue-400" placeholder="00-00000">
                 </div>
-                <div class="input-group">
-                    <label>مكتب السيارة</label>
-                    <input type="text" id="car_office">
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs font-bold text-slate-500 mr-2">مكتب السيارة</label>
+                    <input type="text" id="car_office" class="p-3 border rounded-xl outline-none focus:border-yellow-400">
                 </div>
-                <div class="input-group">
-                    <label>الماركة / النوع</label>
-                    <input type="text" id="brand">
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs font-bold text-slate-500 mr-2">الماركة / النوع</label>
+                    <input type="text" id="brand" class="p-3 border rounded-xl outline-none focus:border-yellow-400">
                 </div>
-                <div class="input-group">
-                    <label>الموديل (السنة)</label>
-                    <input type="number" id="model">
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs font-bold text-slate-500 mr-2">الموديل (السنة)</label>
+                    <input type="number" id="model" class="p-3 border rounded-xl outline-none focus:border-yellow-400">
                 </div>
-                <div class="input-group">
-                    <label>انتهاء الترخيص</label>
-                    <input type="date" id="license_expiry" class="font-mono">
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs font-bold text-slate-500 mr-2">انتهاء الترخيص</label>
+                    <input type="date" id="license_expiry" class="p-3 border rounded-xl font-mono outline-none focus:border-yellow-400">
                 </div>
-                <div class="input-group">
-                    <label>الضمان اليومي</label>
-                    <input type="number" id="standard_rent" step="0.01" class="bg-green-50 text-green-700 font-bold">
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs font-bold text-slate-500 mr-2">الضمان اليومي</label>
+                    <input type="number" id="standard_rent" step="0.01" class="p-3 border rounded-xl bg-green-50 text-green-700 font-bold outline-none focus:border-green-400">
                 </div>
-                <div class="input-group">
-                    <label>العمولة الإدارية</label>
-                    <input type="number" id="management_fee" step="0.01">
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs font-bold text-slate-500 mr-2">العمولة الإدارية</label>
+                    <input type="number" id="management_fee" step="0.01" class="p-3 border rounded-xl outline-none focus:border-yellow-400">
                 </div>
-                <div class="input-group">
-                    <label>المالك المسؤول</label>
-                    <select id="owner_id" class="bg-yellow-50 font-bold">
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs font-bold text-slate-500 mr-2">المالك المسؤول</label>
+                    <select id="owner_id" class="p-3 border rounded-xl bg-yellow-50 font-bold outline-none focus:border-yellow-400">
                         <option value="">-- اختر المالك --</option>
                     </select>
                 </div>
-                <div class="lg:col-span-4 input-group">
-                    <label>ملاحظات المركبة</label>
-                    <input type="text" id="car_notes" class="w-full">
+                <div class="lg:col-span-4 flex flex-col gap-2">
+                    <label class="text-xs font-bold text-slate-500 mr-2">ملاحظات المركبة</label>
+                    <input type="text" id="car_notes" class="p-3 border rounded-xl w-full outline-none focus:border-yellow-400">
                 </div>
 
-                <button type="button" id="saveBtn" onclick="saveCar()" class="lg:col-span-4 btn-primary">
+                <button type="submit" id="submitBtn" class="lg:col-span-4 bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold py-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
                     <i class="fa-solid fa-floppy-disk"></i> حفظ وإضافة السيارة للأسطول
                 </button>
             </form>
@@ -90,7 +90,7 @@
                             <th class="p-4 text-center">إجراء</th>
                         </tr>
                     </thead>
-                    <tbody id="carsList" class="text-sm divide-y divide-slate-100">
+                    <tbody id="carsList" class="text-sm divide-y divide-slate-100 text-slate-600">
                         </tbody>
                 </table>
             </div>
@@ -99,7 +99,10 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <script src="sidebar.js"></script>
+    
     <script src="vehicles-logic.js"></script>
+
 </body>
 </html>
