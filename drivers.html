@@ -4,100 +4,108 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إدارة السائقين V2 | نظام التاكسي الذكي</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* تطبيق الخط بشكل رسمي وراكز على كامل الصفحة */
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+        }
+        /* تحسين مظهر الأرقام لتكون متناسقة مع الخط الرسمي */
+        .font-mono {
+            font-family: 'IBM Plex Mono', monospace;
+        }
+    </style>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gray-50">
+<body class="bg-gray-50 text-slate-900">
 
     <main class="flex-1 p-8 pt-24 max-w-7xl mx-auto">
-        <header class="flex justify-between items-center mb-10">
+        <header class="flex justify-between items-center mb-10 border-b border-slate-200 pb-6">
             <div>
-                <h2 class="text-3xl font-bold text-slate-800 text-right">إدارة السائقين</h2>
-                <div class="inline-block bg-slate-100 px-2 py-0.5 rounded-md mt-1 border border-slate-200">
-                    <span class="text-[10px] font-mono text-slate-500 lowercase leading-none">version 2</span>
+                <h2 class="text-3xl font-bold text-slate-800 text-right tracking-tight">إدارة السائقين</h2>
+                <div class="inline-block bg-slate-200 px-2 py-0.5 rounded mt-2">
+                    <span class="text-[9px] font-bold text-slate-600 uppercase tracking-tighter">version 2.0</span>
                 </div>
-                <p class="text-slate-500 mt-2 uppercase text-[10px] tracking-[0.2em] font-bold italic text-right">Drivers Database System</p>
+                <p class="text-slate-400 mt-2 uppercase text-[10px] tracking-[0.2em] font-medium italic text-right">Drivers Database System</p>
             </div>
         </header>
 
-        <section class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 mb-8">
-            <h3 class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2 text-right">
-                <i class="fa-solid fa-user-plus text-yellow-500"></i> تسجيل / تعديل بيانات سائق
+        <section class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 mb-8">
+            <h3 class="text-base font-semibold text-slate-700 mb-6 flex items-center gap-2 text-right">
+                <i class="fa-solid fa-user-gear text-yellow-500"></i> معالجة بيانات الكادر التشغيلي
             </h3>
             <form id="driverForm" class="grid grid-cols-1 md:grid-cols-4 gap-6 text-right">
                 <input type="hidden" id="id">
                 
-                <div data-tooltip="الرقم الوطني للسائق">
-                    <label class="block text-xs font-bold text-slate-500 mb-2">رقم الهوية</label>
-                    <input type="text" id="driver_id" required class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-yellow-400 outline-none">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 mb-2 mr-1 uppercase">الرقم التعريفي</label>
+                    <input type="text" id="driver_id" required class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-slate-900 outline-none transition-all">
                 </div>
 
-                <div data-tooltip="الاسم الكامل للسائق">
-                    <label class="block text-xs font-bold text-slate-500 mb-2">الاسم الكامل</label>
-                    <input type="text" id="name" required class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-yellow-400 outline-none">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 mb-2 mr-1 uppercase">الاسم الرباعي</label>
+                    <input type="text" id="name" required class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-slate-900 outline-none transition-all">
                 </div>
 
-                <div data-tooltip="رقم هاتف السائق">
-                    <label class="block text-xs font-bold text-slate-500 mb-2">الموبايل</label>
-                    <input type="text" id="mobile" class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-yellow-400 outline-none">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 mb-2 mr-1 uppercase">رقم التواصل</label>
+                    <input type="text" id="mobile" class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-slate-900 outline-none transition-all">
                 </div>
 
-                <div data-tooltip="تاريخ انتهاء رخصة القيادة">
-                    <label class="block text-xs font-bold text-slate-500 mb-2">انتهاء الرخصة</label>
-                    <input type="date" id="license_expiry" class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-yellow-400 outline-none">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 mb-2 mr-1 uppercase">صلاحية الرخصة</label>
+                    <input type="date" id="license_expiry" class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-slate-900 outline-none transition-all">
                 </div>
 
-                <div data-tooltip="المبلغ المودع كتأمين">
-                    <label class="block text-xs font-bold text-slate-500 mb-2">مبلغ التأمين</label>
-                    <input type="number" id="security_deposit" step="0.01" class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-yellow-400 outline-none">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 mb-2 mr-1 uppercase">مبلغ الضمان</label>
+                    <input type="number" id="security_deposit" step="0.01" class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-slate-900 outline-none transition-all">
                 </div>
 
-                <div data-tooltip="اسم الضامن">
-                    <label class="block text-xs font-bold text-slate-500 mb-2">اسم الكفيل</label>
-                    <input type="text" id="guarantor_name" class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-yellow-400 outline-none">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 mb-2 mr-1 uppercase">اسم الكفيل</label>
+                    <input type="text" id="guarantor_name" class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-slate-900 outline-none transition-all">
                 </div>
 
-                <div data-tooltip="رقم هاتف الضامن">
-                    <label class="block text-xs font-bold text-slate-500 mb-2">هاتف الكفيل</label>
-                    <input type="text" id="guarantor_phone" class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-yellow-400 outline-none">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 mb-2 mr-1 uppercase">هاتف الكفيل</label>
+                    <input type="text" id="guarantor_phone" class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-slate-900 outline-none transition-all">
                 </div>
 
-                <div data-tooltip="عنوان السكن">
-                    <label class="block text-xs font-bold text-slate-500 mb-2">العنوان</label>
-                    <input type="text" id="address" class="w-full border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-yellow-400 outline-none">
+                <div class="flex items-center gap-3 mt-6">
+                    <input type="checkbox" id="is_active" checked class="w-5 h-5 accent-slate-900">
+                    <label class="text-xs font-bold text-slate-600 italic">حالة النشاط</label>
                 </div>
 
-                <div class="flex items-center gap-2 mt-4 md:mt-0">
-                    <input type="checkbox" id="is_active" checked class="w-5 h-5 accent-yellow-400">
-                    <label class="text-xs font-bold text-slate-500">سائق نشط في النظام</label>
-                </div>
-
-                <div class="md:col-span-3 flex justify-end">
-                    <button type="submit" class="w-full md:w-64 bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold py-3 rounded-xl transition shadow-lg shadow-yellow-400/20">
-                        حفظ بيانات السائق
+                <div class="md:col-span-4 flex justify-end mt-4">
+                    <button type="submit" class="w-full md:w-72 bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 rounded-xl transition shadow-xl flex items-center justify-center gap-3">
+                        <i class="fa-solid fa-cloud-arrow-up text-yellow-400"></i> اعتماد البيانات في السحابة
                     </button>
                 </div>
             </form>
         </section>
 
-        <section class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+        <section class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="overflow-x-auto">
-                <table class="w-full text-right">
+                <table class="w-full text-right border-collapse">
                     <thead>
-                        <tr class="bg-slate-50 text-slate-400 text-[11px] uppercase tracking-widest border-b border-slate-100">
-                            <th class="p-6">الهوية</th>
-                            <th class="p-6">الاسم</th>
-                            <th class="p-6">الموبايل</th>
-                            <th class="p-6">التأمين</th>
-                            <th class="p-6">الحالة</th>
-                            <th class="p-6 text-center">العمليات</th>
+                        <tr class="bg-slate-50 text-slate-400 text-[10px] uppercase tracking-widest border-b border-slate-100">
+                            <th class="p-6">معرف السائق</th>
+                            <th class="p-6 text-slate-600">الاسم الكامل</th>
+                            <th class="p-6">رقم الموبايل</th>
+                            <th class="p-6">رصيد التأمين</th>
+                            <th class="p-6 text-center">الحالة التشغيلية</th>
+                            <th class="p-6 text-center">إجراءات</th>
                         </tr>
                     </thead>
-                    <tbody id="driversTableBody" class="text-sm text-slate-600">
-                        <tr><td colspan="6" class="p-10 text-center text-xs italic">جاري تحميل البيانات...</td></tr>
+                    <tbody id="driversTableBody" class="text-[13px] text-slate-600 italic">
+                        <tr><td colspan="6" class="p-10 text-center text-xs">جاري جلب البيانات من خادم Supabase...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -105,37 +113,36 @@
     </main>
 
     <script>
-        // إعدادات الربط مع Supabase
         const SUPABASE_URL = 'https://tjntctaapsdynbywdfns.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_BJgdmxyFsCgzFDXh1Qn1CQ_cFRMsy2P';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // وظيفة جلب البيانات وعرضها في الجدول
         async function fetchDrivers() {
             const { data, error } = await supabaseClient.from('drivers').select('*').order('name');
             if (error) return console.error(error);
             
             const tbody = document.getElementById('driversTableBody');
             tbody.innerHTML = data.map(driver => `
-                <tr class="border-b border-slate-50 hover:bg-slate-50 transition">
-                    <td class="p-6 font-mono text-xs text-slate-400">${driver.driver_id}</td>
-                    <td class="p-6 font-bold text-slate-700">${driver.name}</td>
-                    <td class="p-6">${driver.mobile || '---'}</td>
-                    <td class="p-6 font-bold text-blue-600">${parseFloat(driver.security_deposit || 0).toFixed(2)}</td>
-                    <td class="p-6">
-                        <span class="px-2 py-1 rounded-md text-[10px] ${driver.is_active ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}">
-                            ${driver.is_active ? 'نشط' : 'متوقف'}
+                <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                    <td class="p-6 font-mono text-[11px] text-slate-400">${driver.driver_id}</td>
+                    <td class="p-6 font-semibold text-slate-800">${driver.name}</td>
+                    <td class="p-6 font-medium">${driver.mobile || '---'}</td>
+                    <td class="p-6 font-bold text-slate-900">${parseFloat(driver.security_deposit || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                    <td class="p-6 text-center">
+                        <span class="px-3 py-1 rounded-full text-[9px] font-bold tracking-tighter ${driver.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
+                            ${driver.is_active ? 'ACTIVE' : 'SUSPENDED'}
                         </span>
                     </td>
-                    <td class="p-6 text-center flex justify-center gap-2">
-                        <button onclick='editDriver(${JSON.stringify(driver)})' class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition"><i class="fa-solid fa-pen"></i></button>
-                        <button onclick="deleteDriver(${driver.id})" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
+                    <td class="p-6 text-center">
+                        <div class="flex justify-center gap-1">
+                            <button onclick='editDriver(${JSON.stringify(driver)})' class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="deleteDriver(${driver.id})" class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
                     </td>
                 </tr>
             `).join('');
         }
 
-        // معالجة إرسال النموذج (إضافة/تحديث)
         document.getElementById('driverForm').onsubmit = async (e) => {
             e.preventDefault();
             const id = document.getElementById('id').value;
@@ -162,7 +169,6 @@
             fetchDrivers();
         };
 
-        // تعبئة النموذج للتعديل
         function editDriver(driver) {
             document.getElementById('id').value = driver.id;
             document.getElementById('driver_id').value = driver.driver_id;
@@ -177,15 +183,13 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // حذف سائق
         async function deleteDriver(id) {
-            if (confirm('هل أنت متأكد من حذف هذا السائق؟')) {
+            if (confirm('تأكيد الحذف النهائي لهذا السجل؟')) {
                 await supabaseClient.from('drivers').delete().eq('id', id);
                 fetchDrivers();
             }
         }
 
-        // تشغيل الوظائف عند التحميل
         window.addEventListener('load', fetchDrivers);
     </script>
 
