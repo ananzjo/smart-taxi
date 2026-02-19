@@ -57,7 +57,6 @@ function injectSidebar() {
 
 // 3. دالة الساعة الرقمية (عداد التاكسي + أيقونة الحالة)
 function initDigitalTaxiClock() {
-    // حقن الأنماط (Digital Font + Font Awesome + Layout)
     const style = document.createElement('style');
     style.textContent = `
         @import url('https://fonts.cdnfonts.com/css/digital-7-mono');
@@ -129,12 +128,12 @@ function initDigitalTaxiClock() {
         const h = String(now.getHours()).padStart(2, '0');
         const m = String(now.getMinutes()).padStart(2, '0');
         const s = String(now.getSeconds()).padStart(2, '0');
-        timeEl.textContent = \`\${h}:\${m}:\${s}\`;
+        timeEl.textContent = `${h}:${m}:${s}`;
 
         const d = String(now.getDate()).padStart(2, '0');
         const mon = String(now.getMonth() + 1).padStart(2, '0');
         const y = now.getFullYear();
-        dateEl.textContent = \`\${d}-\\ \${mon}-\\ \${y}\`;
+        dateEl.textContent = `${d}-${mon}-${y}`;
 
         if (navigator.onLine) {
             timeEl.className = 'digital-time online-style';
@@ -151,7 +150,7 @@ function initDigitalTaxiClock() {
     updateSystem();
 }
 
-// 4. وظائف التحكم الأصلية
+// 4. وظائف التحكم
 function toggleSidebar() {
     const sidebar = document.getElementById('main-sidebar');
     const overlay = document.getElementById('sidebar-overlay');
@@ -159,9 +158,7 @@ function toggleSidebar() {
     
     if (!sidebar || !overlay) return;
 
-    const isClosed = sidebar.classList.contains('sidebar-closed');
-
-    if (isClosed) {
+    if (sidebar.classList.contains('sidebar-closed')) {
         sidebar.classList.remove('sidebar-closed');
         sidebar.classList.add('sidebar-open');
         overlay.classList.remove('hidden');
@@ -191,7 +188,7 @@ function highlightActiveLink() {
     });
 }
 
-// 5. التشغيل النهائي عند التحميل
+// 5. التنفيذ النهائي
 document.addEventListener('DOMContentLoaded', () => {
     injectSidebar();
     initDigitalTaxiClock();
