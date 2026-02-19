@@ -1,110 +1,103 @@
-/* FILE: style.css
-   DESCRIPTION: الملف الموحد لجميع شاشات نظام إدارة التاكسي الذكي 2026
-   AUTHOR: Gemini AI
+/* نظام إدارة التاكسي الذكي - التصميم المركزي الموحد
+   يدعم: التدرجات اللونية، إصلاحات الآيفون، والسايدبار المنزلق
 */
 
-@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+/* 1. الإعدادات العامة والخطوط */
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
 
 :root {
-    /* تعريف الألوان المتفق عليها كمتغيرات | Color Variables */
-    --clr-cars: #facc15;      /* أصفر */
-    --clr-drivers: #18181b;   /* أسود */
-    --clr-owners: #9d4b4b;    /* وردي رجالي */
-    --clr-users: #e2e8f0;     /* رمادي فاتح */
-    --clr-revenues: #2563eb;  /* أزرق */
-    --clr-expenses: #ef4444;  /* أحمر */
-    --clr-payments: #7f1d1d;  /* أحمر دم */
-    --sidebar-bg: #0f172a;    /* كحلي غامق للقائمة */
+    --primary-yellow: #fbbf24;
+    --primary-green: #22c55e;
+    --primary-blue: #3b82f6;
+    --slate-900: #0f172a;
+    --sidebar-width: 288px;
 }
 
-/* التنسيق العام | Global Reset */
 body {
     font-family: 'Tajawal', sans-serif;
-    background-color: #f8fafc;
     margin: 0;
-    direction: rtl;
-}
-
-/* ----------------------------------------------------
-   نظام الثيمات (Theme System)
-   شرح: كل صفحة ستأخذ لونها بناءً على الكلاس الموجود في الـ Body
-   ---------------------------------------------------- */
-
-/* ثيم السيارات - الأصفر */
-body.theme-cars .page-header { border-right: 8px solid var(--clr-cars); }
-body.theme-cars .btn-action { background: var(--clr-cars); color: #000; }
-
-/* ثيم السائقين - الأسود */
-body.theme-drivers .page-header { border-right: 8px solid var(--clr-drivers); background: var(--clr-drivers); color: #fff; }
-body.theme-drivers .btn-action { background: var(--clr-drivers); color: #fff; }
-
-/* ثيم الملاك - الوردي الرجالي */
-body.theme-owners .page-header { border-right: 8px solid var(--clr-owners); }
-body.theme-owners .btn-action { background: var(--clr-owners); color: #fff; }
-
-/* ثيم المستخدمين - الرمادي الفاتح */
-body.theme-users .page-header { border-right: 8px solid var(--clr-users); background: #f1f5f9; }
-body.theme-users .btn-action { background: var(--clr-users); color: #1e293b; border: 1px solid #cbd5e1; }
-
-/* ثيم الإيرادات - الأزرق */
-body.theme-revenues .page-header { border-right: 8px solid var(--clr-revenues); }
-body.theme-revenues .btn-action { background: var(--clr-revenues); color: #fff; }
-
-/* ثيم المصاريف - الأحمر */
-body.theme-expenses .page-header { border-right: 8px solid var(--clr-expenses); }
-body.theme-expenses .btn-action { background: var(--clr-expenses); color: #fff; }
-
-/* ثيم الدفعات - أحمر دم */
-body.theme-payments .page-header { border-right: 8px solid var(--clr-payments); }
-body.theme-payments .btn-action { background: var(--clr-payments); color: #fff; }
-
-/* ----------------------------------------------------
-   تنسيق الجداول الموحد | Unified Tables
-   ---------------------------------------------------- */
-.custom-table {
-    width: 100%;
-    background: white;
-    border-radius: 1rem;
-    overflow: hidden;
-}
-
-.custom-table th {
-    background: #f1f5f9;
-    padding: 1rem;
-    font-size: 0.8rem;
-    color: #64748b;
-}
-
-.custom-table td {
-    padding: 1rem;
-    border-bottom: 1px solid #f1f5f9;
-}
-
-/* الخلفيات المركزية */
-
-/* 1. النمط الأصفر (الأسطول) */
-.theme-fleet {
-    background: radial-gradient(at 0% 0%, rgba(251, 191, 36, 0.08) 0px, transparent 50%), 
-                radial-gradient(at 100% 100%, rgba(251, 191, 36, 0.03) 0px, transparent 50%),
-                #f8fafc;
-}
-
-/* 2. النمط الأخضر (المالية) */
-.theme-finance {
-    background: radial-gradient(at 0% 0%, rgba(34, 197, 94, 0.08) 0px, transparent 50%), 
-                radial-gradient(at 100% 100%, rgba(34, 197, 94, 0.03) 0px, transparent 50%),
-                #f8fafc;
-}
-
-/* 3. النمط الأزرق (التشغيل) */
-.theme-operation {
-    background: radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.08) 0px, transparent 50%), 
-                radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.03) 0px, transparent 50%),
-                #f8fafc;
-}
-
-/* إضافة لمسة جمالية ناعمة لجميع الصفحات */
-body {
+    padding: 0;
     transition: background 0.5s ease;
     background-attachment: fixed;
+    min-height: 100vh;
+    -webkit-tap-highlight-color: transparent; /* لآيفون: منع الوميض عند الضغط */
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 2. أنظمة الخلفيات المركزية (تُطبق عبر JS) */
+.theme-fleet {
+    background-color: #f8fafc;
+    background-image: radial-gradient(at 0% 0%, rgba(251, 191, 36, 0.08) 0px, transparent 50%), 
+                      radial-gradient(at 100% 100%, rgba(251, 191, 36, 0.03) 0px, transparent 50%);
+}
+
+.theme-finance {
+    background-color: #f8fafc;
+    background-image: radial-gradient(at 0% 0%, rgba(34, 197, 94, 0.08) 0px, transparent 50%), 
+                      radial-gradient(at 100% 100%, rgba(34, 197, 94, 0.03) 0px, transparent 50%);
+}
+
+.theme-operation {
+    background-color: #f8fafc;
+    background-image: radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.08) 0px, transparent 50%), 
+                      radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.03) 0px, transparent 50%);
+}
+
+/* 3. تنسيقات السايدبار (Desktop & Mobile) */
+#main-sidebar {
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* مخصص للموبايل والآيفون */
+@media (max-width: 768px) {
+    #main-sidebar {
+        transform: translateX(100%); /* مخفي يميناً */
+        width: var(--sidebar-width);
+    }
+    
+    #main-sidebar.sidebar-open {
+        transform: translateX(0); /* انزلاق لليسار للظهور */
+    }
+
+    main {
+        padding: 1rem !important;
+        padding-top: 6rem !important;
+    }
+}
+
+/* 4. تخصيص السكرول بار (Custom Scrollbar) */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 10px;
+}
+
+/* 5. عناصر الساعة والجمالية */
+#digital-clock {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px); /* دعم متصفح سفاري آيفون */
+}
+
+/* 6. تحسينات الجداول والنماذج */
+input, select, button {
+    outline: none !important;
+}
+
+.table-row-hover:hover {
+    background-color: rgba(241, 245, 249, 0.5);
+}
+
+/* تعتيم الخلفية (Overlay) */
+#sidebar-overlay {
+    transition: opacity 0.3s ease;
+}
+
+#sidebar-overlay:not(.hidden) {
+    display: block;
+    opacity: 1;
 }
