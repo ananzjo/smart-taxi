@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة السائقين | نظام التاكسي الذكي</title>
+    <title>إدارة السائقين V2 | نظام التاكسي الذكي</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
@@ -16,7 +16,10 @@
         <header class="flex justify-between items-center mb-10">
             <div>
                 <h2 class="text-3xl font-bold text-slate-800 text-right">إدارة السائقين</h2>
-                <p class="text-slate-500 mt-1 uppercase text-[10px] tracking-[0.2em] font-bold italic text-right">Drivers Database System</p>
+                <div class="inline-block bg-slate-100 px-2 py-0.5 rounded-md mt-1 border border-slate-200">
+                    <span class="text-[10px] font-mono text-slate-500 lowercase leading-none">version 2</span>
+                </div>
+                <p class="text-slate-500 mt-2 uppercase text-[10px] tracking-[0.2em] font-bold italic text-right">Drivers Database System</p>
             </div>
         </header>
 
@@ -102,11 +105,12 @@
     </main>
 
     <script>
-        // إعدادات Supabase من ملفك الأصلي
+        // إعدادات الربط مع Supabase
         const SUPABASE_URL = 'https://tjntctaapsdynbywdfns.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_BJgdmxyFsCgzFDXh1Qn1CQ_cFRMsy2P';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // وظيفة جلب البيانات وعرضها في الجدول
         async function fetchDrivers() {
             const { data, error } = await supabaseClient.from('drivers').select('*').order('name');
             if (error) return console.error(error);
@@ -131,6 +135,7 @@
             `).join('');
         }
 
+        // معالجة إرسال النموذج (إضافة/تحديث)
         document.getElementById('driverForm').onsubmit = async (e) => {
             e.preventDefault();
             const id = document.getElementById('id').value;
@@ -157,6 +162,7 @@
             fetchDrivers();
         };
 
+        // تعبئة النموذج للتعديل
         function editDriver(driver) {
             document.getElementById('id').value = driver.id;
             document.getElementById('driver_id').value = driver.driver_id;
@@ -171,6 +177,7 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        // حذف سائق
         async function deleteDriver(id) {
             if (confirm('هل أنت متأكد من حذف هذا السائق؟')) {
                 await supabaseClient.from('drivers').delete().eq('id', id);
@@ -178,7 +185,7 @@
             }
         }
 
-        // تشغيل جلب البيانات عند التحميل
+        // تشغيل الوظائف عند التحميل
         window.addEventListener('load', fetchDrivers);
     </script>
 
