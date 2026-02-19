@@ -3,32 +3,6 @@ if (!window.location.pathname.endsWith('index.html') && window.location.pathname
     window.location.href = 'index.html';
 }
 
-// دالة التاريخ الحالي بتنسيق رسمي
-function getFormattedDate() {
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date().toLocaleDateString('ar-EG', options);
-}
-
-// دالة حقن الهيدر والنبضة (تمت إضافتها لتعمل مع السايد بار)
-function injectHeaderStatus() {
-    const header = document.querySelector('header');
-    if (header) {
-        header.classList.add('flex', 'justify-between', 'items-center');
-        const statusBadgeHTML = `
-            <div class="bg-white/10 backdrop-blur-md px-5 py-2 rounded-2xl border border-white/20 flex items-center gap-3 text-sm font-bold shadow-xl order-first">
-                <div class="relative flex h-3 w-3">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span id="connectionStatus" class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-                </div>
-                <span class="text-white font-mono text-xs">متصل</span>
-                <span class="text-white/30">|</span>
-                <span class="text-white font-mono text-[11px] font-medium">${getFormattedDate()}</span>
-            </div>
-        `;
-        header.insertAdjacentHTML('beforeend', statusBadgeHTML);
-    }
-}
-
 function injectSidebar() {
     const sidebarHTML = `
     <button id="sidebar-toggle-btn" onclick="toggleSidebar()" class="fixed top-5 right-5 z-[60] bg-[#0f172a] text-yellow-400 p-3 rounded-xl shadow-2xl transition-all duration-500 border border-slate-700 flex items-center gap-3 font-bold">
@@ -78,7 +52,6 @@ function injectSidebar() {
 
     document.body.insertAdjacentHTML('afterbegin', sidebarHTML);
     highlightActiveLink();
-    injectHeaderStatus(); // حقن النبضة والتاريخ في الهيدر
 }
 
 function toggleSidebar() {
@@ -120,5 +93,66 @@ function highlightActiveLink() {
     });
 }
 
-// تنفيذ الحقن عند التحميل
-document.addEventListener('DOMContentLoaded', injectSidebar);
+// --- الجزء الجديد: نظام النبضة وحالة الاتصال ---
+
+function initConnectionStatus() {
+    // 1. إضافة أنماط النبضة برمجياً
+    const pulseStyle = document.createElement('style');
+    pulseStyle.textContent = `
+        @keyframes status-pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+        @keyframes status-pulse-red {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .pulse-green { animation: status-pulse 2s infinite; }
+        .pulse-red { animation: status-pulse-red 2s infinite; }
+    `;
+    document.head.appendChild(pulseStyle);
+
+    const statusDot = document.getElementById('connectionStatus');
+    const statusText = document.getElementById('statusText');
+    const dateElement = document.getElementById('currentDate');
+
+    // 2. تحديث التاريخ والوقت
+    function updateTime() {
+        if (dateElement) {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-GB').replace(/\//g, '-');
+            const timeStr = now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit' });
+            dateElement.textContent = `${dateStr} | ${timeStr}`;
+        }
+    }
+
+    // 3. مراقبة حالة الاتصال
+    function checkStatus() {
+        if (!statusDot || !statusText) return;
+        
+        if (navigator.onLine) {
+            statusDot.className = 'w-2 h-2 rounded-full bg-green-500 pulse-green';
+            statusText.textContent = 'متصل';
+            statusText.className = 'text-slate-700 font-bold text-sm';
+        } else {
+            statusDot.className = 'w-2 h-2 rounded-full bg-red-500 pulse-red';
+            statusText.textContent = 'غير متصل';
+            statusText.className = 'text-red-500 font-bold text-sm';
+        }
+    }
+
+    window.addEventListener('online', checkStatus);
+    window.addEventListener('offline', checkStatus);
+    
+    checkStatus();
+    updateTime();
+    setInterval(updateTime, 60000); // تحديث الوقت كل دقيقة
+}
+
+// تنفيذ الحقن والوظائف عند التحميل
+document.addEventListener('DOMContentLoaded', () => {
+    injectSidebar();
+    initConnectionStatus();
+});
