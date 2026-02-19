@@ -3,22 +3,21 @@ if (!window.location.pathname.endsWith('index.html') && window.location.pathname
     window.location.href = 'index.html';
 }
 
-// دالة لجلب التاريخ الحالي بتنسيق رسمي
+// دالة التاريخ (YYYY-MM-DD)
 function getFormattedDate() {
     const now = new Date();
-    const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
-    return now.toLocaleDateString('en-CA'); // تنسيق YYYY-MM-DD
+    return now.toISOString().split('T')[0];
 }
 
-// دالة حقن النبضة والتاريخ في أقصى يسار الهيدر
+// دالة حقن النبضة والتاريخ في أقصى اليسار (الجهة المقابلة للعنوان)
 function injectStatusBadge() {
     const header = document.querySelector('header');
     if (header) {
-        // نضمن أن الهيدر يستخدم flex لتوزيع العناصر
-        header.classList.add('flex', 'justify-between', 'items-center');
+        // نضبط الهيدر ليكون مرناً، العنوان يمين والنبضة يسار
+        header.classList.add('flex', 'flex-row', 'justify-between', 'items-center', 'w-full');
         
         const statusBadgeHTML = `
-            <div class="connection-status-badge flex items-center gap-3 bg-white px-4 py-2 rounded-full shadow-sm border border-slate-100 order-first md:order-none">
+            <div class="connection-status-badge flex items-center gap-3 bg-white px-4 py-2 rounded-full shadow-sm border border-slate-100 shadow-inner">
                 <div class="relative flex h-2 w-2">
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                     <span id="connectionStatus" class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
@@ -29,8 +28,8 @@ function injectStatusBadge() {
             </div>
         `;
         
-        // إضافتها في بداية الهيدر (أقصى اليسار في نظام RTL)
-        header.insertAdjacentHTML('afterbegin', statusBadgeHTML);
+        // "beforeend" داخل الـ Header المرن (Flex) ستدفع العنصر لأقصى اليسار لأن اتجاه الصفحة RTL
+        header.insertAdjacentHTML('beforeend', statusBadgeHTML);
     }
 }
 
@@ -61,7 +60,7 @@ function injectSidebar() {
                 <i class="fa-solid fa-gauge-high w-6 text-center text-lg"></i> لوحة التحكم
             </a>
             
-            <div class="text-[10px] text-slate-500 font-bold px-3 pt-6 pb-2 uppercase tracking-widest italic opacity-50">إدارة الأسطول</div>
+            <div class="text-[10px] text-slate-500 font-bold px-3 pt-6 pb-2 uppercase tracking-widest italic opacity-50 font-sans">Fleet Control</div>
             <a href="cars.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
                 <i class="fa-solid fa-car-side w-6 text-center text-lg"></i> السيارات
             </a>
@@ -72,7 +71,7 @@ function injectSidebar() {
                 <i class="fa-solid fa-users w-6 text-center text-lg"></i> السائقين
             </a>
 
-            <div class="text-[10px] text-slate-500 font-bold px-3 pt-6 pb-2 uppercase tracking-widest italic opacity-50">الحركة والتشغيل</div>
+            <div class="text-[10px] text-slate-500 font-bold px-3 pt-6 pb-2 uppercase tracking-widest italic opacity-50 font-sans">Operation</div>
             <a href="handover.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
                 <i class="fa-solid fa-key w-6 text-center text-lg"></i> سجل الاستلام
             </a>
@@ -80,7 +79,7 @@ function injectSidebar() {
                 <i class="fa-solid fa-calendar-check w-6 text-center text-lg"></i> أيام العمل
             </a>
 
-            <div class="text-[10px] text-slate-500 font-bold px-3 pt-6 pb-2 uppercase tracking-widest italic opacity-50">المالية والمطابقة</div>
+            <div class="text-[10px] text-slate-500 font-bold px-3 pt-6 pb-2 uppercase tracking-widest italic opacity-50 font-sans">Financial</div>
             <a href="revenues.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
                 <i class="fa-solid fa-money-bill-trend-up w-6 text-center text-lg"></i> الإيرادات
             </a>
@@ -90,7 +89,7 @@ function injectSidebar() {
         </nav>
 
         <div class="mt-auto pt-4 border-t border-slate-800 flex items-center justify-between px-2">
-            <span class="text-slate-500 text-[10px] font-mono lowercase tracking-tighter">Version 2.0.4</span>
+            <span class="text-slate-500 text-[10px] font-mono lowercase tracking-tighter italic">Version 2.0.4</span>
             <i class="fa-solid fa-shield-halved text-slate-700 text-xs"></i>
         </div>
     </aside>
