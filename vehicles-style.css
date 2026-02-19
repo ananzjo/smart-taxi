@@ -1,0 +1,79 @@
+/* تحسينات عامة */
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.input-group label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
+    margin-right: 0.25rem;
+}
+
+.input-group input, .input-group select {
+    padding: 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.input-group input:focus {
+    ring: 2px;
+    ring-color: #facc15;
+    border-color: #facc15;
+}
+
+/* زر الحفظ */
+.btn-primary {
+    background-color: #0f172a;
+    color: #facc15;
+    font-weight: 700;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    transition: all 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #1e293b;
+}
+
+/* مؤشر حالة الاتصال */
+.connection-status-badge {
+    background: #f8fafc;
+    padding: 0.5rem 1rem;
+    border-radius: 1rem;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.status-dot {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+}
+
+.status-dot.online {
+    background-color: #22c55e;
+    box-shadow: 0 0 8px #22c55e;
+    animation: pulse 2s infinite;
+}
+
+.status-dot.offline {
+    background-color: #ef4444;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.95); opacity: 0.7; }
+    50% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(0.95); opacity: 0.7; }
+}
