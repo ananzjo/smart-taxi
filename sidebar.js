@@ -3,32 +3,32 @@ if (!window.location.pathname.endsWith('index.html') && window.location.pathname
     window.location.href = 'index.html';
 }
 
-// دالة التاريخ (YYYY-MM-DD)
+// دالة التاريخ (مثال: الجمعة، 20 فبراير 2026)
 function getFormattedDate() {
-    const now = new Date();
-    return now.toISOString().split('T')[0];
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date().toLocaleDateString('ar-EG', options);
 }
 
-// دالة حقن النبضة والتاريخ في أقصى اليسار (الجهة المقابلة للعنوان)
+// دالة حقن بار الحالة في أقصى اليسار بتنسيق زجاجي
 function injectStatusBadge() {
     const header = document.querySelector('header');
     if (header) {
-        // نضبط الهيدر ليكون مرناً، العنوان يمين والنبضة يسار
+        // ضبط الهيدر ليكون مرناً (العنوان يمين والنبضة يسار)
         header.classList.add('flex', 'flex-row', 'justify-between', 'items-center', 'w-full');
         
         const statusBadgeHTML = `
-            <div class="connection-status-badge flex items-center gap-3 bg-white px-4 py-2 rounded-full shadow-sm border border-slate-100 shadow-inner">
-                <div class="relative flex h-2 w-2">
+            <div class="bg-white/10 backdrop-blur-md px-5 py-2 rounded-2xl border border-white/20 flex items-center gap-3 text-sm font-bold shadow-xl order-first md:order-none">
+                <div class="relative flex h-3 w-3">
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span id="connectionStatus" class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    <span id="connectionStatus" class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
                 </div>
-                <span class="text-slate-700 font-bold text-sm">متصل</span>
-                <span class="text-slate-300">|</span>
-                <span class="text-slate-500 font-mono text-[11px] font-bold">${getFormattedDate()}</span>
+                <span id="statusText" class="text-white font-mono">متصل</span>
+                <span class="text-white/30">|</span>
+                <span id="currentDate" class="text-white font-mono text-xs font-medium">${getFormattedDate()}</span>
             </div>
         `;
         
-        // "beforeend" داخل الـ Header المرن (Flex) ستدفع العنصر لأقصى اليسار لأن اتجاه الصفحة RTL
+        // الحقن في النهاية (لتظهر في اليسار في نظام RTL)
         header.insertAdjacentHTML('beforeend', statusBadgeHTML);
     }
 }
@@ -60,7 +60,7 @@ function injectSidebar() {
                 <i class="fa-solid fa-gauge-high w-6 text-center text-lg"></i> لوحة التحكم
             </a>
             
-            <div class="text-[10px] text-slate-500 font-bold px-3 pt-6 pb-2 uppercase tracking-widest italic opacity-50 font-sans">Fleet Control</div>
+            <div class="text-[10px] text-slate-500 font-bold px-3 pt-6 pb-2 uppercase tracking-widest italic opacity-50">إدارة الأسطول</div>
             <a href="cars.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
                 <i class="fa-solid fa-car-side w-6 text-center text-lg"></i> السيارات
             </a>
@@ -71,7 +71,7 @@ function injectSidebar() {
                 <i class="fa-solid fa-users w-6 text-center text-lg"></i> السائقين
             </a>
 
-            <div class="text-[10px] text-slate-500 font-bold px-3 pt-6 pb-2 uppercase tracking-widest italic opacity-50 font-sans">Operation</div>
+            <div class="text-[10px] text-slate-500 font-bold px-3 pt-6 pb-2 uppercase tracking-widest italic opacity-50">الحركة والتشغيل</div>
             <a href="handover.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
                 <i class="fa-solid fa-key w-6 text-center text-lg"></i> سجل الاستلام
             </a>
@@ -79,7 +79,7 @@ function injectSidebar() {
                 <i class="fa-solid fa-calendar-check w-6 text-center text-lg"></i> أيام العمل
             </a>
 
-            <div class="text-[10px] text-slate-500 font-bold px-3 pt-6 pb-2 uppercase tracking-widest italic opacity-50 font-sans">Financial</div>
+            <div class="text-[10px] text-slate-500 font-bold px-3 pt-6 pb-2 uppercase tracking-widest italic opacity-50">المالية والمطابقة</div>
             <a href="revenues.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
                 <i class="fa-solid fa-money-bill-trend-up w-6 text-center text-lg"></i> الإيرادات
             </a>
