@@ -1,8 +1,9 @@
-// 1. حماية الصفحات (كما هي في ملفك الأصلي)
+// 1. حماية الصفحات
 if (!window.location.pathname.endsWith('index.html') && window.location.pathname !== '/' && document.referrer === "") {
     window.location.href = 'index.html';
 }
 
+// 2. دالة حقن السايدبار الأصلي
 function injectSidebar() {
     const sidebarHTML = `
     <button id="sidebar-toggle-btn" onclick="toggleSidebar()" class="fixed top-5 right-5 z-[60] bg-[#0f172a] text-yellow-400 p-3 rounded-xl shadow-2xl transition-all duration-500 border border-slate-700 flex items-center gap-3 font-bold">
@@ -54,6 +55,103 @@ function injectSidebar() {
     highlightActiveLink();
 }
 
+// 3. دالة الساعة الرقمية (عداد التاكسي + أيقونة الحالة)
+function initDigitalTaxiClock() {
+    // حقن الأنماط (Digital Font + Font Awesome + Layout)
+    const style = document.createElement('style');
+    style.textContent = `
+        @import url('https://fonts.cdnfonts.com/css/digital-7-mono');
+        
+        .taxi-header-container {
+            position: fixed;
+            top: 20px;
+            left: 25px;
+            z-index: 60;
+            background: #0f172a;
+            padding: 6px 15px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            direction: ltr;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+
+        .status-icon-box { display: flex; align-items: center; justify-content: center; font-size: 1.2rem; width: 30px; }
+        .digital-info-box { display: flex; flex-direction: column; align-items: center; }
+        
+        .digital-time {
+            font-family: 'Digital-7 Mono', sans-serif;
+            font-size: 1.9rem;
+            line-height: 1;
+            margin: 0;
+        }
+
+        .digital-date {
+            font-size: 0.65rem;
+            color: #94a3b8;
+            font-family: sans-serif;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+
+        .online-style { color: #22c55e; text-shadow: 0 0 10px rgba(34, 197, 94, 0.5); }
+        .offline-style { color: #ef4444; text-shadow: 0 0 10px rgba(239, 68, 68, 0.5); animation: taxi-blink 1s infinite; }
+
+        @keyframes taxi-blink { 50% { opacity: 0.4; } }
+
+        @media (max-width: 640px) {
+            .taxi-header-container { top: 15px; left: 10px; padding: 4px 10px; gap: 8px; }
+            .digital-time { font-size: 1.4rem; }
+        }
+    `;
+    document.head.appendChild(style);
+
+    const clockContainer = document.createElement('div');
+    clockContainer.className = 'taxi-header-container';
+    clockContainer.innerHTML = `
+        <div id="taxi-status-icon" class="status-icon-box online-style"><i class="fa-solid fa-wifi"></i></div>
+        <div class="digital-info-box">
+            <div id="header-time" class="digital-time online-style">00:00:00</div>
+            <div id="header-date" class="digital-date">--/--/----</div>
+        </div>
+    `;
+    document.body.appendChild(clockContainer);
+
+    const timeEl = document.getElementById('header-time');
+    const dateEl = document.getElementById('header-date');
+    const iconBox = document.getElementById('taxi-status-icon');
+
+    function updateSystem() {
+        const now = new Date();
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+        timeEl.textContent = \`\${h}:\${m}:\${s}\`;
+
+        const d = String(now.getDate()).padStart(2, '0');
+        const mon = String(now.getMonth() + 1).padStart(2, '0');
+        const y = now.getFullYear();
+        dateEl.textContent = \`\${d}-\\ \${mon}-\\ \${y}\`;
+
+        if (navigator.onLine) {
+            timeEl.className = 'digital-time online-style';
+            iconBox.className = 'status-icon-box online-style';
+            iconBox.innerHTML = '<i class="fa-solid fa-wifi"></i>';
+        } else {
+            timeEl.className = 'digital-time offline-style';
+            iconBox.className = 'status-icon-box offline-style';
+            iconBox.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+        }
+    }
+
+    setInterval(updateSystem, 1000);
+    updateSystem();
+}
+
+// 4. وظائف التحكم الأصلية
 function toggleSidebar() {
     const sidebar = document.getElementById('main-sidebar');
     const overlay = document.getElementById('sidebar-overlay');
@@ -93,66 +191,8 @@ function highlightActiveLink() {
     });
 }
 
-// --- الجزء الجديد: نظام النبضة وحالة الاتصال ---
-
-function initConnectionStatus() {
-    // 1. إضافة أنماط النبضة برمجياً
-    const pulseStyle = document.createElement('style');
-    pulseStyle.textContent = `
-        @keyframes status-pulse {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
-        }
-        @keyframes status-pulse-red {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
-        .pulse-green { animation: status-pulse 2s infinite; }
-        .pulse-red { animation: status-pulse-red 2s infinite; }
-    `;
-    document.head.appendChild(pulseStyle);
-
-    const statusDot = document.getElementById('connectionStatus');
-    const statusText = document.getElementById('statusText');
-    const dateElement = document.getElementById('currentDate');
-
-    // 2. تحديث التاريخ والوقت
-    function updateTime() {
-        if (dateElement) {
-            const now = new Date();
-            const dateStr = now.toLocaleDateString('en-GB').replace(/\//g, '-');
-            const timeStr = now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit' });
-            dateElement.textContent = `${dateStr} | ${timeStr}`;
-        }
-    }
-
-    // 3. مراقبة حالة الاتصال
-    function checkStatus() {
-        if (!statusDot || !statusText) return;
-        
-        if (navigator.onLine) {
-            statusDot.className = 'w-2 h-2 rounded-full bg-green-500 pulse-green';
-            statusText.textContent = 'متصل';
-            statusText.className = 'text-slate-700 font-bold text-sm';
-        } else {
-            statusDot.className = 'w-2 h-2 rounded-full bg-red-500 pulse-red';
-            statusText.textContent = 'غير متصل';
-            statusText.className = 'text-red-500 font-bold text-sm';
-        }
-    }
-
-    window.addEventListener('online', checkStatus);
-    window.addEventListener('offline', checkStatus);
-    
-    checkStatus();
-    updateTime();
-    setInterval(updateTime, 60000); // تحديث الوقت كل دقيقة
-}
-
-// تنفيذ الحقن والوظائف عند التحميل
+// 5. التشغيل النهائي عند التحميل
 document.addEventListener('DOMContentLoaded', () => {
     injectSidebar();
-    initConnectionStatus();
+    initDigitalTaxiClock();
 });
