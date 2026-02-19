@@ -1,3 +1,7 @@
+/** * النسخة الأصلية الكاملة مع إضافة "محرك الثيمات" فقط
+ * حدث، ادمج، ولا تبعبص.
+ */
+
 // 1. حماية الصفحات
 if (!window.location.pathname.endsWith('index.html') && window.location.pathname !== '/' && document.referrer === "") {
     window.location.href = 'index.html';
@@ -188,8 +192,30 @@ function highlightActiveLink() {
     });
 }
 
-// 5. التنفيذ النهائي
+// --- الإضافة الجديدة: دالة تطبيق الألوان (الثيمات) الموحدة ---
+function applyThemeByPage() {
+    const page = window.location.pathname.split("/").pop();
+    const b = document.body;
+
+    // قاموس توزيع الألوان على الصفحات
+    const themes = {
+        'cars.html': 'theme-cars',      // أصفر
+        'owners.html': 'theme-owners',  // وردي رجالي
+        'drivers.html': 'theme-drivers',// أسود/رمادي
+        'revenues.html': 'theme-revenues', // أزرق
+        'expenses.html': 'theme-expenses', // أحمر
+        'payments.html': 'theme-payments', // أحمر غامق
+        'users.html': 'theme-users'      // رمادي فاتح
+    };
+
+    if (themes[page]) {
+        b.classList.add(themes[page]);
+    }
+}
+
+// 5. التنفيذ النهائي المدمج (بدون حذف)
 document.addEventListener('DOMContentLoaded', () => {
     injectSidebar();
     initDigitalTaxiClock();
+    applyThemeByPage(); // تفعيل محرك الألوان حبة حبة
 });
