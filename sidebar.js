@@ -55,7 +55,7 @@ function injectSidebar() {
     highlightActiveLink();
 }
 
-// 3. دالة الساعة الرقمية (عداد التاكسي + أيقونة الحالة)
+// 3. دالة الساعة الرقمية المحدثة مع "اسم اليوم"
 function initDigitalTaxiClock() {
     const style = document.createElement('style');
     style.textContent = `
@@ -88,12 +88,13 @@ function initDigitalTaxiClock() {
         }
 
         .digital-date {
-            font-size: 0.65rem;
+            font-size: 0.7rem;
             color: #94a3b8;
-            font-family: sans-serif;
+            font-family: 'Segoe UI', Arial, sans-serif;
             font-weight: bold;
-            letter-spacing: 1px;
-            margin-top: 2px;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+            white-space: nowrap;
         }
 
         .online-style { color: #22c55e; text-shadow: 0 0 10px rgba(34, 197, 94, 0.5); }
@@ -104,6 +105,7 @@ function initDigitalTaxiClock() {
         @media (max-width: 640px) {
             .taxi-header-container { top: 15px; left: 10px; padding: 4px 10px; gap: 8px; }
             .digital-time { font-size: 1.4rem; }
+            .digital-date { font-size: 0.6rem; }
         }
     `;
     document.head.appendChild(style);
@@ -114,7 +116,7 @@ function initDigitalTaxiClock() {
         <div id="taxi-status-icon" class="status-icon-box online-style"><i class="fa-solid fa-wifi"></i></div>
         <div class="digital-info-box">
             <div id="header-time" class="digital-time online-style">00:00:00</div>
-            <div id="header-date" class="digital-date">--/--/----</div>
+            <div id="header-date" class="digital-date">-- --/--/----</div>
         </div>
     `;
     document.body.appendChild(clockContainer);
@@ -125,16 +127,26 @@ function initDigitalTaxiClock() {
 
     function updateSystem() {
         const now = new Date();
+        
+        // تحديث الوقت بالثواني
         const h = String(now.getHours()).padStart(2, '0');
         const m = String(now.getMinutes()).padStart(2, '0');
         const s = String(now.getSeconds()).padStart(2, '0');
         timeEl.textContent = `${h}:${m}:${s}`;
 
+        // الحصول على اسم اليوم باللغة العربية
+        const days = ['الأحد', 'الأثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+        const dayName = days[now.getDay()];
+
+        // تنسيق التاريخ
         const d = String(now.getDate()).padStart(2, '0');
         const mon = String(now.getMonth() + 1).padStart(2, '0');
         const y = now.getFullYear();
-        dateEl.textContent = `${d}-${mon}-${y}`;
+        
+        // عرض النتيجة: اسم اليوم + التاريخ
+        dateEl.textContent = `${dayName} ${d}-${mon}-${y}`;
 
+        // فحص حالة الإنترنت
         if (navigator.onLine) {
             timeEl.className = 'digital-time online-style';
             iconBox.className = 'status-icon-box online-style';
@@ -150,7 +162,7 @@ function initDigitalTaxiClock() {
     updateSystem();
 }
 
-// 4. وظائف التحكم
+// 4. وظائف التحكم الأصلية
 function toggleSidebar() {
     const sidebar = document.getElementById('main-sidebar');
     const overlay = document.getElementById('sidebar-overlay');
