@@ -219,3 +219,31 @@ document.addEventListener('DOMContentLoaded', () => {
     initDigitalTaxiClock();
     applyThemeByPage(); // تفعيل محرك الألوان حبة حبة
 });
+
+// وظيفة تغيير الخلفية تلقائياً بناءً على الصفحة
+function applyPageTheme() {
+    const path = window.location.pathname;
+    const page = path.split("/").pop();
+    const body = document.body;
+
+    // إزالة أي ثيمات قديمة
+    body.classList.remove('theme-fleet', 'theme-finance', 'theme-operation');
+
+    // تحديد الثيم المناسب
+    if (page === 'cars.html' || page === 'drivers.html' || page === 'owners.html') {
+        body.classList.add('theme-fleet');
+    } 
+    else if (page === 'revenues.html' || page === 'expenses.html') {
+        body.classList.add('theme-finance');
+    } 
+    else if (page === 'handover.html' || page === 'work_days.html') {
+        body.classList.add('theme-operation');
+    } 
+    else {
+        // ثيم افتراضي للوحة التحكم أو غيرها
+        body.style.backgroundColor = '#f8fafc';
+    }
+}
+
+// تشغيل الوظيفة عند تحميل الصفحة
+applyPageTheme();
