@@ -108,31 +108,39 @@
 
         </div>
 
-        <div class="glass-table shadow-2xl mb-8">
-            <div class="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
-                <h3 class="font-bold text-slate-800 text-xl flex items-center gap-3">
-                    <i class="fa-solid fa-car-side text-blue-600"></i> مراقبة الأسطول
-                </h3>
-                <div class="bg-red-50 text-red-600 px-4 py-2 rounded-2xl text-sm font-black">
-                    متوقفة: <span id="idleCars">0</span>
-                </div>
-            </div>
-            <div class="overflow-x-auto px-4 pb-4">
-                <table class="w-full text-right">
-                    <thead>
-                        <tr class="text-slate-400 text-1xl uppercase tracking-widest border-b border-slate-50">
-                            <th class="p-6">السيارة</th>
-                            <th class="p-6">السائق</th>
-                            <th class="p-6">التاريخ</th>
-                            <th class="p-6 text-center">الحالة</th>
-                        </tr>
-                    </thead>
-                    <tbody id="fleetTableBody" class="text-slate-700 font-medium">
-                        <tr><td colspan="4" class="p-10 text-center">جاري الاتصال بالسحابة...</td></tr>
-                    </tbody>
-                </table>
-            </div>
+       <div class="glass-table shadow-2xl mb-8 rounded-3xl overflow-hidden border border-white/20 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
+    
+    <div class="p-10 border-b border-white/10 flex justify-between items-center bg-white/5 backdrop-blur-md">
+        <h3 class="font-black text-white text-4xl flex items-center gap-5">
+            <i class="fa-solid fa-car-side text-[#39EC48] drop-shadow-[0_0_10px_rgba(57,236,72,0.5)]"></i> 
+            مراقبة الأسطول
+        </h3>
+        <div class="bg-red-500/20 text-red-400 border border-red-500/50 px-8 py-4 rounded-3xl text-2xl font-black shadow-lg">
+            متوقفة: <span id="idleCars" class="text-3xl">0</span>
         </div>
+    </div>
+
+    <div class="overflow-x-auto px-6 pb-8">
+        <table class="w-full text-right border-collapse">
+            <thead>
+                <tr class="text-indigo-200 text-2xl uppercase tracking-[0.2em] border-b border-white/10">
+                    <th class="p-8 font-bold">السيارة</th>
+                    <th class="p-8 font-bold">السائق</th>
+                    <th class="p-8 font-bold">التاريخ</th>
+                    <th class="p-8 text-center font-bold">الحالة</th>
+                </tr>
+            </thead>
+            <tbody id="fleetTableBody" class="text-white text-2xl font-semibold">
+                <tr>
+                    <td colspan="4" class="p-20 text-center text-indigo-300 animate-pulse">
+                        <i class="fa-solid fa-cloud-arrow-down ml-3"></i>
+                        جاري الاتصال بالسحابة الذكية...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
     </main>
 
     <div id="snackbar">نظام التاكسي الذكي v1.3.0 جاهز 🚖</div>
