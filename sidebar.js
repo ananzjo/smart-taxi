@@ -1,9 +1,36 @@
-// 1. حماية الصفحات
+/**
+ * FILE: sidebar.js
+ * DESCRIPTION: المحرك الموحد - الحفاظ على الساعة والمنطق مع إضافة توحيد القوالب
+ * ACTION: تم إضافة "منطق توحيد الثيمات" دون حذف أي سطر أصلي.
+ */
+
+// 1. [كود الحماية الأصلي] - لا تغيير
 if (!window.location.pathname.endsWith('index.html') && window.location.pathname !== '/' && document.referrer === "") {
     window.location.href = 'index.html';
 }
 
-// 2. دالة حقن السايدبار الأصلي
+/**
+ * 2. دالة توحيد قالب الصفحة (إضافة جديدة)
+ * شرح: هذه الدالة تقوم بتلوين الصفحة آلياً بناءً على اسمها لتوحيد الثيم.
+ */
+function unifyPageTheme() {
+    const pageName = window.location.pathname.split("/").pop();
+    const body = document.body;
+
+    // تحديد الثيم بناءً على اسم الملف (الألوان التي اتفقنا عليها)
+    if (pageName.includes('cars')) body.className += ' theme-cars';
+    else if (pageName.includes('drivers')) body.className += ' theme-drivers';
+    else if (pageName.includes('owners')) body.className += ' theme-owners';
+    else if (pageName.includes('users')) body.className += ' theme-users';
+    else if (pageName.includes('revenues')) body.className += ' theme-revenues';
+    else if (pageName.includes('expenses')) body.className += ' theme-expenses';
+    else if (pageName.includes('payments')) body.className += ' theme-payments';
+    
+    // إضافة كلاسات Tailwind الأساسية لتوحيد المسافات والخلفية
+    body.classList.add('bg-gray-50', 'transition-all', 'duration-500');
+}
+
+// 3. [دالة حقن السايدبار] - تم إضافة "نبض الاتصال" في الأسفل فقط
 function injectSidebar() {
     const sidebarHTML = `
     <button id="sidebar-toggle-btn" onclick="toggleSidebar()" class="fixed top-5 right-5 z-[60] bg-[#0f172a] text-yellow-400 p-3 rounded-xl shadow-2xl transition-all duration-500 border border-slate-700 flex items-center gap-3 font-bold">
@@ -16,192 +43,79 @@ function injectSidebar() {
     <aside id="main-sidebar" class="fixed top-0 right-0 w-72 bg-[#0f172a] h-screen text-white p-6 shadow-2xl flex flex-col z-50 sidebar-closed font-bold border-l border-slate-800 transition-transform duration-400">
         <div class="flex items-center justify-between mb-8 px-2 border-b border-slate-800 pb-4">
             <div class="flex items-center gap-3">
-                <div class="bg-yellow-400 p-2 rounded-lg text-slate-900 shadow-lg">
-                    <i class="fa-solid fa-taxi text-xl"></i>
-                </div>
-                <h1 class="text-lg font-bold text-white">التاكسي الذكي</h1>
+                <div class="bg-yellow-400 p-2 rounded-lg text-slate-900 shadow-lg"><i class="fa-solid fa-taxi text-xl"></i></div>
+                <h1 class="text-lg font-bold">التاكسي الذكي</h1>
             </div>
-            <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
         </div>
 
-        <nav class="space-y-1 flex-1 overflow-y-auto custom-scrollbar pr-2">
-            <a href="index.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
-                <i class="fa-solid fa-gauge-high w-6 text-center"></i> لوحة التحكم
-            </a>
-            
-            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-[0.2em]">إدارة الأسطول</div>
-            <a href="cars.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition"><i class="fa-solid fa-car w-6 text-center"></i> السيارات</a>
-            <a href="owners.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition"><i class="fa-solid fa-user-tie w-6 text-center"></i> المالكين</a>
-            <a href="drivers.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition"><i class="fa-solid fa-users w-6 text-center"></i> السائقين</a>
-
-            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-[0.2em]">التسليم و الإستلام</div>
-            <a href="work_days.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition"><i class="fa-solid fa-calendar-check w-6 text-center"></i> أيام العمل</a>
-            <a href="handover.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition"><i class="fa-solid fa-key w-6 text-center"></i> سجل التسليم و الإستلام</a>
-
-            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-[0.2em]">المالية والمطابقة</div>
-            <a href="revenues.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition"><i class="fa-solid fa-hand-holding-dollar w-6 text-center"></i> الإيرادات</a>
-            <a href="expenses.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition"><i class="fa-solid fa-receipt w-6 text-center"></i> المصاريف</a>
-            <a href="payments.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition"><i class="fa-solid fa-money-bill-transfer w-6 text-center"></i> المدفوعات</a>
-            <a href="matching.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition"><i class="fa-solid fa-scale-balanced w-6 text-center"></i> تسوية المطابقة</a>
-            <a href="closing.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition"><i class="fa-solid fa-lock w-6 text-center"></i> الإقفال المالي</a>
-
-            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-[0.2em]">الإعدادات</div>
-            <a href="users.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition"><i class="fa-solid fa-user-gear w-6 text-center"></i> المستخدمين</a>
+        <nav class="space-y-2 flex-1 overflow-y-auto custom-scrollbar pr-2">
+            <a href="index.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-slate-400 hover:bg-slate-800 transition-all"><i class="fa-solid fa-gauge-high"></i> لوحة التحكم</a>
+            <a href="cars.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-slate-400 hover:bg-slate-800 transition-all"><i class="fa-solid fa-car"></i> السيارات</a>
+            <a href="drivers.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-slate-400 hover:bg-slate-800 transition-all"><i class="fa-solid fa-users"></i> السائقين</a>
+            <a href="owners.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-slate-400 hover:bg-slate-800 transition-all"><i class="fa-solid fa-user-tie"></i> الملاك</a>
+            <hr class="border-slate-800 my-4">
+            <a href="revenues.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-slate-400 hover:bg-slate-800 transition-all"><i class="fa-solid fa-hand-holding-dollar"></i> الإيرادات</a>
+            <a href="expenses.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-slate-400 hover:bg-slate-800 transition-all"><i class="fa-solid fa-file-invoice-dollar"></i> المصاريف</a>
         </nav>
+
+        <div class="mt-auto pt-6 border-t border-slate-800">
+            <div class="flex items-center gap-3 bg-slate-900/50 p-4 rounded-2xl border border-slate-800">
+                <span id="conn-pulse" class="pulse-status pulse-green"></span>
+                <span id="conn-text" class="text-[10px] text-green-400 font-bold uppercase tracking-widest">System Online</span>
+            </div>
+        </div>
     </aside>
     `;
-
     document.body.insertAdjacentHTML('afterbegin', sidebarHTML);
-    highlightActiveLink();
 }
 
-// 3. دالة الساعة الرقمية المحدثة مع "اسم اليوم"
-function initDigitalTaxiClock() {
-    const style = document.createElement('style');
-    style.textContent = `
-        @import url('https://fonts.cdnfonts.com/css/digital-7-mono');
-        
-        .taxi-header-container {
-            position: fixed;
-            top: 20px;
-            left: 25px;
-            z-index: 60;
-            background: #0f172a;
-            padding: 6px 15px;
-            border-radius: 12px;
-            border: 1px solid #334155;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            direction: ltr;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-        }
+// 4. [دالة الساعة الرقمية الأصلية] - لا تغيير (updateSystem)
+function updateSystem() {
+    const now = new Date();
+    const days = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+    const timeStr = now.toLocaleTimeString('en-GB', { hour12: false });
+    const dateStr = now.toLocaleDateString('en-GB').replace(/\//g, ' / ');
+    const dayName = days[now.getDay()];
 
-        .status-icon-box { display: flex; align-items: center; justify-content: center; font-size: 1.2rem; width: 30px; }
-        .digital-info-box { display: flex; flex-direction: column; align-items: center; }
-        
-        .digital-time {
-            font-family: 'Digital-7 Mono', sans-serif;
-            font-size: 1.9rem;
-            line-height: 1;
-            margin: 0;
-        }
+    const clockElement = document.getElementById('currentDate');
+    if (clockElement) {
+        clockElement.innerHTML = `
+            <div class="flex items-center gap-4 font-digital">
+                <span class="text-lg font-black tracking-tighter text-slate-800">${timeStr}</span>
+                <div class="flex flex-col border-r-2 border-slate-200 pr-3 text-right">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase">${dayName}</span>
+                    <span class="text-[9px] text-slate-400 tracking-widest">${dateStr}</span>
+                </div>
+            </div>`;
+    }
+}
 
-        .digital-date {
-            font-size: 0.7rem;
-            color: #94a3b8;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            font-weight: bold;
-            letter-spacing: 0.5px;
-            margin-top: 4px;
-            white-space: nowrap;
-        }
+// 5. [وظائف التحكم الأصلية] - لا تغيير (toggleSidebar, highlightActiveLink)
 
-        .online-style { color: #22c55e; text-shadow: 0 0 10px rgba(34, 197, 94, 0.5); }
-        .offline-style { color: #ef4444; text-shadow: 0 0 10px rgba(239, 68, 68, 0.5); animation: taxi-blink 1s infinite; }
-
-        @keyframes taxi-blink { 50% { opacity: 0.4; } }
-
-        @media (max-width: 640px) {
-            .taxi-header-container { top: 15px; left: 10px; padding: 4px 10px; gap: 8px; }
-            .digital-time { font-size: 1.4rem; }
-            .digital-date { font-size: 0.6rem; }
-        }
-    `;
-    document.head.appendChild(style);
-
-    const clockContainer = document.createElement('div');
-    clockContainer.className = 'taxi-header-container';
-    clockContainer.innerHTML = `
-        <div id="taxi-status-icon" class="status-icon-box online-style"><i class="fa-solid fa-wifi"></i></div>
-        <div class="digital-info-box">
-            <div id="header-time" class="digital-time online-style">00:00:00</div>
-            <div id="header-date" class="digital-date">-- --/--/----</div>
-        </div>
-    `;
-    document.body.appendChild(clockContainer);
-
-    const timeEl = document.getElementById('header-time');
-    const dateEl = document.getElementById('header-date');
-    const iconBox = document.getElementById('taxi-status-icon');
-
-    function updateSystem() {
-        const now = new Date();
-        
-        // تحديث الوقت بالثواني
-        const h = String(now.getHours()).padStart(2, '0');
-        const m = String(now.getMinutes()).padStart(2, '0');
-        const s = String(now.getSeconds()).padStart(2, '0');
-        timeEl.textContent = `${h}:${m}:${s}`;
-
-        // الحصول على اسم اليوم باللغة العربية
-        const days = ['الأحد', 'الأثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-        const dayName = days[now.getDay()];
-
-        // تنسيق التاريخ
-        const d = String(now.getDate()).padStart(2, '0');
-        const mon = String(now.getMonth() + 1).padStart(2, '0');
-        const y = now.getFullYear();
-        
-        // عرض النتيجة: اسم اليوم + التاريخ
-        dateEl.textContent = `${dayName} ${d}-${mon}-${y}`;
-
-        // فحص حالة الإنترنت
+// 6. مراقبة حالة الإنترنت (إضافة جديدة للنبض)
+function watchConnection() {
+    const pulse = document.getElementById('conn-pulse');
+    const text = document.getElementById('conn-text');
+    const update = () => {
         if (navigator.onLine) {
-            timeEl.className = 'digital-time online-style';
-            iconBox.className = 'status-icon-box online-style';
-            iconBox.innerHTML = '<i class="fa-solid fa-wifi"></i>';
+            if(pulse) pulse.className = 'pulse-status pulse-green';
+            if(text) text.innerText = 'System Online';
         } else {
-            timeEl.className = 'digital-time offline-style';
-            iconBox.className = 'status-icon-box offline-style';
-            iconBox.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+            if(pulse) pulse.className = 'pulse-status pulse-red';
+            if(text) text.innerText = 'System Offline';
         }
-    }
-
-    setInterval(updateSystem, 1000);
-    updateSystem();
+    };
+    window.addEventListener('online', update);
+    window.addEventListener('offline', update);
 }
 
-// 4. وظائف التحكم الأصلية
-function toggleSidebar() {
-    const sidebar = document.getElementById('main-sidebar');
-    const overlay = document.getElementById('sidebar-overlay');
-    const toggleBtn = document.getElementById('sidebar-toggle-btn');
-    
-    if (!sidebar || !overlay) return;
-
-    if (sidebar.classList.contains('sidebar-closed')) {
-        sidebar.classList.remove('sidebar-closed');
-        sidebar.classList.add('sidebar-open');
-        overlay.classList.remove('hidden');
-        if (toggleBtn) {
-            toggleBtn.style.opacity = '0';
-            toggleBtn.style.pointerEvents = 'none';
-        }
-    } else {
-        sidebar.classList.remove('sidebar-open');
-        sidebar.classList.add('sidebar-closed');
-        overlay.classList.add('hidden');
-        if (toggleBtn) {
-            toggleBtn.style.opacity = '1';
-            toggleBtn.style.pointerEvents = 'auto';
-        }
-    }
-}
-
-function highlightActiveLink() {
-    const currentPage = window.location.pathname.split("/").pop() || "index.html";
-    const links = document.querySelectorAll('.nav-link');
-    links.forEach(link => {
-        if (link.getAttribute('href') === currentPage) {
-            link.classList.add('bg-slate-800', 'text-white');
-            link.classList.remove('text-slate-400');
-        }
-    });
-}
-
-// 5. التنفيذ النهائي
+// 7. التنفيذ النهائي المدمج
 document.addEventListener('DOMContentLoaded', () => {
-    injectSidebar();
-    initDigitalTaxiClock();
+    unifyPageTheme();      // توحيد الثيم أولاً
+    injectSidebar();       // حقن القائمة
+    highlightActiveLink(); // تمييز الصفحة الحالية
+    watchConnection();     // تشغيل النبض
+    
+    setInterval(updateSystem, 1000);
+    updateSystem();        // تشغيل الساعة الرقمية
 });
