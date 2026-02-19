@@ -4,23 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إدارة السيارات - نظام إدارة التاكسي الذكي</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-<link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="vehicles-style.css">
 </head>
 <body class="bg-gray-100 font-sans text-right overflow-x-hidden">
 
-   
-
-
-    
-
     <main class="p-6 md:p-12 pt-24 max-w-7xl mx-auto">
-        <header class="flex justify-between items-center mb-8 bg-white p-6 rounded-2xl shadow-sm border-r-8 border-yellow-500">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8 bg-white p-6 rounded-2xl shadow-sm border-r-8 border-yellow-500 gap-4">
             <div>
                 <h1 class="text-2xl font-bold text-slate-800 underline decoration-yellow-400 decoration-4">أسطول المركبات</h1>
                 <p class="text-slate-400 text-xs mt-1">إضافة، تعديل، ومراقبة جميع السيارات في النظام</p>
+            </div>
+
+            <div class="connection-status-badge">
+                <span id="connectionStatus" class="status-dot online"></span>
+                <span id="statusText" class="text-slate-700 font-bold text-sm">متصل</span>
+                <span class="text-slate-300">|</span>
+                <span id="currentDate" class="text-slate-500 font-mono text-xs font-bold"></span>
             </div>
         </header>
 
@@ -29,46 +32,46 @@
                 <i class="fa-solid fa-circle-plus text-yellow-500"></i> تسجيل مركبة جديدة
             </h2>
             <form id="carForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-bold text-slate-500 mr-1">رقم اللوحة</label>
-                    <input type="text" id="plate_no" class="p-3 border rounded-xl bg-blue-50/50 focus:ring-2 focus:ring-yellow-400 outline-none font-bold">
+                <div class="input-group">
+                    <label>رقم اللوحة</label>
+                    <input type="text" id="plate_no" class="bg-blue-50/50 font-bold" placeholder="00-00000">
                 </div>
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-bold text-slate-500 mr-1">مكتب السيارة</label>
-                    <input type="text" id="car_office" class="p-3 border rounded-xl focus:ring-2 focus:ring-yellow-400 outline-none">
+                <div class="input-group">
+                    <label>مكتب السيارة</label>
+                    <input type="text" id="car_office">
                 </div>
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-bold text-slate-500 mr-1">الماركة / النوع</label>
-                    <input type="text" id="brand" class="p-3 border rounded-xl focus:ring-2 focus:ring-yellow-400 outline-none">
+                <div class="input-group">
+                    <label>الماركة / النوع</label>
+                    <input type="text" id="brand">
                 </div>
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-bold text-slate-500 mr-1">الموديل (السنة)</label>
-                    <input type="number" id="model" class="p-3 border rounded-xl focus:ring-2 focus:ring-yellow-400 outline-none">
+                <div class="input-group">
+                    <label>الموديل (السنة)</label>
+                    <input type="number" id="model">
                 </div>
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-bold text-slate-500 mr-1">انتهاء الترخيص</label>
-                    <input type="date" id="license_expiry" class="p-3 border rounded-xl font-mono outline-none">
+                <div class="input-group">
+                    <label>انتهاء الترخيص</label>
+                    <input type="date" id="license_expiry" class="font-mono">
                 </div>
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-bold text-slate-500 mr-1">الضمان اليومي</label>
-                    <input type="number" id="standard_rent" step="0.01" class="p-3 border rounded-xl bg-green-50 focus:ring-2 focus:ring-green-400 outline-none font-bold text-green-700">
+                <div class="input-group">
+                    <label>الضمان اليومي</label>
+                    <input type="number" id="standard_rent" step="0.01" class="bg-green-50 text-green-700 font-bold">
                 </div>
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-bold text-slate-500 mr-1">العمولة الإدارية</label>
-                    <input type="number" id="management_fee" step="0.01" class="p-3 border rounded-xl focus:ring-2 focus:ring-yellow-400 outline-none">
+                <div class="input-group">
+                    <label>العمولة الإدارية</label>
+                    <input type="number" id="management_fee" step="0.01">
                 </div>
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-bold text-slate-500 mr-1">المالك المسؤول</label>
-                    <select id="owner_id" class="p-3 border rounded-xl bg-yellow-50 focus:ring-2 focus:ring-yellow-400 outline-none font-bold">
+                <div class="input-group">
+                    <label>المالك المسؤول</label>
+                    <select id="owner_id" class="bg-yellow-50 font-bold">
                         <option value="">-- اختر المالك --</option>
                     </select>
                 </div>
-                <div class="lg:col-span-4 flex flex-col gap-1">
-                    <label class="text-xs font-bold text-slate-500 mr-1">ملاحظات المركبة</label>
-                    <input type="text" id="car_notes" class="p-3 border rounded-xl focus:ring-2 focus:ring-yellow-400 outline-none w-full">
+                <div class="lg:col-span-4 input-group">
+                    <label>ملاحظات المركبة</label>
+                    <input type="text" id="car_notes" class="w-full">
                 </div>
 
-                <button type="button" id="saveBtn" onclick="saveCar()" class="lg:col-span-4 bg-[#0f172a] text-yellow-400 font-bold p-4 rounded-xl hover:bg-slate-800 transition shadow-xl flex items-center justify-center gap-3">
+                <button type="button" id="saveBtn" onclick="saveCar()" class="lg:col-span-4 btn-primary">
                     <i class="fa-solid fa-floppy-disk"></i> حفظ وإضافة السيارة للأسطول
                 </button>
             </form>
@@ -87,7 +90,8 @@
                             <th class="p-4 text-center">إجراء</th>
                         </tr>
                     </thead>
-                    <tbody id="carsList" class="text-sm divide-y divide-slate-100"></tbody>
+                    <tbody id="carsList" class="text-sm divide-y divide-slate-100">
+                        </tbody>
                 </table>
             </div>
         </section>
@@ -95,112 +99,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        const SUPABASE_URL = 'https://tjntctaapsdynbywdfns.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_BJgdmxyFsCgzFDXh1Qn1CQ_cFRMsy2P'; 
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        let currentEditId = null;
-
-        function () {
-            document.getElementById('main-sidebar').classList.toggle('sidebar-closed');
-            document.getElementById('main-sidebar').classList.toggle('sidebar-open');
-            document.getElementById('sidebar-overlay').classList.toggle('hidden');
-        }
-
-        async function loadOwners() {
-            const { data } = await _supabase.from('owners').select('id, name');
-            const select = document.getElementById('owner_id');
-            data?.forEach(o => select.innerHTML += `<option value="${o.id}">${o.name}</option>`);
-        }
-
-        async function fetchCars() {
-            const { data } = await _supabase.from('cars').select('*, owners(name)').order('id', { ascending: false });
-            const tableBody = document.getElementById('carsList');
-            tableBody.innerHTML = '';
-            data?.forEach(car => {
-                tableBody.innerHTML += `
-                    <tr class="hover:bg-yellow-50/30 transition">
-                        <td class="p-4 font-bold text-blue-700">${car.plate_no}</td>
-                        <td class="p-4 text-slate-600">${car.brand} / ${car.model}</td>
-                        <td class="p-4 font-medium">${car.owners?.name || '---'}</td>
-                        <td class="p-4 text-green-700 font-bold">${car.standard_rent} د.أ</td>
-                        <td class="p-4 text-xs font-mono text-slate-500">${car.license_expiry || '---'}</td>
-                        <td class="p-4 text-center flex justify-center gap-4">
-                            <button onclick='editCar(${JSON.stringify(car)})' class="text-blue-500 hover:text-blue-700"><i class="fa-solid fa-pen-to-square"></i></button>
-                            <button onclick="deleteCar(${car.id})" class="text-red-400 hover:text-red-600"><i class="fa-solid fa-trash-can"></i></button>
-                        </td>
-                    </tr>`;
-            });
-        }
-
-        function editCar(car) {
-            currentEditId = car.id;
-            document.getElementById('plate_no').value = car.plate_no;
-            document.getElementById('car_office').value = car.car_office;
-            document.getElementById('brand').value = car.brand;
-            document.getElementById('model').value = car.model;
-            document.getElementById('license_expiry').value = car.license_expiry;
-            document.getElementById('standard_rent').value = car.standard_rent;
-            document.getElementById('management_fee').value = car.management_fee;
-            document.getElementById('owner_id').value = car.owner_id;
-            document.getElementById('car_notes').value = car.car_notes;
-
-            document.getElementById('formTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-blue-500"></i> تعديل بيانات المركبة';
-            const saveBtn = document.getElementById('saveBtn');
-            saveBtn.innerHTML = '<i class="fa-solid fa-check-double"></i> تحديث البيانات الآن';
-            saveBtn.className = saveBtn.className.replace('bg-[#0f172a]', 'bg-blue-600');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        async function saveCar() {
-            const carData = {
-                plate_no: document.getElementById('plate_no').value,
-                car_office: document.getElementById('car_office').value,
-                brand: document.getElementById('brand').value,
-                model: document.getElementById('model').value,
-                license_expiry: document.getElementById('license_expiry').value || null,
-                standard_rent: parseFloat(document.getElementById('standard_rent').value) || 0,
-                management_fee: parseFloat(document.getElementById('management_fee').value) || 0,
-                owner_id: document.getElementById('owner_id').value || null,
-                car_notes: document.getElementById('car_notes').value
-            };
-
-            if (!carData.plate_no) return Swal.fire('تنبيه', 'رقم اللوحة مطلوب', 'warning');
-
-            let error;
-            if (currentEditId) {
-                const result = await _supabase.from('cars').update(carData).eq('id', currentEditId);
-                error = result.error;
-            } else {
-                const result = await _supabase.from('cars').insert([carData]);
-                error = result.error;
-            }
-
-            if (error) Swal.fire('خطأ', error.message, 'error');
-            else {
-                Swal.fire({ icon: 'success', title: 'تمت العملية', timer: 1000, showConfirmButton: false });
-                resetForm();
-                fetchCars();
-            }
-        }
-
-        function resetForm() {
-            currentEditId = null;
-            document.getElementById('carForm').reset();
-            document.getElementById('formTitle').innerHTML = '<i class="fa-solid fa-circle-plus text-yellow-500"></i> تسجيل مركبة جديدة';
-            const saveBtn = document.getElementById('saveBtn');
-            saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> حفظ وإضافة السيارة للأسطول';
-            saveBtn.className = saveBtn.className.replace('bg-blue-600', 'bg-[#0f172a]');
-        }
-
-        async function deleteCar(id) {
-            const { isConfirmed } = await Swal.fire({ title: 'هل أنت متأكد؟', text: "سيتم حذف السيارة نهائياً", icon: 'warning', showCancelButton: true, confirmButtonText: 'احذف' });
-            if (isConfirmed) { await _supabase.from('cars').delete().eq('id', id); fetchCars(); }
-        }
-
-        window.onload = () => { loadOwners(); fetchCars(); };
-    </script>
-<script src="sidebar.js"></script>
+    <script src="sidebar.js"></script>
+    <script src="vehicles-logic.js"></script>
 </body>
 </html>
