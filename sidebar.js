@@ -1,7 +1,4 @@
-// 1. حماية الصفحات
-if (!window.location.pathname.endsWith('index.html') && window.location.pathname !== '/' && document.referrer === "") {
-    window.location.href = 'index.html';
-}
+
 
 // 2. دالة حقن السايدبار الأصلي
 function injectSidebar() {
