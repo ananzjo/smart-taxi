@@ -1,15 +1,24 @@
+/* ============================================================
+   باسم الله - هنا يبدأ الكود (نظام إدارة التاكسي الذكي)
+   ============================================================ */
+
 /**
- * نظام إدارة التاكسي الذكي - الإصدار النهائي المعتمد
- * الروابط: الأسماء الملتزم بها حرفياً + حل مشكلة innerText + أيقونة الواي فاي
+ * خريطة النظام (System Map):
+ * 1. حماية المسارات: منع الدخول المباشر للصفحات.
+ * 2. حقن الواجهة الجانبية (Sidebar): بناء القائمة والروابط.
+ * 3. نظام الوقت والاتصال: الساعة الرقمية وحالة الواي فاي.
+ * 4. منطق التحكم: فتح/إغلاق القائمة، تسجيل الخروج، والتمييز الذكي للصفحة.
  */
 
-// 1. حماية الوصول
+// [1] قسم حماية الوصول (Access Control)
+// يقوم بالتحقق من مصدر الزيارة لمنع الدخول غير المصرح به
 if (!window.location.pathname.endsWith('index.html') && window.location.pathname !== '/' && document.referrer === "") {
     window.location.href = 'index.html';
 }
 
-// 2. دالة حقن السايدبار بالأسماء المطلوبة حرفياً
+// [2] قسم بناء واجهة القائمة الجانبية (Sidebar Injection)
 function injectSidebar() {
+    // أ- تعريف الأنماط البصرية (CSS Styles)
     const style = document.createElement('style');
     style.textContent = `
         .sidebar-open { transform: translateX(0) !important; }
@@ -21,14 +30,17 @@ function injectSidebar() {
     `;
     document.head.appendChild(style);
 
+    // ب- بناء الهيكل الإنشائي (HTML Structure)
     const sidebarHTML = `
     <button id="sidebar-toggle-btn" onclick="toggleSidebar()" class="fixed top-5 right-5 z-[60] bg-[#0f172a] text-yellow-400 p-3 rounded-xl shadow-2xl border border-slate-700 flex items-center gap-3 font-bold transition-all duration-500">
         <i class="fa-solid fa-bars-staggered text-xl"></i>
         <span class="text-sm">لوحة التحكم</span>
     </button>
+
     <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden transition-opacity duration-300"></div>
     
     <aside id="main-sidebar" class="fixed top-0 right-0 w-72 bg-[#0f172a] h-screen text-white p-6 shadow-2xl flex flex-col z-50 sidebar-closed font-bold border-l border-slate-800 transition-transform duration-400 ease-in-out text-right" dir="rtl">
+        
         <div class="flex items-center justify-between mb-8 px-2 border-b border-slate-800 pb-4">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-yellow-400 rounded-lg flex items-center justify-center text-slate-900 shadow-lg"><i class="fa-solid fa-taxi text-xl"></i></div>
@@ -40,6 +52,7 @@ function injectSidebar() {
         </div>
 
         <nav class="flex-1 space-y-1 overflow-y-auto custom-scrollbar">
+            
             <a href="index.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
                 <i class="fa-solid fa-gauge-high w-6"></i> لوحة التحكم
             </a>
@@ -96,8 +109,9 @@ function injectSidebar() {
     document.body.insertAdjacentHTML('afterbegin', sidebarHTML);
 }
 
-// 3. الساعة الرقمية (مع مصلح أخطاء index.html)
+// [3] قسم الوقت والربط السحابي (Time & Cloud Sync)
 function initDigitalTaxiClock() {
+    // أ- تنسيق ساعة النظام
     const clockStyle = document.createElement('style');
     clockStyle.textContent = `
         @import url('https://fonts.cdnfonts.com/css/digital-7-mono');
@@ -109,11 +123,13 @@ function initDigitalTaxiClock() {
     `;
     document.head.appendChild(clockStyle);
 
+    // ب- إنشاء عناصر الساعة
     const clockDiv = document.createElement('div');
     clockDiv.className = 'taxi-clock-box';
     clockDiv.innerHTML = `<div class="wifi-icon"><i class="fa-solid fa-wifi"></i></div><div><div id="side-time" class="clock-time">00:00:00</div><div id="side-date" class="clock-date">--/--/----</div></div>`;
     document.body.appendChild(clockDiv);
 
+    // ج- منطق التحديث المستمر ومعالجة أخطاء الربط
     setInterval(() => {
         const now = new Date();
         const tEl = document.getElementById('side-time');
@@ -126,12 +142,14 @@ function initDigitalTaxiClock() {
         const dayName = days[now.getDay()];
         if(dEl) dEl.innerText = `${dayName} ${now.toLocaleDateString('en-GB')}`;
 
-        // إصلاح الخطأ لملف index.html لكي يتصل بالسحابة
+        // ملاحظة تقنية: إصلاح عنصر التاريخ في index.html لضمان جلب بيانات Supabase
         if(indexDateEl) indexDateEl.innerText = now.toLocaleDateString('ar-EG');
     }, 1000);
 }
 
-// 4. وظائف التحكم
+// [4] قسم الوظائف التفاعلية (Interactive Logic)
+
+// أ- وظيفة التحكم في حركة القائمة الجانبية
 function toggleSidebar() {
     const sidebar = document.getElementById('main-sidebar');
     const overlay = document.getElementById('sidebar-overlay');
@@ -151,17 +169,25 @@ function toggleSidebar() {
     }
 }
 
+// ب- وظيفة الخروج الآمن
 async function handleLogout() {
     if (typeof supabase !== 'undefined') { await supabase.auth.signOut(); }
     sessionStorage.clear();
     window.location.href = 'index.html';
 }
 
+// ج- تنفيذ التشغيل النهائي عند جاهزية الصفحة
 document.addEventListener('DOMContentLoaded', () => {
-    injectSidebar();
-    initDigitalTaxiClock();
+    injectSidebar();          // حقن القائمة
+    initDigitalTaxiClock();   // تشغيل الساعة والربط
+    
+    // تمييز الصفحة الحالية برمجياً
     const current = window.location.pathname.split("/").pop() || "index.html";
     document.querySelectorAll('.nav-link').forEach(link => {
         if (link.getAttribute('href') === current) link.classList.add('active-page');
     });
 });
+
+/* ============================================================
+   الحمد لله - هنا ينتهي الكود (نظام إدارة التاكسي الذكي)
+   ============================================================ */
