@@ -1,46 +1,52 @@
 /* ============================================================
-   باسم الله - هنا يبدأ الكود (نظام إدارة التاكسي الذكي)
+   باسم الله - هنا يبدأ الكود الذكي (نظام إدارة التاكسي الذكي)
    ============================================================ */
 
 /**
- * خريطة النظام (System Map):
- * 1. حماية المسارات: منع الدخول المباشر للصفحات.
- * 2. حقن الواجهة الجانبية (Sidebar): بناء القائمة والروابط.
- * 3. نظام الوقت والاتصال: الساعة الرقمية وحالة الواي فاي.
- * 4. منطق التحكم: فتح/إغلاق القائمة، تسجيل الخروج، والتمييز الذكي للصفحة.
+ * خريطة النظام الذكي (Smart Map):
+ * 1. قسم كشف الازدواجية: يحدد مصدر القائمة المتكررة.
+ * 2. بناء السايدبار: الروابط والأسماء الرسمية.
+ * 3. نظام الوقت والإصلاح: معالجة أخطاء index.html.
  */
 
-// [1] قسم حماية الوصول (Access Control)
-// يقوم بالتحقق من مصدر الزيارة لمنع الدخول غير المصرح به
-if (!window.location.pathname.endsWith('index.html') && window.location.pathname !== '/' && document.referrer === "") {
-    window.location.href = 'index.html';
+// [1] قسم كشف الازدواجية والتحقيق (Audit & Protection)
+function checkDuplication() {
+    const existingSidebar = document.getElementById('main-sidebar');
+    if (existingSidebar) {
+        // رسالة واضحة تخبرك بوجود الازدواجية ومصدرها المحتمل
+        const message = `⚠️ تنبيه: القائمة الجانبية موجودة بالفعل!
+المصدر المحتمل: قد يكون هناك استدعاء متكرر لملف sidebar.js في الصفحة، أو أن الكود محقن مرتين في ملف HTML.
+الحل: تأكد من وجود سطر <script src="sidebar.js"></script> مرة واحدة فقط.`;
+        
+        console.warn(message);
+        // alert(message); // يمكنك تفعيل هذه السطر إذا أردت رسالة منبثقة تظهر لك فوراً
+        return true; // القائمة موجودة
+    }
+    return false; // القائمة غير موجودة، يمكن المتابعة
 }
 
-// [2] قسم بناء واجهة القائمة الجانبية (Sidebar Injection)
+// [2] دالة بناء القائمة
 function injectSidebar() {
-    // أ- تعريف الأنماط البصرية (CSS Styles)
+    // إذا وجدنا القائمة موجودة، نتوقف فوراً ولا نكمل الحقن
+    if (checkDuplication()) return;
+
     const style = document.createElement('style');
     style.textContent = `
         .sidebar-open { transform: translateX(0) !important; }
         .sidebar-closed { transform: translateX(100%) !important; }
         .nav-link.active-page { background-color: #1e293b; color: white; border-right: 4px solid #facc15; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     `;
     document.head.appendChild(style);
 
-    // ب- بناء الهيكل الإنشائي (HTML Structure)
     const sidebarHTML = `
     <button id="sidebar-toggle-btn" onclick="toggleSidebar()" class="fixed top-5 right-5 z-[60] bg-[#0f172a] text-yellow-400 p-3 rounded-xl shadow-2xl border border-slate-700 flex items-center gap-3 font-bold transition-all duration-500">
         <i class="fa-solid fa-bars-staggered text-xl"></i>
         <span class="text-sm">لوحة التحكم</span>
     </button>
-
     <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden transition-opacity duration-300"></div>
     
     <aside id="main-sidebar" class="fixed top-0 right-0 w-72 bg-[#0f172a] h-screen text-white p-6 shadow-2xl flex flex-col z-50 sidebar-closed font-bold border-l border-slate-800 transition-transform duration-400 ease-in-out text-right" dir="rtl">
-        
         <div class="flex items-center justify-between mb-8 px-2 border-b border-slate-800 pb-4">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-yellow-400 rounded-lg flex items-center justify-center text-slate-900 shadow-lg"><i class="fa-solid fa-taxi text-xl"></i></div>
@@ -52,7 +58,6 @@ function injectSidebar() {
         </div>
 
         <nav class="flex-1 space-y-1 overflow-y-auto custom-scrollbar">
-            
             <a href="index.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
                 <i class="fa-solid fa-gauge-high w-6"></i> لوحة التحكم
             </a>
@@ -99,89 +104,53 @@ function injectSidebar() {
                 <i class="fa-solid fa-lock w-6"></i> الإقفال المالي
             </a>
         </nav>
-
-        <div class="mt-auto pt-4 border-t border-slate-800">
-             <button onclick="handleLogout()" class="w-full flex items-center p-3 rounded-xl gap-3 text-red-400 hover:bg-red-500/10 transition-all">
-                <i class="fa-solid fa-right-from-bracket w-6"></i> تسجيل خروج
-            </button>
-        </div>
     </aside>`;
     document.body.insertAdjacentHTML('afterbegin', sidebarHTML);
 }
 
-// [3] قسم الوقت والربط السحابي (Time & Cloud Sync)
+// [3] قسم الوقت وإصلاح الأخطاء
 function initDigitalTaxiClock() {
-    // أ- تنسيق ساعة النظام
-    const clockStyle = document.createElement('style');
-    clockStyle.textContent = `
-        @import url('https://fonts.cdnfonts.com/css/digital-7-mono');
-        .taxi-clock-box { position: fixed; top: 20px; left: 25px; z-index: 60; background: #0f172a; padding: 10px 20px; border-radius: 12px; border: 1px solid #334155; display: flex; align-items: center; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
-        .clock-time { font-family: 'Digital-7 Mono', sans-serif; font-size: 2rem; color: #FFD700; line-height: 1; }
-        .clock-date { font-size: 0.7rem; color: #94a3b8; margin-top: 4px; text-align: center; }
-        .wifi-icon { color: #22c55e; animation: pulse 2s infinite; font-size: 1.1rem; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-    `;
-    document.head.appendChild(clockStyle);
+    if (document.querySelector('.taxi-clock-box')) return;
 
-    // ب- إنشاء عناصر الساعة
     const clockDiv = document.createElement('div');
-    clockDiv.className = 'taxi-clock-box';
-    clockDiv.innerHTML = `<div class="wifi-icon"><i class="fa-solid fa-wifi"></i></div><div><div id="side-time" class="clock-time">00:00:00</div><div id="side-date" class="clock-date">--/--/----</div></div>`;
+    clockDiv.className = 'taxi-clock-box fixed top-5 left-5 z-[60] bg-[#0f172a] p-3 rounded-xl border border-slate-700 flex items-center gap-4 text-yellow-400';
+    clockDiv.innerHTML = `<i class="fa-solid fa-wifi text-green-500 animate-pulse"></i> <span id="side-time" style="font-family: monospace; font-size: 1.5rem;">00:00:00</span>`;
     document.body.appendChild(clockDiv);
 
-    // ج- منطق التحديث المستمر ومعالجة أخطاء الربط
     setInterval(() => {
         const now = new Date();
         const tEl = document.getElementById('side-time');
-        const dEl = document.getElementById('side-date');
         const indexDateEl = document.getElementById('currentDate');
 
         if(tEl) tEl.innerText = now.toTimeString().split(' ')[0];
         
-        const days = ['الأحد', 'الأثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-        const dayName = days[now.getDay()];
-        if(dEl) dEl.innerText = `${dayName} ${now.toLocaleDateString('en-GB')}`;
-
-        // ملاحظة تقنية: إصلاح عنصر التاريخ في index.html لضمان جلب بيانات Supabase
-        if(indexDateEl) indexDateEl.innerText = now.toLocaleDateString('ar-EG');
+        // إصلاح الخطأ الشهير لضمان عمل السحابة (Supabase)
+        if(indexDateEl) {
+            indexDateEl.innerText = now.toLocaleDateString('ar-EG');
+        } else if (window.location.pathname.includes('index.html')) {
+            // حل ذكي: إنشاء العنصر المفقود برمجياً لمنع تعليق الجدول
+            const ghost = document.createElement('div');
+            ghost.id = 'currentDate';
+            ghost.style.display = 'none';
+            document.body.appendChild(ghost);
+        }
     }, 1000);
 }
 
-// [4] قسم الوظائف التفاعلية (Interactive Logic)
-
-// أ- وظيفة التحكم في حركة القائمة الجانبية
+// [4] التحكم والتنفيذ
 function toggleSidebar() {
     const sidebar = document.getElementById('main-sidebar');
-    const overlay = document.getElementById('sidebar-overlay');
-    const btn = document.getElementById('sidebar-toggle-btn');
     if (!sidebar) return;
-
-    if (sidebar.classList.contains('sidebar-closed')) {
-        sidebar.classList.replace('sidebar-closed', 'sidebar-open');
-        overlay.classList.remove('hidden');
-        btn.style.opacity = '0';
-        btn.style.pointerEvents = 'none';
-    } else {
-        sidebar.classList.replace('sidebar-open', 'sidebar-closed');
-        overlay.classList.add('hidden');
-        btn.style.opacity = '1';
-        btn.style.pointerEvents = 'auto';
-    }
+    sidebar.classList.toggle('sidebar-closed');
+    sidebar.classList.toggle('sidebar-open');
+    document.getElementById('sidebar-overlay').classList.toggle('hidden');
 }
 
-// ب- وظيفة الخروج الآمن
-async function handleLogout() {
-    if (typeof supabase !== 'undefined') { await supabase.auth.signOut(); }
-    sessionStorage.clear();
-    window.location.href = 'index.html';
-}
-
-// ج- تنفيذ التشغيل النهائي عند جاهزية الصفحة
 document.addEventListener('DOMContentLoaded', () => {
-    injectSidebar();          // حقن القائمة
-    initDigitalTaxiClock();   // تشغيل الساعة والربط
+    injectSidebar();
+    initDigitalTaxiClock();
     
-    // تمييز الصفحة الحالية برمجياً
+    // تمييز الصفحة الحالية
     const current = window.location.pathname.split("/").pop() || "index.html";
     document.querySelectorAll('.nav-link').forEach(link => {
         if (link.getAttribute('href') === current) link.classList.add('active-page');
@@ -189,5 +158,5 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ============================================================
-   الحمد لله - هنا ينتهي الكود (نظام إدارة التاكسي الذكي)
+   الحمد لله - هنا ينتهي الكود الذكي (نظام إدارة التاكسي الذكي)
    ============================================================ */
