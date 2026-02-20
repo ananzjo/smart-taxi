@@ -1,34 +1,39 @@
 /* ============================================================
-   باسم الله - هنا يبدأ الكود الذكي (نظام إدارة التاكسي الذكي)
+   باسم الله - هنا يبدأ الكود (نظام إدارة التاكسي الذكي)
    ============================================================ */
 
 /**
- * خريطة النظام الذكي (Smart Map):
- * 1. قسم كشف الازدواجية: يحدد مصدر القائمة المتكررة.
- * 2. بناء السايدبار: الروابط والأسماء الرسمية.
- * 3. نظام الوقت والإصلاح: معالجة أخطاء index.html.
+ * خريطة النظام الذكي (Smart System Map):
+ * 1. دالة التحقيق: تكتشف الازدواجية وتحدد المصدر.
+ * 2. حقن الواجهة: بناء السايدبار بالأسماء الرسمية.
+ * 3. نظام الوقت: تحديث الساعة وإصلاح أخطاء index.html برمجياً.
  */
 
-// [1] قسم كشف الازدواجية والتحقيق (Audit & Protection)
-function checkDuplication() {
-    const existingSidebar = document.getElementById('main-sidebar');
-    if (existingSidebar) {
-        // رسالة واضحة تخبرك بوجود الازدواجية ومصدرها المحتمل
-        const message = `⚠️ تنبيه: القائمة الجانبية موجودة بالفعل!
-المصدر المحتمل: قد يكون هناك استدعاء متكرر لملف sidebar.js في الصفحة، أو أن الكود محقن مرتين في ملف HTML.
-الحل: تأكد من وجود سطر <script src="sidebar.js"></script> مرة واحدة فقط.`;
-        
-        console.warn(message);
-        // alert(message); // يمكنك تفعيل هذه السطر إذا أردت رسالة منبثقة تظهر لك فوراً
-        return true; // القائمة موجودة
+// [1] قسم التحقيق في الازدواجية (Smart Audit System)
+function auditSidebar() {
+    const sidebars = document.querySelectorAll('#main-sidebar');
+    const scripts = document.querySelectorAll('script[src*="sidebar.js"]');
+    
+    if (sidebars.length > 0) {
+        const report = `
+            🔍 تقرير المحقق الذكي:
+            --------------------------------
+            - حالة القائمة: يوجد ازدواجية (تم العثور على ${sidebars.length} قائمة).
+            - عدد مرات استدعاء الملف: تم استدعاء sidebar.js عدد (${scripts.length}) مرات في هذا الملف.
+            - الموقع الحالي: ${window.location.pathname}
+            
+            💡 نصيحة: تأكد من إزالة أي كود <aside> يدوي من ملف HTML، واكتفِ باستدعاء الملف مرة واحدة في النهاية.
+        `;
+        console.error(report); // سيظهر باللون الأحمر في Console
+        return true; // نعم يوجد ازدواجية
     }
-    return false; // القائمة غير موجودة، يمكن المتابعة
+    return false; // لا يوجد ازدواجية، تابع العمل
 }
 
-// [2] دالة بناء القائمة
+// [2] دالة بناء القائمة الجانبية (Sidebar Injection)
 function injectSidebar() {
-    // إذا وجدنا القائمة موجودة، نتوقف فوراً ولا نكمل الحقن
-    if (checkDuplication()) return;
+    // التحقق من الازدواجية قبل البدء
+    if (auditSidebar()) return;
 
     const style = document.createElement('style');
     style.textContent = `
@@ -36,6 +41,8 @@ function injectSidebar() {
         .sidebar-closed { transform: translateX(100%) !important; }
         .nav-link.active-page { background-color: #1e293b; color: white; border-right: 4px solid #facc15; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     `;
     document.head.appendChild(style);
 
@@ -52,7 +59,7 @@ function injectSidebar() {
                 <div class="w-10 h-10 bg-yellow-400 rounded-lg flex items-center justify-center text-slate-900 shadow-lg"><i class="fa-solid fa-taxi text-xl"></i></div>
                 <div>
                     <h1 class="text-lg font-black tracking-tight">التاكسي الذكي</h1>
-                    <p class="text-[10px] text-yellow-400/50 italic">Smart Taxi System</p>
+                    <p class="text-[10px] text-yellow-400/50 italic">Smart System</p>
                 </div>
             </div>
         </div>
@@ -64,7 +71,6 @@ function injectSidebar() {
             <a href="index02.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
                 <i class="fa-solid fa-chart-pie w-6"></i> لوحة التحكم 02
             </a>
-
             <div class="pt-4 pb-2"><p class="text-[10px] text-slate-500 uppercase px-3 tracking-widest font-black">إدارة الأسطول</p></div>
             <a href="cars.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
                 <i class="fa-solid fa-car w-6"></i> السيارات
@@ -78,7 +84,6 @@ function injectSidebar() {
             <a href="staff.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
                 <i class="fa-solid fa-user-gear w-6"></i> الموظفين
             </a>
-
             <div class="pt-4 pb-2"><p class="text-[10px] text-slate-500 uppercase px-3 tracking-widest font-black">العمليات والتشغيل</p></div>
             <a href="work_days.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
                 <i class="fa-solid fa-calendar-check w-6"></i> أيام العمل
@@ -86,7 +91,6 @@ function injectSidebar() {
             <a href="handover.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
                 <i class="fa-solid fa-key w-6"></i> سجل التسليم و الإستلام
             </a>
-
             <div class="pt-4 pb-2"><p class="text-[10px] text-slate-500 uppercase px-3 tracking-widest font-black">المالية والمطابقة</p></div>
             <a href="revenues.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
                 <i class="fa-solid fa-hand-holding-dollar w-6"></i> الإيرادات
@@ -104,40 +108,59 @@ function injectSidebar() {
                 <i class="fa-solid fa-lock w-6"></i> الإقفال المالي
             </a>
         </nav>
+
+        <div class="mt-auto pt-4 border-t border-slate-800">
+             <button onclick="handleLogout()" class="w-full flex items-center p-3 rounded-xl gap-3 text-red-400 hover:bg-red-500/10 transition-all">
+                <i class="fa-solid fa-right-from-bracket w-6"></i> تسجيل خروج
+            </button>
+        </div>
     </aside>`;
     document.body.insertAdjacentHTML('afterbegin', sidebarHTML);
 }
 
-// [3] قسم الوقت وإصلاح الأخطاء
+// [3] قسم الوقت والاتصال (Cloud Sync & Clock)
 function initDigitalTaxiClock() {
     if (document.querySelector('.taxi-clock-box')) return;
 
+    const clockStyle = document.createElement('style');
+    clockStyle.textContent = `
+        @import url('https://fonts.cdnfonts.com/css/digital-7-mono');
+        .taxi-clock-box { position: fixed; top: 20px; left: 25px; z-index: 60; background: #0f172a; padding: 10px 20px; border-radius: 12px; border: 1px solid #334155; display: flex; align-items: center; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+        .clock-time { font-family: 'Digital-7 Mono', sans-serif; font-size: 2rem; color: #FFD700; line-height: 1; }
+        .clock-date { font-size: 0.7rem; color: #94a3b8; margin-top: 4px; text-align: center; }
+        .wifi-icon { color: #22c55e; animation: pulse 2s infinite; font-size: 1.1rem; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    `;
+    document.head.appendChild(clockStyle);
+
     const clockDiv = document.createElement('div');
-    clockDiv.className = 'taxi-clock-box fixed top-5 left-5 z-[60] bg-[#0f172a] p-3 rounded-xl border border-slate-700 flex items-center gap-4 text-yellow-400';
-    clockDiv.innerHTML = `<i class="fa-solid fa-wifi text-green-500 animate-pulse"></i> <span id="side-time" style="font-family: monospace; font-size: 1.5rem;">00:00:00</span>`;
+    clockDiv.className = 'taxi-clock-box';
+    clockDiv.innerHTML = `<div class="wifi-icon" title="اتصال سحابي نشط"><i class="fa-solid fa-wifi"></i></div><div><div id="side-time" class="clock-time">00:00:00</div><div id="side-date" class="clock-date">--/--/----</div></div>`;
     document.body.appendChild(clockDiv);
 
     setInterval(() => {
         const now = new Date();
         const tEl = document.getElementById('side-time');
+        const dEl = document.getElementById('side-date');
         const indexDateEl = document.getElementById('currentDate');
 
         if(tEl) tEl.innerText = now.toTimeString().split(' ')[0];
-        
-        // إصلاح الخطأ الشهير لضمان عمل السحابة (Supabase)
+        if(dEl) dEl.innerText = now.toLocaleDateString('en-GB');
+
+        // إصلاح الخطأ لملف index.html لضمان جلب بيانات Supabase دون تعليق
         if(indexDateEl) {
             indexDateEl.innerText = now.toLocaleDateString('ar-EG');
         } else if (window.location.pathname.includes('index.html')) {
-            // حل ذكي: إنشاء العنصر المفقود برمجياً لمنع تعليق الجدول
-            const ghost = document.createElement('div');
-            ghost.id = 'currentDate';
-            ghost.style.display = 'none';
-            document.body.appendChild(ghost);
+            // توفير العنصر مسبقاً إذا لم يجد الكود مكانه
+            const placeholder = document.createElement('div');
+            placeholder.id = 'currentDate';
+            placeholder.style.display = 'none';
+            document.body.appendChild(placeholder);
         }
     }, 1000);
 }
 
-// [4] التحكم والتنفيذ
+// [4] وظائف التحكم
 function toggleSidebar() {
     const sidebar = document.getElementById('main-sidebar');
     if (!sidebar) return;
@@ -146,11 +169,16 @@ function toggleSidebar() {
     document.getElementById('sidebar-overlay').classList.toggle('hidden');
 }
 
+async function handleLogout() {
+    if (typeof supabase !== 'undefined') { await supabase.auth.signOut(); }
+    sessionStorage.clear();
+    window.location.href = 'index.html';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     injectSidebar();
     initDigitalTaxiClock();
     
-    // تمييز الصفحة الحالية
     const current = window.location.pathname.split("/").pop() || "index.html";
     document.querySelectorAll('.nav-link').forEach(link => {
         if (link.getAttribute('href') === current) link.classList.add('active-page');
@@ -158,5 +186,5 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ============================================================
-   الحمد لله - هنا ينتهي الكود الذكي (نظام إدارة التاكسي الذكي)
+   الحمد لله - هنا ينتهي الكود (نظام إدارة التاكسي الذكي)
    ============================================================ */
