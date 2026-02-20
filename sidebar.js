@@ -68,10 +68,7 @@ function injectSidebar() {
             <a href="index.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
                 <i class="fa-solid fa-gauge-high w-6"></i> لوحة التحكم
             </a>
-            <a href="index02.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
-                <i class="fa-solid fa-chart-pie w-6"></i> لوحة التحكم 02
-            </a>
-            <div class="pt-4 pb-2"><p class="text-[10px] text-slate-500 uppercase px-3 tracking-widest font-black">إدارة الأسطول</p></div>
+      <div class="pt-4 pb-2"><p class="text-[10px] text-slate-500 uppercase px-3 tracking-widest font-black">إدارة الأسطول</p></div>
             <a href="cars.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
                 <i class="fa-solid fa-car w-6"></i> السيارات
             </a>
