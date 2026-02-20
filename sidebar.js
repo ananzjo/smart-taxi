@@ -1,146 +1,184 @@
 /**
- * نظام إدارة التاكسي الذكي - الإصدار المستقر الكامل
- * الميزات: القائمة الكاملة + الساعة الرقمية + أيقونة الواي فاي
+ * نظام إدارة التاكسي الذكي - النسخة الكاملة المحدثة
+ * الميزات: كافة الروابط من الصورة + مسميات عربية معبرة + الساعة الرقمية + أيقونة الواي فاي
  */
 
-// 1. حماية الوصول
+// 1. حماية الصفحات
 if (!window.location.pathname.endsWith('index.html') && window.location.pathname !== '/' && document.referrer === "") {
     window.location.href = 'index.html';
 }
 
-// 2. دالة حقن السايدبار (مع استعادة كافة الروابط الأصلية)
+// 2. دالة حقن السايدبار الكامل
 function injectSidebar() {
-    const style = document.createElement('style');
-    style.textContent = `
-        .sidebar-open { transform: translateX(0) !important; }
-        .sidebar-closed { transform: translateX(100%) !important; }
-        .nav-link.active-page { background-color: #1e293b; color: white; border-right: 4px solid #facc15; }
-    `;
-    document.head.appendChild(style);
-
     const sidebarHTML = `
-    <button id="sidebar-toggle-btn" onclick="toggleSidebar()" class="fixed top-5 right-5 z-[60] bg-[#0f172a] text-yellow-400 p-3 rounded-xl shadow-2xl border border-slate-700 flex items-center gap-3 font-bold transition-all duration-500">
+    <button id="sidebar-toggle-btn" onclick="toggleSidebar()" class="fixed top-5 right-5 z-[60] bg-[#0f172a] text-yellow-400 p-3 rounded-xl shadow-2xl transition-all duration-500 border border-slate-700 flex items-center gap-3 font-bold">
         <i class="fa-solid fa-bars-staggered text-xl"></i>
         <span class="text-sm">لوحة التحكم</span>
     </button>
+
     <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden transition-opacity duration-300"></div>
-    
-    <aside id="main-sidebar" class="fixed top-0 right-0 w-72 bg-[#0f172a] h-screen text-white p-6 shadow-2xl flex flex-col z-50 sidebar-closed font-bold border-l border-slate-800 transition-transform duration-400 ease-in-out">
+
+    <aside id="main-sidebar" class="fixed top-0 right-0 w-72 bg-[#0f172a] h-screen text-white p-6 shadow-2xl flex flex-col z-50 sidebar-closed font-bold border-l border-slate-800 transition-transform duration-400">
         <div class="flex items-center justify-between mb-8 px-2 border-b border-slate-800 pb-4">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-yellow-400 rounded-lg flex items-center justify-center text-slate-900 shadow-lg"><i class="fa-solid fa-taxi text-xl"></i></div>
-                <div>
-                    <h1 class="text-lg font-black uppercase tracking-tight">نظام التاكسي</h1>
-                    <p class="text-[10px] text-yellow-400/50 italic">Smart Fleet Management</p>
+                <div class="bg-yellow-400 p-2 rounded-lg text-slate-900 shadow-lg">
+                    <i class="fa-solid fa-taxi text-xl"></i>
                 </div>
+                <h1 class="text-lg font-bold text-white">التاكسي الذكي</h1>
             </div>
+            <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
         </div>
 
-        <nav class="flex-1 space-y-2 overflow-y-auto custom-scrollbar">
-            <a href="index.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
-                <i class="fa-solid fa-chart-pie w-6"></i> لوحة التحكم
+        <nav class="space-y-1 flex-1 overflow-y-auto custom-scrollbar pr-2 text-right" dir="rtl">
+            <a href="index.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-gauge-high w-6 text-center"></i> لوحة التحكم الرئيسية
             </a>
-            <a href="cars.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
-                <i class="fa-solid fa-car-side w-6"></i> أسطول السيارات
+            
+            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-[0.2em]">إدارة الأسطول والشركاء</div>
+            <a href="cars.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-car w-6 text-center"></i>  السيارات
             </a>
-            <a href="drivers.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
-                <i class="fa-solid fa-users-gear w-6"></i> إدارة السائقين
+            <a href="owners.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-user-tie w-6 text-center"></i> مالكي السيارات
             </a>
-            <a href="custody.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
-                <i class="fa-solid fa-box-open w-6"></i> مستودع العُهد
+            <a href="drivers.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-users w-6 text-center"></i> كادر السائقين
+            </a>
+            <a href="staff.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-user-gear w-6 text-center"></i> الموظفين 
             </a>
 
-            <div class="pt-4 pb-2">
-                <p class="text-[10px] text-slate-500 uppercase px-3 tracking-widest font-black">المالية والمطابقة</p>
-            </div>
+            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-[0.2em]">العمليات والتشغيل</div>
+            <a href="work_days.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-calendar-check w-6 text-center"></i>  أيام العمل
+            </a>
+            <a href="handover.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-key w-6 text-center"></i> سجل التسليم والاستلام
+            </a>
 
-            <a href="expenses.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
-                <i class="fa-solid fa-file-invoice-dollar w-6"></i> المصروفات التشغيلية
+            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-[0.2em]">الإدارة المالية</div>
+            <a href="revenues.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-hand-holding-dollar w-6 text-center"></i>  الإيرادات
             </a>
-            <a href="revenues.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
-                <i class="fa-solid fa-cash-register w-6"></i> تحصيل الإيرادات
+            <a href="expenses.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-receipt w-6 text-center"></i> المصاريف 
             </a>
-            <a href="matching.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
-                <i class="fa-solid fa-scale-balanced w-6"></i> المطابقة المالية
+            <a href="payments.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-money-bill-transfer w-6 text-center"></i>  المدفوعات
             </a>
-            <a href="claim.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
-                <i class="fa-solid fa-hand-holding-dollar w-6"></i> نظام المطالبات
+            <a href="matching.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-scale-balanced w-6 text-center"></i>  المطابقة المالية
+            </a>
+            <a href="closing.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-lock w-6 text-center"></i> الإغلاق المالي الدوري
+            </a>
+
+            <div class="text-[10px] text-slate-500 font-bold px-4 pt-6 pb-2 uppercase tracking-[0.2em]">أدوات أخرى</div>
+            <a href="index02.html" class="nav-link flex items-center p-3 rounded-xl gap-3 text-sm text-slate-400 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-laptop-code w-6 text-center"></i> لوحة التحكم (النسخة 2)
             </a>
         </nav>
+    </aside>
+    `;
 
-        <div class="mt-auto pt-4 border-t border-slate-800">
-             <button onclick="handleLogout()" class="w-full flex items-center p-3 rounded-xl gap-3 text-red-400 hover:bg-red-500/10 transition-all">
-                <i class="fa-solid fa-right-from-bracket w-6"></i> تسجيل الخروج
-            </button>
-        </div>
-    </aside>`;
     document.body.insertAdjacentHTML('afterbegin', sidebarHTML);
+    highlightActiveLink();
 }
 
-// 3. الساعة مع الواي فاي (ثابتة ومنظمة)
+// 3. دالة الساعة الرقمية (كما هي في ملفك مع تحسينات طفيفة)
 function initDigitalTaxiClock() {
-    const clockStyle = document.createElement('style');
-    clockStyle.textContent = `
+    const style = document.createElement('style');
+    style.textContent = `
         @import url('https://fonts.cdnfonts.com/css/digital-7-mono');
-        .taxi-clock-box { position: fixed; top: 20px; left: 25px; z-index: 60; background: #0f172a; padding: 10px 20px; border-radius: 12px; border: 1px solid #334155; display: flex; align-items: center; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .clock-time { font-family: 'Digital-7 Mono', sans-serif; font-size: 2rem; color: #FFD700; line-height: 1; }
-        .clock-date { font-size: 0.7rem; color: #94a3b8; margin-top: 4px; }
-        .wifi-icon { color: #22c55e; animation: pulse 2s infinite; font-size: 1.1rem; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .taxi-header-container {
+            position: fixed; top: 20px; left: 25px; z-index: 60;
+            background: #0f172a; padding: 6px 15px; border-radius: 12px;
+            border: 1px solid #334155; display: flex; align-items: center;
+            gap: 12px; direction: ltr; box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+        .status-icon-box { display: flex; align-items: center; justify-content: center; font-size: 1.2rem; width: 30px; }
+        .digital-info-box { display: flex; flex-direction: column; align-items: center; }
+        .digital-time { font-family: 'Digital-7 Mono', sans-serif; font-size: 1.9rem; line-height: 1; margin: 0; }
+        .digital-date { font-size: 0.7rem; color: #94a3b8; font-family: 'Segoe UI', Arial, sans-serif; font-weight: bold; margin-top: 4px; }
+        .online-style { color: #22c55e; text-shadow: 0 0 10px rgba(34, 197, 94, 0.5); }
+        .offline-style { color: #ef4444; text-shadow: 0 0 10px rgba(239, 68, 68, 0.5); animation: taxi-blink 1s infinite; }
+        @keyframes taxi-blink { 50% { opacity: 0.4; } }
     `;
-    document.head.appendChild(clockStyle);
+    document.head.appendChild(style);
 
-    const clockDiv = document.createElement('div');
-    clockDiv.className = 'taxi-clock-box';
-    clockDiv.innerHTML = `<div class="wifi-icon"><i class="fa-solid fa-wifi"></i></div><div><div id="side-time" class="clock-time">00:00:00</div><div id="side-date" class="clock-date">--/--/----</div></div>`;
-    document.body.appendChild(clockDiv);
+    const clockContainer = document.createElement('div');
+    clockContainer.className = 'taxi-header-container';
+    clockContainer.innerHTML = `
+        <div id="taxi-status-icon" class="status-icon-box online-style"><i class="fa-solid fa-wifi"></i></div>
+        <div class="digital-info-box">
+            <div id="header-time" class="digital-time online-style">00:00:00</div>
+            <div id="header-date" class="digital-date">-- --/--/----</div>
+        </div>
+    `;
+    document.body.appendChild(clockContainer);
 
-    setInterval(() => {
+    function updateSystem() {
         const now = new Date();
-        const t = now.toTimeString().split(' ')[0];
-        const d = now.toLocaleDateString('en-GB');
-        const timeEl = document.getElementById('side-time');
-        const dateEl = document.getElementById('side-date');
-        if(timeEl) timeEl.innerText = t;
-        if(dateEl) dateEl.innerText = d;
-    }, 1000);
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+        document.getElementById('header-time').textContent = `${h}:${m}:${s}`;
+
+        const days = ['الأحد', 'الأثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+        const dayName = days[now.getDay()];
+        const d = String(now.getDate()).padStart(2, '0');
+        const mon = String(now.getMonth() + 1).padStart(2, '0');
+        const y = now.getFullYear();
+        document.getElementById('header-date').textContent = `${dayName} ${d}-${mon}-${y}`;
+
+        const iconBox = document.getElementById('taxi-status-icon');
+        const timeEl = document.getElementById('header-time');
+        if (navigator.onLine) {
+            timeEl.className = 'digital-time online-style';
+            iconBox.className = 'status-icon-box online-style';
+            iconBox.innerHTML = '<i class="fa-solid fa-wifi"></i>';
+        } else {
+            timeEl.className = 'digital-time offline-style';
+            iconBox.className = 'status-icon-box offline-style';
+            iconBox.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+        }
+    }
+    setInterval(updateSystem, 1000);
+    updateSystem();
 }
 
 // 4. وظائف التحكم
 function toggleSidebar() {
     const sidebar = document.getElementById('main-sidebar');
     const overlay = document.getElementById('sidebar-overlay');
-    const btn = document.getElementById('sidebar-toggle-btn');
-    if (!sidebar) return;
+    const toggleBtn = document.getElementById('sidebar-toggle-btn');
+    if (!sidebar || !overlay) return;
 
     if (sidebar.classList.contains('sidebar-closed')) {
-        sidebar.classList.replace('sidebar-closed', 'sidebar-open');
+        sidebar.classList.remove('sidebar-closed');
+        sidebar.classList.add('sidebar-open');
         overlay.classList.remove('hidden');
-        btn.style.opacity = '0';
-        btn.style.pointerEvents = 'none';
+        if (toggleBtn) { toggleBtn.style.opacity = '0'; toggleBtn.style.pointerEvents = 'none'; }
     } else {
-        sidebar.classList.replace('sidebar-open', 'sidebar-closed');
+        sidebar.classList.remove('sidebar-open');
+        sidebar.classList.add('sidebar-closed');
         overlay.classList.add('hidden');
-        btn.style.opacity = '1';
-        btn.style.pointerEvents = 'auto';
+        if (toggleBtn) { toggleBtn.style.opacity = '1'; toggleBtn.style.pointerEvents = 'auto'; }
     }
 }
 
-async function handleLogout() {
-    if (typeof supabase !== 'undefined') {
-        await supabase.auth.signOut();
-    }
-    sessionStorage.clear();
-    window.location.href = 'index.html';
+function highlightActiveLink() {
+    const currentPage = window.location.pathname.split("/").pop() || "index.html";
+    document.querySelectorAll('.nav-link').forEach(link => {
+        if (link.getAttribute('href') === currentPage) {
+            link.classList.add('bg-slate-800', 'text-white');
+            link.classList.remove('text-slate-400');
+        }
+    });
 }
 
+// 5. التنفيذ النهائي
 document.addEventListener('DOMContentLoaded', () => {
     injectSidebar();
     initDigitalTaxiClock();
-    
-    // تمييز الصفحة الحالية
-    const current = window.location.pathname.split("/").pop() || "index.html";
-    document.querySelectorAll('.nav-link').forEach(link => {
-        if (link.getAttribute('href') === current) link.classList.add('active-page');
-    });
 });
