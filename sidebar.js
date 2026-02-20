@@ -1,5 +1,3 @@
-/** * النسخة الأصلية الكاملة مع إضافة "محرك الثيمات" فقط
-
 // 1. حماية الصفحات
 if (!window.location.pathname.endsWith('index.html') && window.location.pathname !== '/' && document.referrer === "") {
     window.location.href = 'index.html';
@@ -59,6 +57,7 @@ function injectSidebar() {
 
 // 3. دالة الساعة الرقمية (عداد التاكسي + أيقونة الحالة)
 function initDigitalTaxiClock() {
+    // حقن الأنماط (Digital Font + Font Awesome + Layout)
     const style = document.createElement('style');
     style.textContent = `
         @import url('https://fonts.cdnfonts.com/css/digital-7-mono');
@@ -130,12 +129,12 @@ function initDigitalTaxiClock() {
         const h = String(now.getHours()).padStart(2, '0');
         const m = String(now.getMinutes()).padStart(2, '0');
         const s = String(now.getSeconds()).padStart(2, '0');
-        timeEl.textContent = `${h}:${m}:${s}`;
+        timeEl.textContent = \`\${h}:\${m}:\${s}\`;
 
         const d = String(now.getDate()).padStart(2, '0');
         const mon = String(now.getMonth() + 1).padStart(2, '0');
         const y = now.getFullYear();
-        dateEl.textContent = `${d}-${mon}-${y}`;
+        dateEl.textContent = \`\${d}-\\ \${mon}-\\ \${y}\`;
 
         if (navigator.onLine) {
             timeEl.className = 'digital-time online-style';
@@ -152,7 +151,7 @@ function initDigitalTaxiClock() {
     updateSystem();
 }
 
-// 4. وظائف التحكم
+// 4. وظائف التحكم الأصلية
 function toggleSidebar() {
     const sidebar = document.getElementById('main-sidebar');
     const overlay = document.getElementById('sidebar-overlay');
@@ -160,7 +159,9 @@ function toggleSidebar() {
     
     if (!sidebar || !overlay) return;
 
-    if (sidebar.classList.contains('sidebar-closed')) {
+    const isClosed = sidebar.classList.contains('sidebar-closed');
+
+    if (isClosed) {
         sidebar.classList.remove('sidebar-closed');
         sidebar.classList.add('sidebar-open');
         overlay.classList.remove('hidden');
@@ -190,30 +191,8 @@ function highlightActiveLink() {
     });
 }
 
-// --- الإضافة الجديدة: دالة تطبيق الألوان (الثيمات) الموحدة ---
-function applyThemeByPage() {
-    const page = window.location.pathname.split("/").pop();
-    const b = document.body;
-
-    // قاموس توزيع الألوان على الصفحات
-    const themes = {
-        'cars.html': 'theme-cars',      // أصفر
-        'owners.html': 'theme-owners',  // وردي رجالي
-        'drivers.html': 'theme-drivers',// أسود/رمادي
-        'revenues.html': 'theme-revenues', // أزرق
-        'expenses.html': 'theme-expenses', // أحمر
-        'payments.html': 'theme-payments', // أحمر غامق
-        'users.html': 'theme-users'      // رمادي فاتح
-    };
-
-    if (themes[page]) {
-        b.classList.add(themes[page]);
-    }
-}
-
-// 5. التنفيذ النهائي المدمج (بدون حذف)
+// 5. التشغيل النهائي عند التحميل
 document.addEventListener('DOMContentLoaded', () => {
     injectSidebar();
     initDigitalTaxiClock();
-    applyThemeByPage(); // تفعيل محرك الألوان حبة حبة
 });
