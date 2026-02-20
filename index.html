@@ -17,7 +17,7 @@
         :root {
             --font-main: 'Cairo', sans-serif;
             --font-digital: 'Chakra Petch', sans-serif;
-            --bg-navy: #3269e7; /* اللون الأزرق البحري */
+            --bg-navy: #3269e7;
         }
         
         body { 
@@ -28,7 +28,6 @@
         
         .digital-font { font-family: var(--font-digital); }
         
-        /* تنسيق البطاقات الملونة */
         .stat-card {
             display: flex;
             flex-direction: column;
@@ -36,11 +35,10 @@
             justify-content: center;
             text-align: center;
             min-height: 240px;
-            background: white; /* تباين البطاقات مع الخلفية */
+            background: white;
             color: #1e293b;
         }
 
-        /* تنسيق جدول الأسطول */
         .glass-table {
             background: rgb(0, 0, 0);
             border-radius: 2.5rem;
@@ -48,7 +46,6 @@
             color: #1e293b;
         }
 
-        /* Snackbar */
         #snackbar {
             visibility: hidden; min-width: 280px; background-color: #1e293b;
             color: #fff; text-align: center; border-radius: 16px; padding: 20px;
@@ -70,11 +67,13 @@
                 <h2 class="text-3xl font-black text-white tracking-tight">لوحة التحكم الذكية</h2>
                 <p class="text-slate-400 mt-1 uppercase text-[16px] tracking-[0.2em] font-bold italic">Smart Dashboard Control</p>
             </div>
-            
+            <div class="bg-white/10 backdrop-blur-md px-5 py-2 rounded-2xl border border-white/20 flex items-center gap-3 text-sm font-bold">
+                <i class="fa-solid fa-calendar-day text-yellow-400"></i>
+                <span id="currentDate" class="text-white font-mono bold"></span>
+            </div>
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-            
             <div class="stat-card p-8 rounded-[2.5rem] shadow-2xl border-b-8 border-[#FFD700] group transition-all hover:-translate-y-2">
                 <div class="p-4 bg-[#FFD700]/10 text-[#FFD700] rounded-3xl mb-4"><i class="fa-solid fa-calculator text-3xl"></i></div>
                 <p class="text-slate-500 text-sm font-bold mb-2 uppercase tracking-wide">الوارد المفترض</p>
@@ -98,11 +97,9 @@
                 <p class="text-slate-500 text-sm font-bold mb-2 uppercase tracking-wide">صافي الذمم</p>
                 <h3 class="text-6xl font-bold digital-font text-[#F57C00]" id="netReceivables">0.00</h3>
             </div>
-
         </div>
 
         <div class="glass-table shadow-xl mb-8 rounded-2xl overflow-hidden border border-white/10 bg-gradient-to-br from-slate-800 via-slate-900 to-indigo-950">
-            
             <div class="p-6 border-b border-white/5 flex justify-between items-center bg-white/5 backdrop-blur-sm">
                 <h3 class="font-bold text-white text-2xl flex items-center gap-3">
                     <i class="fa-solid fa-car-side text-emerald-400 opacity-80"></i> 
@@ -124,10 +121,9 @@
                         </tr>
                     </thead>
                     <tbody id="fleetTableBody" class="text-slate-200 text-base font-normal">
-                        <tr class="hover:bg-white/5 transition-colors">
+                        <tr>
                             <td colspan="4" class="p-12 text-center text-slate-400 animate-pulse">
-                                <i class="fa-solid fa-cloud-arrow-down ml-2"></i>
-                                جاري الاتصال بالسحابة الذكية...
+                                جاري الاتصال بالسحابة...
                             </td>
                         </tr>
                     </tbody>
@@ -140,47 +136,42 @@
 
     <script src="sidebar.js"></script>
     <script>
-        // إعدادات Supabase
         const SUPABASE_URL = 'https://tjntctaapsdynbywdfns.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_BJgdmxyFsCgzFDXh1Qn1CQ_cFRMsy2P';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         function showSnackbar() {
             const sb = document.getElementById("snackbar");
-            sb.className = "show";
-            setTimeout(() => { sb.className = sb.className.replace("show", ""); }, 4000);
+            if(sb) {
+                sb.className = "show";
+                setTimeout(() => { sb.className = sb.className.replace("show", ""); }, 4000);
+            }
         }
 
-        
-
-        window.addEventListener('online', updateOnlineStatus);
-        window.addEventListener('offline', updateOnlineStatus);
-
         async function initializeDashboard() {
-            updateOnlineStatus(); // التأكد من الحالة عند التشغيل
             try {
-                // تاريخ اليوم
-                
-                // 1. الوارد
+                // 1. تحديث التاريخ
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-EG', options);
+                showSnackbar();
+
+                // 2. جلب البيانات المالية
                 const { data: workDays } = await supabaseClient.from('work_days').select('daily_rent');
                 const totalRev = workDays ? workDays.reduce((s, d) => s + Number(d.daily_rent || 0), 0) : 0;
                 document.getElementById('totalRevenue').innerText = totalRev.toLocaleString();
 
-                // 2. المقبوض
                 const { data: revenues } = await supabaseClient.from('revenues').select('amount');
                 const totalColl = revenues ? revenues.reduce((s, r) => s + Number(r.amount || 0), 0) : 0;
                 document.getElementById('totalCollected').innerText = totalColl.toLocaleString();
 
-                // 3. المصاريف
                 const { data: expenses } = await supabaseClient.from('expenses').select('total_amount');
                 const totalExp = expenses ? expenses.reduce((s, e) => s + Number(e.total_amount || 0), 0) : 0;
                 document.getElementById('totalExpenses').innerText = totalExp.toLocaleString();
 
-                // 4. صافي الذمم
                 document.getElementById('netReceivables').innerText = (totalRev - totalColl).toLocaleString();
 
                 await fetchFleetStatus();
-            } catch (err) { console.error(err); }
+            } catch (err) { console.error("Error:", err); }
         }
 
         async function fetchFleetStatus() {
@@ -190,7 +181,7 @@
                 handover ( event_type, handover_date, drivers ( name ) )
             `).order('plate_no');
 
-            if (error) return;
+            if (error || !cars) return;
             tableBody.innerHTML = '';
             let idleCount = 0;
 
@@ -206,13 +197,13 @@
                     : '<span class="px-4 py-1 bg-red-100 text-red-600 rounded-xl text-[10px]">متوقفة</span>';
 
                 tableBody.insertAdjacentHTML('beforeend', `
-                    <tr class="border-b border-slate-50 hover:bg-slate-50/80 transition-colors">
+                    <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
                         <td class="p-6">
-                            <div class="font-black text-slate-800">${car.plate_no}</div>
+                            <div class="font-black text-white">${car.plate_no}</div>
                             <div class="text-[10px] text-slate-400 uppercase tracking-tighter">${car.brand}</div>
                         </td>
-                        <td class="p-6 text-slate-600">${driver}</td>
-                        <td class="p-6 text-slate-500 digital-font text-2xl">${date}</td>
+                        <td class="p-6 text-slate-300">${driver}</td>
+                        <td class="p-6 text-slate-400 digital-font text-xl">${date}</td>
                         <td class="p-6 text-center">${badge}</td>
                     </tr>
                 `);
