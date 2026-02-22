@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>فحص الاتصال - نظام إدارة التاكسي</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f0f0f0; }
+        .status-box { padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
+        th { background: #333; color: white; }
+    </style>
+</head>
+<body>
+
+    <h2>🔍 فحص ربط قاعدة البيانات</h2>
+    <div id="status" class="status-box">جاري فحص الاتصال...</div>
+
+    <table id="testTable" style="display:none;">
+        <thead>
+            <tr>
+                <th>f01_id (ID)</th>
+                <th>f02_plate_no (اللوحة)</th>
+                <th>f03_car_office (المكتب)</th>
+            </tr>
+        </thead>
+        <tbody id="testBody"></tbody>
+    </table>
+
+    <script>
+        // بيانات الربط المعتمدة
+        const TEST_URL = "https://jmalxvhumgygqxqislut.supabase.co".trim();
+        const TEST_KEY = "sb_publishable_62y7dPN9SEc4U_8Lpu4ZNQ_H1PLDVv8".trim();
+
+        async function runDiagnostic() {
+            const statusDiv = document.getElementById('status');
+            const table = document.getElementById('testTable');
+            const body = document.getElementById('testBody');
+
+            try {
+                // 1. محاولة إنشاء العميل
+                const _supabase = supabase.createClient(TEST_URL, TEST_KEY);
+                
+                // 2. محاولة جلب البيانات من جدول t01_cars
+                const { data, error } = await _supabase
+                    .from('t01_cars')
+                    .select('f01_id, f02_plate_no, f03_car_office')
+                    .limit(5);
+
+                if (error) throw error;
+
+                // 3. في حال النجاح
+                statusDiv.className = "status-box success";
+                statusDiv.innerHTML = "✅ تم الاتصال بنجاح! تم استخراج " + data.length + " سجلات.";
+                table.style.display = "table";
+
+                data.forEach(row => {
+                    body.innerHTML += `
+                        <tr>
+                            <td>${row.f01_id}</td>
+                            <td>${row.f02_plate_no}</td>
+                            <td>${row.f03_car_office || 'فارغ'}</td>
+                        </tr>`;
+                });
+
+            } catch (err) {
+                // 4. في حال الفشل
+                statusDiv.className = "status-box error";
+                statusDiv.innerHTML = "❌ خطأ في الربط: " + err.message;
+                console.error("Diagnostic Error:", err);
+            }
+        }
+
+        // تشغيل الفحص فور تحميل الصفحة
+        runDiagnostic();
+    </script>
+</body>
+</html>

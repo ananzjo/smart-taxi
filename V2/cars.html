@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الأسطول - نظام إدارة التاكسي الذكي</title>
+    <link rel="stylesheet" href="global_style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <main class="main-container">
+    <div class="elegant-card">
+        <h2 style="text-align: center; margin-bottom: 30px;">🚖 تسجيل وتعديل بيانات المركبة</h2>
+        
+        <div class="input-grid">
+            <input type="hidden" id="f01">
+
+            <div class="form-group">
+                <label>رقم اللوحة (Plate Number)</label>
+                <input type="text" id="f02" placeholder="00-00000">
+            </div>
+
+            <div class="form-group">
+                <label>مكتب السيارة (Car Office)</label>
+                <input type="text" id="f03" placeholder="اسم المكتب">
+            </div>
+
+            <div class="form-group">
+                <label>الماركة / الشركة المصنعة (Brand)</label>
+                <input type="text" id="f04" placeholder="مثلاً: تويوتا">
+            </div>
+
+            <div class="form-group">
+                <label>نوع الطراز (Model Variant)</label>
+                <input type="text" id="f05" placeholder="مثلاً: كامري">
+            </div>
+
+            <div class="form-group">
+                <label>سنة الصنع (Model Year)</label>
+                <input type="number" id="f06" placeholder="2024">
+            </div>
+
+            <div class="form-group">
+                <label>تاريخ انتهاء الترخيص (License Expiry)</label>
+                <input type="date" id="f07">
+            </div>
+
+            <div class="form-group">
+                <label>الضمان المفترض (Standard Rent)</label>
+                <input type="number" id="f08" step="0.01" placeholder="0.00">
+            </div>
+
+            <div class="form-group">
+                <label>رسوم الإدارة (Management Fee)</label>
+                <input type="number" id="f09" step="0.01" placeholder="0.00">
+            </div>
+
+            <div class="form-group">
+                <label>الموظف المسؤول (Staff ID)</label>
+                <input type="text" id="f10" placeholder="رقم الموظف">
+            </div>
+
+            <div class="form-group">
+                <label>مالك السيارة (Owner ID)</label>
+                <input type="text" id="f11" placeholder="رقم المالك">
+            </div>
+
+            <div class="form-group">
+                <label>حالة السيارة (Activation Status)</label>
+                <select id="f12">
+                    <option value="نشط">نشط</option>
+                    <option value="صيانة">صيانة</option>
+                    <option value="متوقفة">متوقفة</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>السائق الحالي (Current Driver ID)</label>
+                <input type="text" id="f13" placeholder="رقم السائق">
+            </div>
+
+            <div class="form-group" style="grid-column: span 2;">
+                <label>ملاحظات (Car Notes)</label>
+                <input type="text" id="f14" placeholder="أي تفاصيل إضافية">
+            </div>
+
+            <div class="form-group">
+                <label>نوع الوقود (Fuel Type)</label>
+                <select id="f15">
+                    <option value="بنزين">بنزين</option>
+                    <option value="هايبرد">هايبرد</option>
+                    <option value="كهرباء">كهرباء</option>
+                    <option value="ديزل">ديزل</option>
+                </select>
+            </div>
+        </div>
+
+        <button id="saveBtn" class="btn-save" onclick="saveData()">
+            حفظ بيانات المركبة 💾
+        </button>
+    </div>
+
+    <div class="elegant-card">
+        <h3>🚖 قائمة السيارات</h3>
+        <div id="tableContent"></div>
+    </div>
+</main>
+
+    <script src="global_sidebar.js"></script>
+</body>
+</html>
