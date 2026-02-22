@@ -1,4 +1,4 @@
-/* [1] الخطوط والنبض */
+/* [1] الإعدادات الأساسية والخطوط */
 @import url('https://fonts.cdnfonts.com/css/seven-segment');
 
 :root {
@@ -10,195 +10,133 @@
     --card-shadow: 0 15px 35px rgba(0,0,0,0.2);
 }
 
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
 body { 
-    direction: rtl; margin: 0; background: #f8f9fa; 
-    font-family: 'Segoe UI', Tahoma, sans-serif; overflow-x: hidden; 
+    direction: rtl; 
+    margin: 0; 
+    background: #f8f9fa; 
+    font-family: 'Segoe UI', Tahoma, sans-serif; 
+    overflow-x: hidden; 
 }
 
-/* [2] الهيدر والعداد الرقمي */
+/* [2] الهيدر الثابت (البريميوم) */
 .global-header {
-    display: flex; justify-content: space-between; align-items: center;
-    background: var(--taxi-dark); color: white; padding: 0 20px; height: 100px;
-    position: sticky; top: 0; z-index: 1000; box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    background: var(--taxi-dark); 
+    color: white; 
+    padding: 0 20px; 
+    height: 100px;
+    position: sticky; 
+    top: 0; 
+    z-index: 1000; 
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
 }
 
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* العداد الرقمي */
 .taxi-meter-clock {
-    font-family: 'Seven Segment', sans-serif; font-size: 2.0rem; font-weight: 900;
-    background: #000; padding: 2px 25px; border-radius: 12px; border: 3px solid #222;
-    line-height: 1; min-width: 220px; text-align: center; transition: 0.5s;
+    font-family: 'Seven Segment', sans-serif; 
+    font-size: 2.0rem; 
+    font-weight: 900;
+    background: #000; 
+    padding: 2px 25px; 
+    border-radius: 12px; 
+    border: 3px solid #222;
+    line-height: 1; 
+    min-width: 220px; 
+    text-align: center; 
+    transition: 0.5s;
 }
 
-.wifi-icon-svg { width: 50px; height: 50px; margin-left: 20px; transition: 0.5s; }
+/* أيقونة الواي فاي والنبض */
+.wifi-icon-svg { 
+    width: 50px; 
+    height: 50px; 
+    margin-left: 20px; 
+    transition: 0.5s; 
+    fill: #333;
+}
 .pulse-green { fill: var(--status-green); filter: drop-shadow(0 0 12px var(--status-green)); }
 .pulse-red { fill: var(--status-red); filter: drop-shadow(0 0 12px var(--status-red)); }
 
 /* [3] القائمة الجانبية (Sliding Sidebar) */
 .sidebar {
-    height: 100vh; width: 0; position: fixed; z-index: 2000; top: 0; right: 0;
-    background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    transition: 0.5s cubic-bezier(0.7, 0, 0.3, 1); overflow-x: hidden;
+    height: 100vh; 
+    width: 0; 
+    position: fixed; 
+    z-index: 2000; 
+    top: 0; 
+    right: 0;
+    background: var(--glass-bg); 
+    backdrop-filter: blur(20px); 
+    -webkit-backdrop-filter: blur(20px);
+    transition: 0.5s cubic-bezier(0.7, 0, 0.3, 1); 
+    overflow-x: hidden;
 }
 
-.sidebar-content { padding: 120px 30px; display: flex; flex-direction: column; gap: 20px; }
-.sidebar a {
-    padding: 18px 25px; text-decoration: none; color: #fff; border-radius: 15px;
-    background: rgba(255, 255, 255, 0.05); transition: 0.3s; display: block;
+.sidebar-content { 
+    padding: 120px 30px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 20px; 
 }
-.sidebar a:hover { background: var(--taxi-gold); color: #000; transform: translateX(-12px); }
+
+.sidebar a {
+    padding: 18px 25px; 
+    text-decoration: none; 
+    color: #fff; 
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.05); 
+    transition: 0.3s; 
+    display: block;
+    font-weight: 500;
+}
+
+.sidebar a:hover { 
+    background: var(--taxi-gold); 
+    color: #000; 
+    transform: translateX(-12px); 
+}
 
 .overlay { 
-    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-    background: rgba(0,0,0,0.5); z-index: 1500; backdrop-filter: blur(5px); 
+    display: none; 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    background: rgba(0,0,0,0.5); 
+    z-index: 1500; 
+    backdrop-filter: blur(5px); 
 }
 
-/* [4] الجداول المتناسقة والـ Zebra Stripes */
-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; margin-top: 20px; }
-th { background: #f4f4f4; padding: 15px; color: #666; font-weight: 600; text-align: center; }
-td { background: #fff; padding: 15px; border-top: 1px solid #eee; border-bottom: 1px solid #eee; text-align: center; }
-tr td:first-child { border-right: 1px solid #eee; border-radius: 0 12px 12px 0; }
-tr td:last-child { border-left: 1px solid #eee; border-radius: 12px 0 0 12px; }
-
-/* التلوين التبادلي */
-tbody tr:nth-child(even) td { background-color: #fcfcfc !important; }
-tbody tr:hover td { background-color: rgba(241, 196, 15, 0.05) !important; transition: 0.2s; }
-
-/* [5] البطاقات (Elegant Card) */
+/* [4] البطاقة الأنيقة (Elegant Card) - مستخدمة في كل الصفحات */
 .elegant-card { 
-    background: #fff; border-radius: 20px; padding: 35px; margin: 40px auto; 
-    max-width: 1200px; box-shadow: var(--card-shadow); border-top: 10px solid var(--taxi-gold); 
-
-    
+    background: #fff; 
+    border-radius: 20px; 
+    padding: 35px; 
+    margin: 40px auto; 
+    max-width: 1200px; 
+    box-shadow: var(--card-shadow); 
+    border-top: 10px solid var(--taxi-gold); 
 }
 
-/* [7] تنسيق الفورم الحديث - التمركز الكامل */
-.input-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 40px; /* مسافة مريحة بين الحقول */
-    margin-bottom: 40px;
-}
-
-/* الحاوية التي تجمع الليبل مع الحقل */
-.form-group {
-    display: flex;
-    flex-direction: column; /* ليبل فوق الحقل */
-    align-items: center;    /* توسيط أفقي لكل المحتوى */
-    justify-content: center;
-}
-
-/* تنسيق الليبل (فوق في المنتصف) */
-.form-group label {
-    display: block;
-    font-weight: 700;
-    color: #444;
-    font-size: 0.95rem;
-    margin-bottom: 10px;    /* مسافة تحت الليبل */
-    text-align: center;
-    width: 100%;
-}
-
-/* تنسيق الحقل (حجم متناسق وحديث) */
-.form-group input, .form-group select {
-    width: 100%;
-    max-width: 300px;       /* عرض ثابت لضمان التناسق */
-    height: 48px;           /* ارتفاع الـ Premium UI */
-    padding: 0 15px;
-    border: 2px solid #e2e8f0;
-    border-radius: 12px;    /* انحناء حديث ناعم */
-    font-size: 1rem;
-    text-align: center;     /* النص داخل الحقل في المنتصف */
-    background-color: #fff;
-    color: #333;
-    transition: all 0.3s ease;
-}
-
-/* تأثير عند الكتابة أو التركيز */
-.form-group input:focus, .form-group select:focus {
-    border-color: var(--taxi-gold);
-    outline: none;
-    box-shadow: 0 0 0 4px rgba(241, 196, 15, 0.1);
-    background-color: #fff;
-    transform: scale(1.02); /* تكبير بسيط جداً يوحي بالحداثة */
-}
-
-/* [8] تنسيق زر الحفظ - Modern Save Button */
-.btn-save {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;                /* مسافة بين النص والرمز */
-    
-    width: 100%;
-    max-width: 350px;         /* عرض متناسب */
-    height: 55px;             /* ارتفاع مريح للضغط */
-    margin: 30px auto 0;      /* توسيط الزر في المنتصف */
-    
-    background: var(--taxi-dark); /* اللون الأسود الفخم */
-    color: var(--taxi-gold);      /* النص باللون الذهبي */
-    border: 2px solid var(--taxi-gold); /* إطار ذهبي */
-    border-radius: 15px;      /* زوايا دائرية ناعمة */
-    
-    font-size: 1.15rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-/* تأثير عند تمرير الماوس (Hover) */
-.btn-save:hover {
-    background: var(--taxi-gold); /* ينعكس اللون للذهبي */
-    color: var(--taxi-dark);      /* النص يصبح أسود */
-    transform: translateY(-3px);  /* يرتفع للأعلى قليلاً */
-    box-shadow: 0 8px 25px rgba(241, 196, 15, 0.4); /* توهج ذهبي */
-}
-
-/* تأثير عند الضغط الفعلي (Active) */
-.btn-save:active {
-    transform: translateY(1px);   /* يشعرك بالضغط للأسفل */
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-}
-
-/* [10] تنسيق أزرار الإجراءات في الجدول */
-.actions-cell {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-}
-
-.btn-action {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 1.1rem;
-}
-
-/* زر التعديل - لون أزرق سماوي عصري */
-.btn-edit {
-    background-color: #e3f2fd;
-    color: #1976d2;
-}
-.btn-edit:hover {
-    background-color: #1976d2;
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(25, 118, 210, 0.2);
-}
-
-/* زر الحذف - لون أحمر وردي خفيف */
-.btn-delete {
-    background-color: #ffebee;
-    color: #d32f2f;
-}
-.btn-delete:hover {
-    background-color: #d32f2f;
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(211, 47, 47, 0.2);
+/* بادجات الحالة العامة */
+.badge { 
+    padding: 6px 12px; 
+    border-radius: 8px; 
+    font-weight: bold; 
+    font-size: 0.85rem; 
+    display: inline-block;
 }
