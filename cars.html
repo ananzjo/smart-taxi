@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>إدارة أسطول السيارات</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="global-config.js"></script>
+    <link rel="stylesheet" href="cars.css">
+</head>
+<body>
+    <main class="main-container">
+        <div class="elegant-card">
+            <div class="card-header header-flex">
+                <span>🚖 إدارة بيانات السيارات</span>
+            </div>
+            
+            <form id="carForm" class="taxi-form">
+                <input type="hidden" id="f01_id">
+                <div class="input-grid">
+                    <div class="form-group"><label>رقم اللوحة</label><input type="text" id="f02_plate_no" required></div>
+                    <div class="form-group"><label>مكتب التاكسي</label><input type="text" id="f03_car_office"></div>
+                    <div class="form-group"><label>الماركة</label><input type="text" id="f04_brand"></div>
+                    <div class="form-group"><label>سنة الصنع</label><input type="number" id="f06_model"></div>
+                    <div class="form-group"><label>انتهاء الترخيص</label><input type="date" id="f07_license_expiry"></div>
+                    <div class="form-group"><label>الضمان اليومي</label><input type="number" step="0.01" id="f08_standard_rent"></div>
+                    
+                    <div class="form-group"><label>المالك</label><select id="f11_owner_id"></select></div>
+                    <div class="form-group"><label>السائق الحالي</label><select id="f13_current_driver_id"></select></div>
+                    
+                    <div class="form-group">
+                        <label>نوع الوقود</label>
+                        <select id="f15_fuel_type">
+                            <option value="بنزين">بنزين</option>
+                            <option value="هجين">هجين</option>
+                            <option value="كهرباء">كهرباء</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>حالة التشغيل</label>
+                        <select id="f12_is_active">
+                            <option value="نشط">نشط</option>
+                            <option value="متوقف">متوقف</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>ملاحظات</label><textarea id="f14_car_notes" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" onclick="saveData()" class="btn-main">حفظ البيانات</button>
+                    <button type="button" onclick="confirmReset()" class="btn-sub">تفريغ</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="elegant-card">
+            <div class="excel-controls">
+                <span>📋 سجل الأسطول</span>
+                <input type="text" id="excelSearch" placeholder="فلتر إكسل..." onkeyup="excelFilter()">
+            </div>
+            <div id="tableContainer" class="table-responsive"></div>
+        </div>
+    </main>
+
+    <script src="cars.js"></script>
+    <script>
+        // تشغيل موحد وآمن
+        window.onload = async () => { 
+            bootSystem("إدارة السيارات"); 
+            await fillDropdowns(); 
+            await loadData(); 
+        };
+    </script>
+</body>
+</html>

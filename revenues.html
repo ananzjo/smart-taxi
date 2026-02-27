@@ -1,182 +1,110 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سندات القبض (الإيرادات) | نظام التاكسي الذكي</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <title>نظام إدارة التاكسي الذكي | الإيرادات</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
-    
-    <style>
-        body { font-family: 'Tajawal', sans-serif; }
-    </style>
+    <script src="global-config.js"></script>
+    <link rel="stylesheet" href="revenues.css">
 </head>
-<body class="bg-gray-50 text-right">
-
-    <main class="flex-1 p-8 pt-24 max-w-7xl mx-auto transition-all duration-300">
-        
-        <header class="flex justify-between items-center mb-10 bg-white p-6 rounded-2xl shadow-sm border-r-8 border-green-500">
-            <div>
-                <h2 class="text-3xl font-bold text-slate-800">إدارة سندات القبض والإيرادات</h2>
-                <p class="text-slate-500 mt-1 uppercase text-[10px] tracking-[0.2em] font-bold italic">Revenue & Receipts Management</p>
-            </div>
-        </header>
-
-        <section class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 mb-8">
-            <h3 class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2">
-                 إصدار سند قبض جديد <i class="fa-solid fa-hand-holding-dollar text-green-500"></i>
-            </h3>
-            <form id="revenueForm" class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <input type="hidden" id="id">
+<body>
+    <main class="main-container">
+        <div class="elegant-card">
+            <div class="card-header header-flex">
+                <span>💰 إدارة بيانات الإيرادات | Revenues Management</span>
                 
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-2">تاريخ القبض</label>
-                    <input type="date" id="revenue_date" required class="w-full border border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-green-400 outline-none transition-all">
-                </div>
+            </div>
+            
+            <form id="revenueForm" class="taxi-form">
+                <input type="hidden" id="f01_id">
+                <div class="input-grid">
+                    <div class="form-group"><label>التاريخ | Date</label><input type="date" id="f02_date" required></div>
+                    <div class="form-group">
+    <label>رقم السيارة</label>
+    <select id="f03_car_no" required>
+        <option value="">-- اختر السيارة --</option>
+    </select>
+</div>
 
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-2">المركبة</label>
-                    <select id="car_plate" required class="w-full border border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-green-400 outline-none transition-all">
-                        <option value="">اختر المركبة...</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-2">السائق (الدافع)</label>
-                    <select id="driver_id" required class="w-full border border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-green-400 outline-none transition-all">
-                        <option value="">اختر السائق...</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-2">المبلغ المقبوض</label>
-                    <input type="number" id="amount" step="0.01" required placeholder="0.00" class="w-full border border-slate-200 rounded-xl p-3 bg-green-50 focus:ring-2 focus:ring-green-400 outline-none font-bold text-green-700 transition-all">
-                </div>
-
-                <div class="md:col-span-4 flex justify-end">
-                    <button type="submit" class="w-full md:w-64 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-green-600/20 flex items-center justify-center gap-3">
-                        <i class="fa-solid fa-file-invoice-dollar"></i> حفظ وإصدار السند
-                    </button>
+<div class="form-group">
+    <label>اسم السائق</label>
+    <select id="f04_driver_name" required>
+        <option value="">-- اختر السائق --</option>
+    </select>
+</div>
+                    <div class="form-group">
+                        <label>الفئة | Category</label>
+                        <select id="f05_category" required>
+                            <option value="ضمان يومي">ضمان يومي | Daily Rent</option>
+                            <option value="دفعة مقدمة">دفعة مقدمة | Pre-payment</option>
+                            <option value="مخالفة">مخالفة | Violation</option>
+                            <option value="أخرى">أخرى | Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>المبلغ | Amount</label><input type="number" step="0.01" id="f06_amount" required></div>
+                    <div class="form-group">
+                        <label>طريقة الدفع | Payment Method</label>
+                        <select id="f07_method" required>
+                            <option value="نقدي">نقدي | Cash</option>
+                            <option value="بنك">بنك | Bank</option>
+                            <option value="محفظة">محفظة | E-Wallet</option>
+                        </select>
+                    </div>
+                    
+                        <div class="form-group"><label>المحصل | Collector</label><select id="f08_collector" required>
+                            <option value="">-- اختر المحصل --</option>
+                        </select></div>
+                    </div>
+                    <div class="form-group full-width">
+                        <label>ملاحظات | Notes</label>
+                        <textarea id="f09_notes" rows="2"></textarea>
+                    </div>
+                
+                <div class="form-actions">
+                    <button type="button" onclick="saveData()" class="btn-main">حفظ البيانات | Save</button>
+                    <button type="button" onclick="confirmReset()" class="btn-sub">تفريغ | Clear</button>
                 </div>
             </form>
-        </section>
+        </div>
 
-        <section class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-right border-collapse">
-                    <thead>
-                        <tr class="bg-slate-50 text-slate-400 text-[11px] uppercase tracking-widest border-b border-slate-100">
-                            <th class="p-6 text-center">رقم السند</th>
-                            <th class="p-6">التاريخ</th>
-                            <th class="p-6">المركبة</th>
-                            <th class="p-6">السائق</th>
-                            <th class="p-6">المبلغ</th>
-                            <th class="p-6 text-center">العمليات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="revenueTableBody" class="text-sm text-slate-600 divide-y divide-slate-50">
-                        <tr><td colspan="6" class="p-10 text-center text-xs italic">جاري تحميل سجلات الإيرادات...</td></tr>
-                    </tbody>
-                </table>
+        <div class="elegant-card">
+            <div class="excel-controls">
+                <span>📋 سجل الإيرادات | Revenues Log</span>
+                <input type="text" id="excelSearch" placeholder="بحث سريع | Quick Search..." onkeyup="excelFilter()">
             </div>
-        </section>
+            <div id="tableContainer" class="table-responsive"></div>
+        </div>
     </main>
 
-    <script src="sidebar.js"></script>
+    <div id="customModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modalTitle">تنبيه</h3>
+            <p id="modalMessage"></p>
+            <div class="modal-btns">
+                <button id="modalConfirmBtn" class="btn-main">موافق</button>
+                <button id="modalCancelBtn" class="btn-sub">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="revenues.js"></script>
     <script>
-        const SUPABASE_URL = 'https://tjntctaapsdynbywdfns.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_BJgdmxyFsCgzFDXh1Qn1CQ_cFRMsy2P';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        async function loadFormData() {
-            const { data: cars } = await supabaseClient.from('cars').select('plate_no').order('plate_no');
-            const { data: drivers } = await supabaseClient.from('drivers').select('driver_id, name').order('name');
-            
-            if (cars) {
-                const carSelect = document.getElementById('car_plate');
-                carSelect.innerHTML = '<option value="">اختر المركبة...</option>' + 
-                    cars.map(c => `<option value="${c.plate_no}">${c.plate_no}</option>`).join('');
-            }
-            if (drivers) {
-                const driverSelect = document.getElementById('driver_id');
-                driverSelect.innerHTML = '<option value="">اختر السائق...</option>' + 
-                    drivers.map(d => `<option value="${d.driver_id}">${d.name}</option>`).join('');
-            }
-            document.getElementById('revenue_date').valueAsDate = new Date();
-        }
-
-        async function fetchRevenues() {
-            const { data, error } = await supabaseClient
-                .from('revenues')
-                .select(`*, drivers(name)`)
-                .order('revenue_date', { ascending: false });
-            
-            if (error) return console.error(error);
-            
-            const tbody = document.getElementById('revenueTableBody');
-            tbody.innerHTML = data.map(r => `
-                <tr class="hover:bg-green-50/30 transition">
-                    <td class="p-6 text-center font-mono font-bold text-slate-400">#${r.id}</td>
-                    <td class="p-6 font-mono text-xs">${r.revenue_date}</td>
-                    <td class="p-6 font-bold text-slate-700">${r.car_plate}</td>
-                    <td class="p-6">${r.drivers?.name || '---'}</td>
-                    <td class="p-6 font-bold text-green-600">${parseFloat(r.amount).toFixed(2)} د.أ</td>
-                    <td class="p-6 text-center">
-                        <div class="flex justify-center gap-3">
-                            <button onclick="editRevenue(${JSON.stringify(r).replace(/"/g, '&quot;')})" class="text-blue-500 hover:scale-110 transition"><i class="fa-solid fa-pen-to-square"></i></button>
-                            <button onclick="deleteRevenue(${r.id})" class="text-red-400 hover:scale-110 transition"><i class="fa-solid fa-trash-can"></i></button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        document.getElementById('revenueForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const id = document.getElementById('id').value;
-            const formData = {
-                revenue_date: document.getElementById('revenue_date').value,
-                car_plate: document.getElementById('car_plate').value,
-                driver_id: document.getElementById('driver_id').value,
-                amount: parseFloat(document.getElementById('amount').value)
-            };
-
-            if (id) {
-                await supabaseClient.from('revenues').update(formData).eq('id', id);
-            } else {
-                await supabaseClient.from('revenues').insert([formData]);
-            }
-            
-            e.target.reset();
-            document.getElementById('id').value = '';
-            document.getElementById('revenue_date').valueAsDate = new Date();
-            fetchRevenues();
-        };
-
-        function editRevenue(r) {
-            document.getElementById('id').value = r.id;
-            document.getElementById('revenue_date').value = r.revenue_date;
-            document.getElementById('car_plate').value = r.car_plate;
-            document.getElementById('driver_id').value = r.driver_id;
-            document.getElementById('amount').value = r.amount;
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        async function deleteRevenue(id) {
-            if (confirm('هل أنت متأكد من حذف سند القبض هذا؟ سيؤثر ذلك على التقارير المالية.')) {
-                await supabaseClient.from('revenues').delete().eq('id', id);
-                fetchRevenues();
-            }
-        }
-
         window.onload = () => { 
-            loadFormData(); 
-            fetchRevenues(); 
+            bootSystem("إدارة الإيرادات"); 
+            loadData(); 
+          if(!document.getElementById('f01_id').value) document.getElementById('f02_date').valueAsDate = new Date();
         };
     </script>
+
+<script>
+    window.onload = async () => { 
+        bootSystem("إدارة الإيرادات"); 
+        await fillRevenueDropdowns(); // الجراحة الجديدة
+        await loadData(); 
+        document.getElementById('f02_date').valueAsDate = new Date(); // تاريخ اليوم افتراضياً
+    };
+</script>
+
 </body>
 </html>
