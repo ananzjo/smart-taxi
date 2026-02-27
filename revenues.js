@@ -1,8 +1,8 @@
 /* ==================================================================
- [revenues.js] - إدارة الإيرادات (النسخة النهائية المربوطة)
+ [revenues.js] - إدارة الإيرادات (النسخة النهائية المصفاة)
  ================================================================== */
 
-let allRevenues = [];
+let allRevenues = []; // مصفوفة البيانات الأساسية
 let sortDirections = {}; 
 
 // [1] تعبئة القوائم الثلاث من قاعدة البيانات
@@ -18,17 +18,17 @@ async function fillRevenueDropdowns() {
         const driverSelect = document.getElementById('f04_driver_name');
         const staffSelect = document.getElementById('f08_collector');
 
-        if (carsRes.data) {
+        if (carsRes.data && carSelect) {
             carSelect.innerHTML = '<option value="">-- اختر السيارة --</option>' + 
                 carsRes.data.map(c => `<option value="${c.f02_plate_no}">${c.f02_plate_no}</option>`).join('');
         }
         
-        if (driversRes.data) {
+        if (driversRes.data && driverSelect) {
             driverSelect.innerHTML = '<option value="">-- اختر السائق --</option>' + 
                 driversRes.data.map(d => `<option value="${d.f02_name}">${d.f02_name}</option>`).join('');
         }
 
-        if (staffRes.data) {
+        if (staffRes.data && staffSelect) {
             staffSelect.innerHTML = '<option value="">-- اختر المحصل --</option>' + 
                 staffRes.data.map(s => `<option value="${s.f02_name}">${s.f02_name}</option>`).join('');
         }
@@ -48,18 +48,18 @@ async function loadData() {
         window.showModal("خطأ", "تعذر جلب البيانات", "error"); 
         return; 
     }
-    allRevenues = data;
+    allRevenues = data; // تخزين البيانات للفلترة والبحث
     renderTable(data);
 }
 
 // [3] بناء الجدول مع السهم الأصفر
 function renderTable(list) {
     let html = `<table><thead><tr>
-        <th onclick="sortTable(0)">التاريخ <span id="sortIcon0" class="sort-icon">↕</span></th>
-        <th onclick="sortTable(1)">السيارة <span id="sortIcon1" class="sort-icon">↕</span></th>
-        <th onclick="sortTable(2)">السائق <span id="sortIcon2" class="sort-icon">↕</span></th>
-        <th onclick="sortTable(3)">المبلغ <span id="sortIcon3" class="sort-icon">↕</span></th>
-        <th onclick="sortTable(4)">المحصل <span id="sortIcon4" class="sort-icon">↕</span></th>
+        <th onclick="sortTable(0)" style="cursor:pointer">التاريخ <span id="sortIcon0" class="sort-icon">↕</span></th>
+        <th onclick="sortTable(1)" style="cursor:pointer">السيارة <span id="sortIcon1" class="sort-icon">↕</span></th>
+        <th onclick="sortTable(2)" style="cursor:pointer">السائق <span id="sortIcon2" class="sort-icon">↕</span></th>
+        <th onclick="sortTable(3)" style="cursor:pointer">المبلغ <span id="sortIcon3" class="sort-icon">↕</span></th>
+        <th onclick="sortTable(4)" style="cursor:pointer">المحصل <span id="sortIcon4" class="sort-icon">↕</span></th>
         <th>إجراءات</th>
     </tr></thead><tbody>`;
 
@@ -71,15 +71,15 @@ function renderTable(list) {
             <td style="color:var(--taxi-green); font-weight:bold;">${rev.f06_amount}</td>
             <td>${rev.f08_collector || '-'}</td>
             <td>
-                <button onclick='editRecord(${JSON.stringify(rev)})' class="btn-action edit-btn">📝</button>
-                <button onclick="deleteRecord('${rev.f01_id}')" class="btn-action delete-btn">🗑️</button>
+                <button onclick='editRecord(${JSON.stringify(rev)})' class="btn-action edit-btn" title="تعديل">📝</button>
+                <button onclick="deleteRecord('${rev.f01_id}')" class="btn-action delete-btn" title="حذف">🗑️</button>
             </td>
         </tr>`;
     });
     document.getElementById('tableContainer').innerHTML = html + "</tbody></table>";
 }
 
-// [4] الحفظ التلقائي (حسب الدستور f)
+// [4] الحفظ التلقائي
 async function saveData() {
     const id = document.getElementById('f01_id').value;
     const payload = {};
@@ -106,7 +106,7 @@ async function saveData() {
     }
 }
 
-// [5] محرك الفرز
+// [5] محرك الفرز الذكي
 function sortTable(n) {
     const tbody = document.querySelector("table tbody");
     if (!tbody) return;
@@ -125,43 +125,45 @@ function sortTable(n) {
     tbody.append(...rows);
 }
 
-// [6] دوال مساعدة
+// [6] البحث السريع (نسخة واحدة نظيفة)
+function excelFilter() {
+    const val = document.getElementById('excelSearch').value.toLowerCase();
+    
+    const filtered = allRevenues.filter(item => {
+        return (
+            String(item.f03_car_no || "").toLowerCase().includes(val) ||
+            String(item.f04_driver_name || "").toLowerCase().includes(val) ||
+            String(item.f08_collector || "").toLowerCase().includes(val) ||
+            String(item.f02_date || "").includes(val)
+        );
+    });
+    renderTable(filtered);
+}
+
+// [7] دوال مساعدة
 function deleteRecord(id) {
-    window.showModal("تأكيد", "حذف السجل نهائياً؟", "error", async () => {
-        await _supabase.from('t05_revenues').delete().eq('f01_id', id);
-        loadData();
+    window.showModal("تأكيد", "هل أنت متأكد من حذف السجل نهائياً؟", "error", async () => {
+        const { error } = await _supabase.from('t05_revenues').delete().eq('f01_id', id);
+        if (error) window.showModal("خطأ", "فشل الحذف", "error");
+        else loadData();
     });
 }
 
 function editRecord(rev) {
-    Object.keys(rev).forEach(key => { if(document.getElementById(key)) document.getElementById(key).value = rev[key]; });
+    Object.keys(rev).forEach(key => { 
+        const el = document.getElementById(key);
+        if(el) el.value = rev[key]; 
+    });
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function resetFieldsOnly() {
-    document.getElementById('revenueForm').reset();
+    const form = document.getElementById('revenueForm');
+    if(form) form.reset();
     document.getElementById('f01_id').value = "";
     document.getElementById('f02_date').valueAsDate = new Date();
 }
 
 function confirmReset() {
-    window.showModal("تنبيه", "تفريغ الحقول؟", "info", () => resetFieldsOnly());
-}
-
-// [دالة مضافة] للبحث السريع داخل جدول الإيرادات
-function excelFilter() {
-    const val = document.getElementById('excelSearch').value.toLowerCase();
-    
-    // فلترة المصفوفة الأصلية بناءً على السيارة أو السائق أو المحصل
-    const filtered = allRevenues.filter(item => {
-        return (
-            String(item.f03_car_no).toLowerCase().includes(val) ||
-            String(item.f04_driver_name).toLowerCase().includes(val) ||
-            String(item.f08_collector).toLowerCase().includes(val) ||
-            String(item.f02_date).includes(val)
-        );
-    });
-
-    // إعادة بناء الجدول بالنتائج المفلترة فقط
-    renderTable(filtered);
+    window.showModal("تنبيه", "هل تريد تفريغ جميع الحقول؟", "info", () => resetFieldsOnly());
 }
