@@ -1,0 +1,23 @@
+{
+  "name": "نظام إدارة التاكسي الذكي",
+  "short_name": "Smart Taxi",
+  "description": "نظام سحابي ذكي لإدارة أسطول التاكسي والمطابقة المالية",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#f1c40f",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
