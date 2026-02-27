@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>نظام إدارة التاكسي | التقارير الذكية</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="global-config.js"></script>
+    <link rel="stylesheet" href="cars-style.css">
+    <style>
+        .report-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 1px solid #eee;
+        }
+        .summary-banner {
+            background: var(--taxi-dark);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+        .summary-item h4 { color: var(--taxi-gold); margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <main class="main-container">
+        <h2>📑 التقارير المالية والتشغيلية</h2>
+
+        <div class="report-controls">
+            <div class="form-group">
+                <label>من تاريخ</label>
+                <input type="date" id="dateFrom">
+            </div>
+            <div class="form-group">
+                <label>إلى تاريخ</label>
+                <input type="date" id="dateTo">
+            </div>
+            <div class="form-group">
+                <label>نوع التقرير</label>
+                <select id="reportType" onchange="toggleReportFilters()">
+                    <option value="all">إجمالي عام</option>
+                    <option value="car">حسب السيارة</option>
+                    <option value="driver">حسب السائق</option>
+                    <option value="owner">حسب المالك</option>
+                </select>
+            </div>
+            <div id="dynamicFilterContainer" class="form-group" style="display:none;">
+                <label id="dynamicLabel">اختر</label>
+                <select id="dynamicValue"></select>
+            </div>
+            <div class="form-group" style="display: flex; align-items: flex-end;">
+                <button onclick="generateReport()" class="btn-main" style="width: 100%;">توليد التقرير 🚀</button>
+            </div>
+        </div>
+
+        <div id="reportSummary" class="summary-banner" style="display: none;">
+            <div class="summary-item">
+                <h4 id="resTitle">إجمالي الدخل</h4>
+                <div id="resTotal" style="font-size: 1.8rem; font-weight: bold;">0.00 JOD</div>
+            </div>
+            <div class="summary-item">
+                <h4>عدد الدفعات</h4>
+                <div id="resCount" style="font-size: 1.8rem; font-weight: bold;">0</div>
+            </div>
+        </div>
+
+        <div id="reportResult" class="table-responsive"></div>
+    </main>
+
+    <script src="reports.js"></script>
+    <script>
+        window.onload = async () => {
+            bootSystem("مركز التقارير");
+            // تعيين تاريخ الشهر الحالي تلقائياً
+            const now = new Date();
+            document.getElementById('dateFrom').value = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+            document.getElementById('dateTo').value = now.toISOString().split('T')[0];
+        };
+    </script>
+</body>
+</html>
