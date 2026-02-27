@@ -147,3 +147,21 @@ function resetFieldsOnly() {
 function confirmReset() {
     window.showModal("تنبيه", "تفريغ الحقول؟", "info", () => resetFieldsOnly());
 }
+
+// [دالة مضافة] للبحث السريع داخل جدول الإيرادات
+function excelFilter() {
+    const val = document.getElementById('excelSearch').value.toLowerCase();
+    
+    // فلترة المصفوفة الأصلية بناءً على السيارة أو السائق أو المحصل
+    const filtered = allRevenues.filter(item => {
+        return (
+            String(item.f03_car_no).toLowerCase().includes(val) ||
+            String(item.f04_driver_name).toLowerCase().includes(val) ||
+            String(item.f08_collector).toLowerCase().includes(val) ||
+            String(item.f02_date).includes(val)
+        );
+    });
+
+    // إعادة بناء الجدول بالنتائج المفلترة فقط
+    renderTable(filtered);
+}
