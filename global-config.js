@@ -74,6 +74,19 @@ function injectGlobalStyles() {
     
     .global-header { display: flex; justify-content: space-between; align-items: center; background: var(--taxi-dark); color: white; height: 70px; padding: 0 20px; position: fixed; top: 0; width: 100%; z-index: 2000; border-bottom: 3px solid var(--taxi-gold); box-sizing: border-box; }
     .taxi-meter-clock { font-family: 'Digital Numbers', sans-serif; font-size: 1.8rem; color: #00ff41; background: #000; padding: 2px 12px; border-radius: 6px; box-shadow: inset 0 0 5px #00ff41; }
+
+#splash-screen img {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 20px;
+    animation: pulse 2s infinite; /* حركة نبض خفيفة */
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}     
     
     /* ستايل الترحيب المدمج */
     .user-welcome-section { display: flex; align-items: center; gap: 10px; margin-left: 15px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 15px; }
@@ -264,4 +277,5 @@ window.updateSortVisuals = function(columnIndex, isAscending) {
 
     console.log("✅ PWA Config injected successfully via global-config.js");
 })();
+
 
