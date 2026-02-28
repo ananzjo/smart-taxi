@@ -22,6 +22,27 @@ function startBootSequence(pageTitle) {
   initGlobalModalStructure();
 
  // دالة حقن أيقونة النظام (Favicon & Apple Touch Icon)
+
+ function showSplashScreen() {
+    const splash = document.createElement('div');
+    splash.id = 'splash-screen';
+    splash.innerHTML = `
+        <img src="icon.png" alt="Logo">
+        <h2 style="color: #2c3e50; font-family: 'Cairo', sans-serif;">نظام إدارة التاكسي الذكي</h2>
+        <div class="loader">جاري التحميل...</div>
+    `;
+    document.body.appendChild(splash);
+
+    // إخفاء الشاشة بعد اكتمال التحميل (مثلاً بعد ثانية واحدة)
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            splash.style.opacity = '0';
+            setTimeout(() => splash.remove(), 500);
+        }, 1000);
+    });
+}
+
+ 
 function injectAppIcons() {
     const head = document.head;
     const iconPath = 'icon.png'; // تأكد أن الملف موجود في المجلد الرئيسي
@@ -277,5 +298,6 @@ window.updateSortVisuals = function(columnIndex, isAscending) {
 
     console.log("✅ PWA Config injected successfully via global-config.js");
 })();
+
 
 
