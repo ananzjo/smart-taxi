@@ -20,7 +20,49 @@ function startBootSequence(pageTitle) {
   renderGlobalLayout(pageTitle); 
   startPulseEngine();
   initGlobalModalStructure();
+
+ // دالة حقن أيقونة النظام (Favicon & Apple Touch Icon)
+function injectAppIcons() {
+    const head = document.head;
+    const iconPath = 'icon.png'; // تأكد أن الملف موجود في المجلد الرئيسي
+
+    // 1. أيقونة التبويب العادية (Favicon)
+    let favicon = document.querySelector("link[rel*='icon']");
+    if (!favicon) {
+        favicon = document.createElement('link');
+        favicon.rel = 'shortcut icon';
+        head.appendChild(favicon);
+    }
+    favicon.href = iconPath;
+
+    // 2. أيقونة آيفون (Apple Touch Icon) عند "إضافة للشاشة الرئيسية"
+    let appleIcon = document.querySelector("link[rel='apple-touch-icon']");
+    if (!appleIcon) {
+        appleIcon = document.createElement('link');
+        appleIcon.rel = 'apple-touch-icon';
+        head.appendChild(appleIcon);
+    }
+    appleIcon.href = iconPath;
+
+    // 3. إضافة وسم الـ Viewport لضمان مظهر التطبيق على الموبايل
+    if (!document.querySelector("meta[name='viewport']")) {
+        const meta = document.createElement('meta');
+        meta.name = "viewport";
+        meta.content = "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no";
+        head.appendChild(meta);
+    }
 }
+
+// تعديل دالة التشغيل لتشمل الأيقونات
+function startBootSequence(pageTitle) {
+    injectAppIcons(); // حقن الأيقونات أولاً
+    injectGlobalStyles();  
+    renderGlobalLayout(pageTitle); 
+    initGlobalModalStructure();
+    
+    setTimeout(applyCollectorName, 150); 
+}
+
 
 function injectGlobalStyles() {
   const style = document.createElement('style');
@@ -222,3 +264,4 @@ window.updateSortVisuals = function(columnIndex, isAscending) {
 
     console.log("✅ PWA Config injected successfully via global-config.js");
 })();
+
