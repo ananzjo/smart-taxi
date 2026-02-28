@@ -187,4 +187,38 @@ window.updateSortVisuals = function(columnIndex, isAscending) {
     activeIcon.innerText = isAscending ? "↑" : "↓";
     activeIcon.classList.add('sort-active');
   }
+
 }
+
+/* ==================================================================
+ [PWA Auto-Config] - إضافة إعدادات التطبيق للجوال تلقائياً
+ ================================================================== */
+(function setupPWA() {
+    const head = document.head;
+
+    // 1. إضافة رابط الـ manifest
+    const manifest = document.createElement('link');
+    manifest.rel = 'manifest';
+    manifest.href = 'manifest.json';
+    head.appendChild(manifest);
+
+    // 2. ضبط لون شريط الحالة (Theme Color)
+    const themeColor = document.createElement('meta');
+    themeColor.name = 'theme-color';
+    themeColor.content = '#121212';
+    head.appendChild(themeColor);
+
+    // 3. ضبط شريط الحالة للأيفون (iOS Style)
+    const iosStyle = document.createElement('meta');
+    iosStyle.name = 'apple-mobile-web-app-status-bar-style';
+    iosStyle.content = 'black-translucent';
+    head.appendChild(iosStyle);
+
+    // 4. جعل الموقع يعمل كتطبيق مستقل (Standalone)
+    const webAppCapable = document.createElement('meta');
+    webAppCapable.name = 'apple-mobile-web-app-capable';
+    webAppCapable.content = 'yes';
+    head.appendChild(webAppCapable);
+
+    console.log("✅ PWA Config injected successfully via global-config.js");
+})();
