@@ -6,7 +6,6 @@
     <title>الدخول | نظام إدارة التاكسي الذكي</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="global-config.js"></script>
-    <script src="login.js"></script>
     
     <style>
         :root { --taxi-gold: #f1c40f; --taxi-dark: #121212; }
@@ -59,91 +58,94 @@
         </form>
     </div>
 
-    <script src="login.js"></script>
-
     <script>
-        <script>
-    // 1. دالة إظهار/إخفاء كلمة المرور
-    function togglePassword() {
-        const passInput = document.getElementById('password');
-        passInput.type = passInput.type === 'password' ? 'text' : 'password';
-    }
-
-    // 2. دالة تسجيل الأحداث (التي تنفذ الـ Insert في t15)
-    async function recordLoginEvent(username, status, reason = null) {
-        let ipData = { ip: 'Unknown', city: 'Unknown' };
-        try {
-            const res = await fetch('https://ipapi.co/json/');
-            ipData = await res.json();
-        } catch (e) { console.log("IP fetch failed"); }
-
-        const payload = {
-            f03_username: username,
-            f04_status: status,
-            f05_failure_reason: reason,
-            f06_ip_address: ipData.ip,
-            f07_location: `${ipData.city || ''}, ${ipData.country_name || ''}`,
-            f08_device_info: navigator.userAgent
-        };
-
-        // إرسال البيانات فوراً لجدول t15
-        await _supabase.from('t15_login_logs').insert([payload]);
-    }
-
-    // 3. هنا تضع الكود الجديد الذي أرسلته (loginProcess)
-    async function loginProcess() {
-        const user = document.getElementById('username').value.trim();
-        const pass = document.getElementById('password').value;
-        const btn = document.getElementById('submitBtn');
-
-        if (!user || !pass) {
-            alert("يرجى إدخال اسم المستخدم وكلمة المرور");
-            return;
+        // 1. دالة إظهار/إخفاء كلمة المرور
+        function togglePassword() {
+            const passInput = document.getElementById('password');
+            passInput.type = passInput.type === 'password' ? 'text' : 'password';
         }
 
-        btn.disabled = true;
-        btn.innerText = "جاري التأمين والتحقق... 🛡️";
+        // 2. دالة تسجيل الأحداث (التي تنفذ الـ Insert في t15_login_logs)
+        async function recordLoginEvent(username, status, reason = null) {
+            let ipData = { ip: 'Unknown', city: 'Unknown' };
+            try {
+                // محاولة جلب الموقع والـ IP
+                const res = await fetch('https://ipapi.co/json/');
+                if (res.ok) ipData = await res.json();
+            } catch (e) { console.log("IP fetch failed"); }
 
-        // تسجيل المحاولة فوراً في t15
-        await recordLoginEvent(user, 'Attempt', 'بدء محاولة الدخول من الواجهة');
+            const payload = {
+                f03_username: username || 'Unknown',
+                f04_status: status,
+                f05_failure_reason: reason,
+                f06_ip_address: ipData.ip,
+                f07_location: `${ipData.city || ''}, ${ipData.country_name || ''}`,
+                f08_device_info: navigator.userAgent
+            };
 
-        try {
-            const { data: staff, error } = await _supabase
-                .from('t11_staff')
-                .select('*')
-                .eq('f08_login_name', user)
-                .maybeSingle();
+            // تنفيذ الإضافة في جدول t15_login_logs
+            await _supabase.from('t15_login_logs').insert([payload]);
+        }
 
-            if (error || !staff) {
-                await recordLoginEvent(user, 'Failure', 'اسم المستخدم غير موجود في جدول t11');
-                // إذا لم يكن لديك دالة window.showModal في هذه الصفحة، استبدلها بـ alert
-                alert("بيانات الدخول غير صحيحة (المستخدم غير موجود)");
-                resetLoginBtn(btn);
+        // 3. محرك الدخول الرئيسي
+        async function loginProcess() {
+            const userField = document.getElementById('username');
+            const passField = document.getElementById('password');
+            const btn = document.getElementById('submitBtn');
+
+            const user = userField.value.trim();
+            const pass = passField.value;
+
+            if (!user || !pass) {
+                alert("يرجى إدخال اسم المستخدم وكلمة المرور");
                 return;
             }
 
-            if (staff.f09_password !== pass) {
-                await recordLoginEvent(user, 'Failure', 'كلمة مرور خاطئة للمستخدم: ' + user);
-                alert("كلمة المرور غير صحيحة!");
+            // تعطيل الزر لمنع التكرار
+            btn.disabled = true;
+            btn.innerText = "جاري التأمين والتحقق... 🛡️";
+
+            // [أهم خطوة]: سجل المحاولة فوراً قبل أي فحص
+            await recordLoginEvent(user, 'Attempt', 'بدء محاولة الدخول من الواجهة');
+
+            try {
+                // جلب بيانات الموظف من جدول t11_staff
+                const { data: staff, error } = await _supabase
+                    .from('t11_staff')
+                    .select('*')
+                    .eq('f08_login_name', user)
+                    .maybeSingle();
+
+                if (error || !staff) {
+                    await recordLoginEvent(user, 'Failure', 'اسم المستخدم غير موجود في جدول t11');
+                    alert("بيانات الدخول غير صحيحة (المستخدم غير موجود)");
+                    resetLoginBtn(btn);
+                    return;
+                }
+
+                if (staff.f09_password !== pass) {
+                    await recordLoginEvent(user, 'Failure', 'كلمة مرور خاطئة للمستخدم: ' + user);
+                    alert("كلمة المرور غير صحيحة!");
+                    resetLoginBtn(btn);
+                    return;
+                }
+
+                // تسجيل النجاح والانتقال للوحة التحكم
+                await recordLoginEvent(user, 'Success', 'تم الدخول بنجاح بواسطة: ' + staff.f02_name);
+                sessionStorage.setItem('full_name_ar', staff.f02_name);
+                window.location.href = 'dashboard.html';
+
+            } catch (criticalError) {
+                console.error("System Error:", criticalError);
+                await recordLoginEvent(user, 'System Error', criticalError.message);
                 resetLoginBtn(btn);
-                return;
             }
-
-            await recordLoginEvent(user, 'Success', 'تم الدخول بنجاح بواسطة: ' + staff.f02_name);
-            sessionStorage.setItem('full_name_ar', staff.f02_name);
-            window.location.href = 'dashboard.html';
-
-        } catch (criticalError) {
-            console.error("System Error:", criticalError);
-            await recordLoginEvent(user, 'System Error', criticalError.message);
-            resetLoginBtn(btn);
         }
-    }
 
-    function resetLoginBtn(btn) {
-        btn.disabled = false;
-        btn.innerText = "دخول للنظام 🚀";
-    }
-</script>
+        function resetLoginBtn(btn) {
+            btn.disabled = false;
+            btn.innerText = "دخول للنظام 🚀 | Login";
+        }
+    </script>
 </body>
 </html>
