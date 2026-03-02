@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حركة العهدة | نظام إدارة التاكسي الذكي</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="global-config.js"></script>
+    <link rel="stylesheet" href="handover.css">
+</head>
+<body>
+    <main class="main-container">
+        <div class="elegant-card">
+            <div class="card-header">
+                <span>🔄 سجل تسليم واستلام السيارات | Handover Log</span>
+            </div>
+            
+            <form id="handoverForm" class="taxi-form">
+                <div class="input-grid">
+                    <div class="form-group full-width">
+                        <label>نوع العملية | Action Type</label>
+                        <div class="action-selector">
+                            <input type="radio" name="f07_action_type" id="out" value="OUT" checked>
+                            <label for="out" class="action-btn">📤 تسليم للسائق</label>
+                            <input type="radio" name="f07_action_type" id="in" value="IN">
+                            <label for="in" class="action-btn">📥 استلام من السائق</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>رقم السيارة</label>
+                        <select id="f04_car_id" required><option value="">جاري التحميل...</option></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>اسم السائق</label>
+                        <select id="f05_driver_id" required><option value="">جاري التحميل...</option></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>قراءة العداد (KM)</label>
+                        <input type="number" id="f09_km_reading" placeholder="000000" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>مبلغ الضمان</label>
+                        <input type="number" id="f08_daman" value="0" step="0.5">
+                    </div>
+
+                    <div class="form-group">
+                        <label>الموظف المسؤول</label>
+                        <select id="f06_staff_id" required></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>حالة السيارة</label>
+                        <input type="text" id="f10_car_condition" list="condition-list" placeholder="جيدة جداً">
+                        <datalist id="condition-list">
+                            <option value="جيدة جداً">
+                            <option value="تحتاج غسيل">
+                        </datalist>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>ملاحظات إضافية</label>
+                        <textarea id="f11_notes" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="primary-btn">حفظ وتحديث الحالة ✅</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="elegant-card">
+    <div class="card-header">
+        <span>🕒 سجل العمليات الأخير | Recent Logs</span>
+    </div>
+    <div id="handoverList" class="table-responsive">
+        </div>
+</div>
+    </main>
+
+    <script src="handover.js"></script>
+    <script>
+        window.onload = () => {
+            bootSystem("حركة العهدة والسيارات");
+            if(typeof loadFormData === 'function') loadFormData();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+/* [dashboard.css] - النسخة الاحترافية بنظام المتغيرات */
+
+:root {
+    /* --- لوحة تحكم الألوان --- */
+    --owner-color: #27ae60;      /* اللون الأرجواني للملاك */
+    --car-color: var(--taxi-gold); /* اللون الذهبي للسيارات */
+    --driver-color: #3498db;     /* اللون الأزرق للسائقين */
+    
+    /* --- لوحة تحكم الخطوط (بطاقة المالك) --- */
+    --owner-name-size: 1.8rem;    /* حجم اسم المالك */
+    --revenue-val-size: 2.5rem;   /* حجم مبلغ الإيراد */
+    --car-item-size: 1.1rem;      /* حجم نصوص السيارات */
+}
+
+/* العناوين والأقسام */
+.section-header {
+    display: flex;
+    align-items: center;
+    margin: 40px 0 25px 0;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #eee;
+}
+
+.section-title-box {
+    background: var(--taxi-dark);
+    color: var(--taxi-gold);
+    padding: 10px 25px;
+    border-radius: 50px 0 50px 0;
+    font-size: 1.2rem;
+    font-weight: bold;
+    box-shadow: 4px 4px 0px var(--taxi-gold);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* حاوية البطاقات */
+.cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    padding: 10px 5px;
+}
+
+/* التصميم الأساسي للبطاقة */
+.mini-card {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    border: 1px solid #e0e0e0; 
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    margin-top: 15px;
+}
+
+.mini-card:hover {
+    transform: translateY(-10px) scale(1.5);
+    z-index: 999;
+    border-color: var(--taxi-gold);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+}
+
+/* تمييز الفئات باستخدام المتغيرات */
+.owner-card { border-right: 6px solid var(--owner-color) !important; }
+.car-card { border-right: 6px solid var(--car-color) !important; }
+.driver-card { border-right: 6px solid var(--driver-color) !important; }
+
+/* الرقم التسلسلي */
+.card-badge {
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 35px;
+    height: 35px;
+    background: var(--taxi-gold);
+    color: var(--taxi-dark);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    border: 3px solid white;
+    z-index: 10;
+}
+
+/* --- تنسيق بطاقة المالك المطورة --- */
+
+.owner-name-header-center {
+    text-align: center;
+    margin: 10px 0 20px 0;
+    font-size: var(--owner-name-size);
+    font-weight: 950;
+    color: var(--taxi-dark);
+    border-bottom: 2px solid #f8f9fa;
+    padding-bottom: 10px;
+}
+
+.card-split-body {
+    display: flex;
+    gap: 15px;
+    align-items: stretch;
+}
+
+/* إجمالي الإيراد (25%) */
+.revenue-section-quarter {
+    flex: 0 0 25%;
+    display: flex;
+    flex-direction: column;
+}
+
+.revenue-display-box-compact {
+    background: #fdfdfd;
+    border: 1px solid var(--owner-color);
+    border-radius: 12px;
+    text-align: center;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 10px 5px;
+}
+
+.rev-label-tiny { font-size: 0.65rem; color: #888; }
+.rev-value-bold { 
+    font-size: var(--revenue-val-size); 
+    font-weight: 900; 
+    color: var(--owner-color); 
+    line-height: 1; 
+    margin: 5px 0; 
+}
+
+/* قائمة السيارات (75%) */
+.list-section-three-quarters {
+    flex: 0 0 75%;
+}
+
+.cars-scroll-wrapper-wide {
+    background: #fcfcfc;
+    border-radius: 12px;
+    padding: 10px;
+    height: 140px; /* زيادة بسيطة لاستيعاب الخطوط الأكبر */
+    overflow-y: auto;
+    border: 1px solid #eee;
+}
+
+.cars-grid-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.car-item-row-grid {
+    display: flex;
+    justify-content: space-between;
+    background: white;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: var(--car-item-size);
+    border: 1px solid #f0f0f0;
+}
+
+/* زر التحديث */
+.refresh-btn-luxury {
+    background: linear-gradient(135deg, var(--taxi-dark) 0%, #34495e 100%);
+    color: var(--taxi-gold);
+    border: 2px solid var(--taxi-gold);
+    padding: 12px 30px;
+    border-radius: 50px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.4s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.refresh-btn-luxury:hover {
+    transform: scale(1.1);
+    background: var(--taxi-gold);
+    color: var(--taxi-dark);
+}

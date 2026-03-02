@@ -6,185 +6,57 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="global-config.js"></script>
     
-    <style>
-    /* تحسينات العناوين العصرية */
-    .section-header {
-        display: flex;
-        align-items: center;
-        margin: 40px 0 25px 0;
-        padding-bottom: 10px;
-        border-bottom: 2px solid #eee;
-    }
-
-    .section-title-box {
-        background: var(--taxi-dark);
-        color: var(--taxi-gold);
-        padding: 10px 25px;
-        border-radius: 50px 0 50px 0; /* شكل هندسي عصري */
-        font-size: 1.2rem;
-        font-weight: bold;
-        box-shadow: 4px 4px 0px var(--taxi-gold);
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    /* مباعدة البطاقات وتمييز الحدود */
-    .cards-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 25px; /* زيادة التباعد بين البطاقات */
-        padding: 10px 5px;
-    }
-
-    .mini-card {
-        background: white;
-        padding: 20px;
-        border-radius: 15px;
-        /* تمييز الحدود بشكل واضح وناعم */
-        border: 1px solid #e0e0e0; 
-        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        position: relative;
-    }
-
-    .mini-card:hover {
-        transform: translateY(-10px);
-        border-color: var(--taxi-gold);
-        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
-        position: relative; /* ضروري لكي يعمل التموضع المطلق للرقم */
-    margin-top: 15px;   /* مباعدة إضافية من الأعلى لتجنب تداخل الأرقام مع العناوين */
-    }
-
-    /* لمسة جمالية: خط جانبي سميك لكل فئة */
-    .owner-card { border-right: 6px solid #9b59b6; }
-    .car-card { border-right: 6px solid var(--taxi-gold); }
-    .driver-card { border-right: 6px solid #3498db; }
-
-    /* الزر بهويته الجديدة */
-.refresh-btn-luxury {
-    background: linear-gradient(135deg, var(--taxi-dark) 0%, #34495e 100%);
-    color: var(--taxi-gold);
-    border: 2px solid var(--taxi-gold);
-    padding: 12px 30px;
-    border-radius: 50px; /* شكل بيضاوي عصري */
-    font-size: 1.1rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* حركة انسيابية */
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    outline: none;
-}
-
-/* التكبير 1.5 مرة عند المرور (Hover) */
-.refresh-btn-luxury:hover {
-    transform: scale(1.5); /* تكبير زر التحديث */
-    background: var(--taxi-gold);
-    color: var(--taxi-dark);
-    box-shadow: 0 10px 30px rgba(241, 196, 15, 0.4);
-    z-index: 100; /* لضمان ظهوره فوق العناصر الأخرى عند التكبير */
-}
-
-/* حركة دوران الأيقونة عند التحويم */
-.refresh-btn-luxury:hover span {
-    display: inline-block;
-    animation: rotateIcon 1s infinite linear;
-}
-
-@keyframes rotateIcon {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-/* تنسيق الرقم التسلسلي الدائري */
-.card-badge {
-    position: absolute;
-    top: -15px; /* يبرز نصفه خارج البطاقة من الأعلى */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 35px;
-    height: 35px;
-    background: var(--taxi-gold);
-    color: var(--taxi-dark);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    font-size: 0.9rem;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    border: 3px solid white; /* ليعطيه بروازاً يقطعه عن البطاقة */
-    z-index: 10;
-}
-
-/* تعديل بسيط على البطاقة لضمان عدم قطع الرقم */
-
-</style>
+    <link rel="stylesheet" href="dashboard.css">
 </head>
 <body>
     <main class="main-container">
-        <div class="elegant-card" style="display: flex; align-items: center; gap: 30px; padding: 20px; justify-content: center;">
-    <div style="font-weight: bold; color: var(--taxi-dark); font-size: 1.2rem;">📅 اختر شهر التقرير:</div>
-    <input type="month" id="monthFilter" style="padding: 10px; border-radius: 10px; border: 2px solid #ddd; font-family: inherit;">
-    
-    <button onclick="handleRefresh()" class="refresh-btn-luxury">
-        <span>🔄</span> تحديث البيانات 
-    </button>
-</div>
-    <div class="dashboard-section">
-        <div class="section-header">
-            <div class="section-title-box">
-                <span>🏢</span> مجاميع دخل اصحاب السيارات | Owners Revenue
-            </div>
+        <div class="elegant-card" style="display: flex; align-items: center; gap: 30px; padding: 20px; justify-content: center; background: white; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+            <div style="font-weight: bold; color: var(--taxi-dark); font-size: 1.2rem;">📅 اختر شهر التقرير:</div>
+            <input type="month" id="monthFilter" style="padding: 10px; border-radius: 10px; border: 2px solid #ddd;">
+            
+            <button onclick="handleRefresh()" class="refresh-btn-luxury">
+                <span>🔄</span> تحديث البيانات 
+            </button>
         </div>
-        <div id="ownersSection" class="cards-container"></div>
-    </div>
 
-    <div class="dashboard-section">
-        <div class="section-header">
-            <div class="section-title-box">
-                <span>🚖</span> أداء أسطول السيارات | Fleet Performance
+        <div class="dashboard-section">
+            <div class="section-header">
+                <div class="section-title-box"><span>🏢</span> مجاميع دخل اصحاب السيارات</div>
             </div>
+            <div id="ownersSection" class="cards-container"></div>
         </div>
-        <div id="carsSection" class="cards-container"></div>
-    </div>
 
-    <div class="dashboard-section">
-        <div class="section-header">
-            <div class="section-title-box">
-                <span>👨‍✈️</span> إنتاجية السائقين | Drivers Analysis
+        <div class="dashboard-section">
+            <div class="section-header">
+                <div class="section-title-box"><span>🚖</span> أداء أسطول السيارات</div>
             </div>
+            <div id="carsSection" class="cards-container"></div>
         </div>
-        <div id="driversSection" class="cards-container"></div>
-    </div>
-</main>
+
+        <div class="dashboard-section">
+            <div class="section-header">
+                <div class="section-title-box"><span>👨‍✈️</span> إنتاجية السائقين</div>
+            </div>
+            <div id="driversSection" class="cards-container"></div>
+        </div>
+    </main>
 
     <script src="dashboard.js"></script>
     <script>
         window.onload = async () => {
-        bootSystem("لوحة التحكم الشاملة");
-        // تعيين قيمة الفلتر الافتراضية للشهر الحالي
-        const now = new Date();
-        const currentMonth = now.toISOString().substring(0, 7); // YYYY-MM
-        document.getElementById('monthFilter').value = currentMonth;
-        
-        await loadComprehensiveDashboard();
-    };
+            if(window.bootSystem) bootSystem("لوحة التحكم الشاملة");
+            
+            const now = new Date();
+            document.getElementById('monthFilter').value = now.toISOString().substring(0, 7);
+            await loadComprehensiveDashboard();
+        };
 
-    // دالة التعامل مع التحديث بنظام المودال
-    function handleRefresh() {
-        // إظهار مودال "جاري التحميل" بشكل مؤقت (اختياري) أو تنبيه النجاح
-        loadComprehensiveDashboard().then(() => {
+        async function handleRefresh() {
+            await loadComprehensiveDashboard();
             if(window.showModal) {
-                window.showModal("تم التحديث", "تم جلب بيانات الشهر المختار بنجاح ✅", "success");
+                window.showModal("تم التحديث", "تم جلب بيانات الشهر بنجاح ✅", "success");
             }
-        });
-    }
-
+        }
     </script>
 </body>
-
 </html>
