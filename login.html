@@ -6,8 +6,9 @@
     <title>الدخول | نظام إدارة التاكسي الذكي</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="global-config.js"></script>
-    <script src="login.js"></script>
+    
     <style>
+        :root { --taxi-gold: #f1c40f; --taxi-dark: #121212; }
         body {
             background: linear-gradient(135deg, #1a1a1a 0%, #2c3e50 100%);
             height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; overflow: hidden;
@@ -27,14 +28,12 @@
         }
         .login-input:focus { border-color: var(--taxi-gold); background: rgba(255,255,255,0.15); }
         .pass-toggle { position: absolute; left: 15px; top: 38px; cursor: pointer; color: #ccc; }
-        .remember-me { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; margin-bottom: 25px; cursor: pointer; }
         .login-btn {
             width: 100%; padding: 15px; border-radius: 10px; border: none; background: var(--taxi-gold);
             color: var(--taxi-dark); font-size: 1.1rem; font-weight: bold; cursor: pointer;
             transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         .login-btn:hover { transform: scale(1.05); box-shadow: 0 10px 20px rgba(241, 196, 15, 0.3); }
-        .login-btn:disabled { background: #555; cursor: not-allowed; transform: none; }
     </style>
 </head>
 <body>
@@ -43,49 +42,92 @@
         <h2 style="margin: 0 0 5px 0;">مرحباً بك دكتور</h2>
         <p style="margin-bottom: 30px; opacity: 0.7;">بوابة الدخول للنظام العظيم</p>
 
-        <form id="loginForm" onsubmit="handleLogin(event)">
+        <form id="loginForm" onsubmit="event.preventDefault(); loginProcess();">
             <div class="form-group">
-                <label>اسم المستخدم</label>
+                <label>اسم المستخدم | Username</label>
                 <input type="text" id="username" class="login-input" placeholder="اسمك المسجل..." required>
             </div>
 
             <div class="form-group">
-                <label>كلمة المرور</label>
+                <label>كلمة المرور | Password</label>
                 <input type="password" id="password" class="login-input" placeholder="••••••••" required>
                 <span class="pass-toggle" onclick="togglePassword()">👁️</span>
             </div>
 
-            <label class="remember-me">
-                <input type="checkbox" id="remember"> تذكر بياناتي للأمان
-            </label>
-
-            <button type="submit" id="submitBtn" class="login-btn">دخول للنظام 🚀</button>
+            <button type="submit" id="submitBtn" class="login-btn">دخول للنظام 🚀 | Login</button>
         </form>
     </div>
 
     <script src="login.js"></script>
+
+    <script>
+        // دالة إظهار/إخفاء كلمة المرور
+        function togglePassword() {
+            const passInput = document.getElementById('password');
+            passInput.type = passInput.type === 'password' ? 'text' : 'password';
+        }
+
+        // دالة تسجيل الأحداث في جدول t15_login_logs
+        async function recordLoginEvent(username, status, reason = null) {
+            let ipData = { ip: 'Unknown', city: 'Unknown' };
+            try {
+                const res = await fetch('https://ipapi.co/json/');
+                ipData = await res.json();
+            } catch (e) { console.log("IP fetch failed"); }
+
+            const payload = {
+                f03_username: username,
+                f04_status: status,
+                f05_failure_reason: reason,
+                f06_ip_address: ipData.ip,
+                f07_location: `${ipData.city || ''}, ${ipData.country_name || ''}`,
+                f08_device_info: navigator.userAgent
+            };
+
+            await _supabase.from('t15_login_logs').insert([payload]);
+        }
+
+        // محرك الدخول الرئيسي
+        async function loginProcess() {
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            const btn = document.getElementById('submitBtn');
+
+            btn.disabled = true;
+            btn.innerText = "جاري التحقق... ⏳";
+
+            // 1. تسجيل بدء المحاولة
+            await recordLoginEvent(user, 'Attempting', 'بدء محاولة الدخول');
+
+            // 2. البحث عن الموظف في t11
+            const { data, error } = await _supabase
+                .from('t11_staff')
+                .select('*')
+                .eq('f08_login_name', user)
+                .single();
+
+            if (error || !data) {
+                await recordLoginEvent(user, 'Failure', 'المستخدم غير موجود');
+                alert("بيانات الدخول غير صحيحة!");
+                btn.disabled = false;
+                btn.innerText = "دخول للنظام 🚀";
+                return;
+            }
+
+            // 3. مطابقة كلمة المرور
+            if (data.f09_password !== pass) {
+                await recordLoginEvent(user, 'Failure', 'كلمة سر خاطئة');
+                alert("كلمة المرور غير صحيحة!");
+                btn.disabled = false;
+                btn.innerText = "دخول للنظام 🚀";
+                return;
+            }
+
+            // 4. النجاح
+            await recordLoginEvent(user, 'Success', 'دخول ناجح');
+            sessionStorage.setItem('full_name_ar', data.f02_name);
+            window.location.href = 'dashboard.html';
+        }
+    </script>
 </body>
-<script>
-
-async function recordLoginEvent(username, status, reason = null) {
-    // جلب الـ IP والموقع مجاناً
-    let ipData = { ip: 'Unknown', city: 'Unknown' };
-    try {
-        const res = await fetch('https://ipapi.co/json/');
-        ipData = await res.json();
-    } catch (e) { console.log("IP fetch failed"); }
-
-    const payload = {
-        f03_username: username,
-        f04_status: status,
-        f05_failure_reason: reason,
-        f06_ip_address: ipData.ip,
-        f07_location: `${ipData.city || ''}, ${ipData.country_name || ''}`,
-        f08_device_info: navigator.userAgent
-    };
-
-    await _supabase.from('t15_login_logs').insert([payload]);
-}
-
-</script>
 </html>
