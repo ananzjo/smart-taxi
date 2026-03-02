@@ -65,4 +65,27 @@
 
     <script src="login.js"></script>
 </body>
+<script>
+
+async function recordLoginEvent(username, status, reason = null) {
+    // جلب الـ IP والموقع مجاناً
+    let ipData = { ip: 'Unknown', city: 'Unknown' };
+    try {
+        const res = await fetch('https://ipapi.co/json/');
+        ipData = await res.json();
+    } catch (e) { console.log("IP fetch failed"); }
+
+    const payload = {
+        f03_username: username,
+        f04_status: status,
+        f05_failure_reason: reason,
+        f06_ip_address: ipData.ip,
+        f07_location: `${ipData.city || ''}, ${ipData.country_name || ''}`,
+        f08_device_info: navigator.userAgent
+    };
+
+    await _supabase.from('t15_login_logs').insert([payload]);
+}
+
+</script>
 </html>

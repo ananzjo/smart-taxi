@@ -97,6 +97,8 @@ function renderGlobalLayout(title) {
       <a href="staff.html">👥 الموظفين والإدارة</a>
       <a href="t11-assets.html">🏢 الأصول والممتلكات</a>
       <a href="t12-settings.html">⚙️ إعدادات النظام</a>
+      <a href="login_logs.html" class="security-link"> <i class="fas fa-user-shield police-icon"></i> سجل الرقابة والأمان</a>
+
 
       <div style="border-top:1px solid rgba(255,255,255,0.1); margin:15px 0;"></div>
       <a href="reports.html" style="color:var(--taxi-gold); font-weight:bold;">📊 التقارير المركزية</a>
