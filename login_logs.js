@@ -42,3 +42,24 @@ function filterLogs() {
         row.style.display = row.innerText.toLowerCase().includes(val) ? '' : 'none';
     });
 }
+
+async function handleLogin(username, password) {
+    try {
+        const { data, error } = await _supabase.auth.signInWithPassword({
+            email: username, // أو الحقل المستخدم للدخول
+            password: password
+        });
+
+        if (error) {
+            // سجل المحاولة الفاشلة فوراً
+            await recordLoginEvent(username, 'Failure', error.message);
+            window.showModal("خطأ في الدخول", "بيانات الاعتماد غير صحيحة", "error");
+        } else {
+            // سجل الدخول الناجح
+            await recordLoginEvent(username, 'Success');
+            window.location.href = 'dashboard.html';
+        }
+    } catch (err) {
+        console.error("Critical Login Error:", err);
+    }
+}
