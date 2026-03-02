@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>نظام إدارة التاكسي الذكي | المدفوعات والتسوية</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="global-config.js"></script>
+    <link rel="stylesheet" href="payments.css">
+</head>
+<body>
+    <main class="main-container">
+        <div class="elegant-card">
+            <div class="card-header header-flex">
+                <span>💳 إدارة المدفوعات وتسوية المصاريف | Payments & Reconciliation</span>
+            </div>
+            
+            <form id="paymentForm" class="taxi-form">
+                <input type="hidden" id="f01_id">
+                <div class="input-grid">
+                    <div class="form-group"><label>التاريخ | Date</label><input type="date" id="f02_date" required></div>
+                    <div class="form-group"><label>المبلغ المدفوع | Amount</label><input type="number" id="f04_amount" step="0.01" required></div>
+                    
+                    <div class="form-group">
+                        <label>نوع المدفوعة | Category</label>
+                        <select id="f03_type" required>
+                            <option value="">-- اختر النوع --</option>
+                            <option value="عمولة موظف">عمولة موظف</option>
+                            <option value="نسبة صاحب سيارة">نسبة صاحب سيارة</option>
+                            <option value="صيانة">صيانة</option>
+                            <option value="اطارات">اطارات</option>
+                            <option value="بطاريات">بطاريات</option>
+                            <option value="زيوت">زيوت</option>
+                            <option value="وقود">وقود</option>
+                            <option value="بريكات">بريكات</option>
+                            <option value="ترخيص">ترخيص</option>
+                            <option value="مخالفات">مخالفات</option>
+                            <option value="أخرى">أخرى</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>رقم السيارة | Car No</label>
+                        <select id="f05_car_no" onchange="loadPendingExpenses(this.value)"><option value="">-- اختر السيارة --</option></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>مطابقة مع مصروف | Expense Match</label>
+                        <select id="f06_expense_link">
+                            <option value="">-- اختر مصروف للمطابقة --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>طريقة الدفع | Method</label>
+                        <select id="f07_method">
+                            <option value="نقدي">نقدي</option>
+                            <option value="تحويل بنكي">تحويل بنكي</option>
+                            <option value="محفظة إلكترونية">محفظة إلكترونية</option>
+                            <option value="شيك">شيك</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group"><label>المستلم | Recipient</label><input type="text" id="f09_recipient" placeholder="اسم المستلم الفعلي"></div>
+                    <div class="form-group"><label>رقم المرجع | Ref No</label><input type="text" id="f10_reference" placeholder="رقم الوصل أو التحويل"></div>
+                    <div class="form-group"><label>القائم بالصرف | Payer</label><input type="text" id="f08_payer" readonly style="background:#e8f5e9;"></div>
+                </div>
+
+                <div class="form-group" style="margin-top:20px;">
+                    <label>ملاحظات | Notes</label>
+                    <textarea id="f13_notes" rows="2"></textarea>
+                </div>
+
+                <div class="form-actions" style="margin-top:20px; display:flex; gap:10px;">
+                    <button type="submit" class="btn-main">حفظ العملية | Save Payment</button>
+                    <button type="button" onclick="confirmReset()" class="btn-sub">تفريغ | Clear</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="elegant-card">
+            <div class="excel-controls">
+                <span>📋 سجل المدفوعات | Payments Log</span>
+                <input type="text" id="excelSearch" placeholder="بحث سريع في المدفوعات..." onkeyup="excelFilter()">
+            </div>
+            <div id="tableContainer" class="table-responsive"></div>
+        </div>
+    </main>
+
+    <script src="payments.js"></script>
+    <script>
+        window.onload = async () => { 
+            bootSystem("إدارة المدفوعات"); 
+            await initPaymentPage(); 
+        };
+    </script>
+</body>
+</html>

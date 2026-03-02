@@ -91,7 +91,8 @@ function renderGlobalLayout(title) {
       <a href="revenues.html">💰 الإيرادات والتحصيل</a>
       <a href="expenses.html">🔧 المصاريف والصيانة</a>
       <a href="handover.html">📦 العُهد والأمانات</a>
-      <a href="t08-violations.html">⚠️ المخالفات والحوادث</a>
+      <a href="payments.html">💰 المدفوعات وتسوية المصاريف</a>
+      <a href="t08-violations⚠️ المخالفات والحوادث</a>
       <a href="t09-permits.html">🪪 التصاريح والأوراق</a>
       <a href="staff.html">👥 الموظفين والإدارة</a>
       <a href="t11-assets.html">🏢 الأصول والممتلكات</a>

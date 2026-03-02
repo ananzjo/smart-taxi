@@ -1,0 +1,27 @@
+/* مأخوذ من دستور revenues.css */
+.main-container { padding: 30px; max-width: 1400px; margin: 0 auto; font-family: 'Segoe UI', sans-serif; }
+.elegant-card { background: #fff; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.07); margin-bottom: 30px; border: 1px solid #efefef; overflow: hidden; }
+.card-header { background: #121212; color: #f1c40f; padding: 18px 25px; font-weight: bold; font-size: 1rem; }
+
+.taxi-form { padding: 30px; }
+.input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+.form-group { display: flex; flex-direction: column; gap: 8px; }
+.form-group label { font-size: 0.85rem; font-weight: 600; color: #555; }
+.form-group input, .form-group select, .form-group textarea { padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; transition: 0.3s; }
+.form-group input:focus { border-color: #f1c40f; outline: none; box-shadow: 0 0 0 3px rgba(241, 196, 15, 0.1); }
+
+.btn-main { background: #121212; color: #f1c40f; padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+.btn-sub { background: #f8f9fa; color: #333; padding: 12px 25px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; }
+
+/* تأثيرات الجدول المسترجعة */
+.table-responsive { padding: 0 20px 20px 20px; }
+table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+th { background: #f1f3f5; padding: 15px; text-align: center; cursor: pointer; font-size: 0.85rem; border: 1px solid #dee2e6; }
+td { padding: 12px; text-align: center; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+
+.btn-action { cursor: pointer; border: none; background: none; font-size: 1.2rem; transition: all 0.5s ease; padding: 5px; }
+.edit-btn:hover { transform: scale(1.5); }
+.delete-btn:hover { transform: scale(1.5); filter: hue-rotate(190deg); }
+
+.excel-controls { padding: 20px; display: flex; justify-content: space-between; align-items: center; background: #fafafa; }
+#excelSearch { padding: 10px; border: 1px solid #ddd; border-radius: 20px; width: 300px; }
