@@ -43,23 +43,37 @@ function filterLogs() {
     });
 }
 
-async function handleLogin(username, password) {
-    try {
-        const { data, error } = await _supabase.auth.signInWithPassword({
-            email: username, // أو الحقل المستخدم للدخول
-            password: password
-        });
+async function loginProcess() {
+    const user = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
 
-        if (error) {
-            // سجل المحاولة الفاشلة فوراً
-            await recordLoginEvent(username, 'Failure', error.message);
-            window.showModal("خطأ في الدخول", "بيانات الاعتماد غير صحيحة", "error");
-        } else {
-            // سجل الدخول الناجح
-            await recordLoginEvent(username, 'Success');
-            window.location.href = 'dashboard.html';
-        }
-    } catch (err) {
-        console.error("Critical Login Error:", err);
+    // 1. تسجيل المحاولة فوراً (قبل التحقق من صحة البيانات)
+    // هذا يضمن أنه حتى لو كان الاسم خطأ "anan"، سيتم تدوينه في t15
+    await recordLoginEvent(user, 'Attempting', 'بدء محاولة الدخول');
+
+    // 2. التحقق من وجود المستخدم في جدول الموظفين t11
+    const { data, error } = await _supabase
+        .from('t11_staff')
+        .select('*')
+        .eq('f08_login_name', user)
+        .single();
+
+    if (error || !data) {
+        // تحديث السجل لحالة الفشل
+        await recordLoginEvent(user, 'Failure', 'اسم المستخدم غير موجود في t11');
+        window.showModal("خطأ", "اسم المستخدم غير صحيح", "error");
+        return;
     }
+
+    // 3. التحقق من كلمة المرور (بافتراض أنك تشفرها أو تقارنها)
+    if (data.f09_password !== pass) {
+        await recordLoginEvent(user, 'Failure', 'كلمة مرور خاطئة');
+        window.showModal("خطأ", "كلمة المرور غير صحيحة", "error");
+        return;
+    }
+
+    // 4. نجاح الدخول
+    await recordLoginEvent(user, 'Success', 'دخول ناجح للنظام');
+    sessionStorage.setItem('full_name_ar', data.f02_name);
+    window.location.href = 'dashboard.html';
 }
