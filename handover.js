@@ -33,7 +33,7 @@ async function loadFormData() {
 async function loadHistory() {
     const { data } = await _supabase.from('t04_handover').select('*').order('f12_created_at', { ascending: false }).limit(10);
     if (data) {
-        let html = `<table><thead><tr><th>النوع</th><th>السيارة</th><th>العداد الحلي</th><th>التاريخ</th></tr></thead><tbody>`;
+        let html = `<table><thead><tr><th>النوع</th><th>السيارة</th><th>عداد المسافه</th><th>التاريخ</th></tr></thead><tbody>`;
         
         data.forEach(h => {
             const typeColor = h.f07_action_type === 'OUT' ? '#e67e22' : '#27ae60';
@@ -88,4 +88,5 @@ document.getElementById('handoverForm').onsubmit = async (e) => {
     } else {
         window.showModal("خطأ", error.message, "error");
     }
+
 };
