@@ -1,5 +1,5 @@
 /* ==================================================================
- [handover.js] - إدارة العهدة (نسخة القالب الذهبي)
+ [handover.js] - إدارة العهدة (النسخة الذهبية المحدثة)
  ================================================================== */
 
 async function loadFormData() {
@@ -31,18 +31,45 @@ async function loadFormData() {
 }
 
 async function loadHistory() {
-    const { data } = await _supabase.from('t04_handover').select('*').order('f12_created_at', { ascending: false }).limit(10);
+    // محاولة جلب البيانات مع الربط
+    let { data, error } = await _supabase
+        .from('t04_handover')
+        .select(`
+            *,
+            t02_drivers ( f02_name )
+        `)
+        .order('f12_created_at', { ascending: false })
+        .limit(10);
+
+    // إذا فشل الربط (خطأ 400)، سنقوم بجلب البيانات بدون ربط لتجنب توقف الصفحة
+    if (error) {
+        console.warn("تعذر الربط التلقائي، يتم الجلب بدون أسماء حالياً:", error.message);
+        const backup = await _supabase
+            .from('t04_handover')
+            .select('*')
+            .order('f12_created_at', { ascending: false })
+            .limit(10);
+        data = backup.data;
+    }
+
     if (data) {
-        let html = `<table><thead><tr><th>النوع</th><th>السيارة</th><th>عداد المسافه</th><th>التاريخ</th></tr></thead><tbody>`;
+        let html = `<table><thead><tr><th>النوع</th><th>السيارة</th><th>السائق</th><th>العداد</th><th>التاريخ</th></tr></thead><tbody>`;
         
         data.forEach(h => {
             const typeColor = h.f07_action_type === 'OUT' ? '#e67e22' : '#27ae60';
+            // التحقق من وجود الاسم في البيانات المرتبطة أو عرض الـ ID كاحتياط
+            const driverName = (h.t02_drivers && h.t02_drivers.f02_name) ? h.t02_drivers.f02_name : `سائق #${h.f05_driver_id}`;
+            const dateObj = new Date(h.f12_created_at);
+
             html += `
                 <tr>
-                    <td style="color:${typeColor}; font-weight:bold;">${h.f07_action_type === 'OUT' ? '📤 تسليم' : '📥 استلام'}</td>
+                    <td style="color:${typeColor}; font-weight:bold;">${h.f07_action_type==='OUT'?'📤 تسليم':'📥 استلام'}</td>
                     <td><strong>${h.f04_car_id}</strong></td>
-                    <td><span class="odometer-red">${h.f09_km_reading.toLocaleString()}</span></td> 
-                    <td>${new Date(h.f12_created_at).toLocaleDateString('ar-EG')}</td>
+                    <td style="font-weight:600;">${driverName}</td>
+                    <td><span class="odometer-red">${(h.f09_km_reading || 0).toLocaleString()}</span></td>
+                    <td style="font-size:0.85rem; color:#666;">
+                        ${dateObj.toLocaleDateString('ar-EG')} | <strong>${dateObj.toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'})}</strong>
+                    </td>
                 </tr>`;
         });
         document.getElementById('handoverList').innerHTML = html + "</tbody></table>";
@@ -51,7 +78,6 @@ async function loadHistory() {
 document.getElementById('handoverForm').onsubmit = async (e) => {
     e.preventDefault();
     
-    // جلب النصوص المختارة للرسالة
     const carId = document.getElementById('f04_car_id').value;
     const driverSelect = document.getElementById('f05_driver_id');
     const driverName = driverSelect.options[driverSelect.selectedIndex].text;
@@ -71,16 +97,13 @@ document.getElementById('handoverForm').onsubmit = async (e) => {
     const { error } = await _supabase.from('t04_handover').insert([payload]);
     
     if (!error) {
-        // تحديث الحالة في جدول السيارات
         const newStatus = (action === 'OUT') ? 'مشغول' : 'نشط';
         await _supabase.from('t01_cars').update({ f12_is_active: newStatus }).eq('f02_plate_no', carId);
 
-        // صياغة الرسالة المطلوبة
         const verb = (action === 'OUT') ? 'تسليم' : 'استلام';
         const prep = (action === 'OUT') ? 'للسائق' : 'من السائق';
         const successMsg = `تم ${verb} سيارة (${carId}) ${prep} (${driverName}) بنجاح ✅`;
 
-        // إظهار المودال بالرسالة المخصصة
         window.showModal("تمت العملية", successMsg, "success");
         
         document.getElementById('handoverForm').reset();
@@ -88,5 +111,4 @@ document.getElementById('handoverForm').onsubmit = async (e) => {
     } else {
         window.showModal("خطأ", error.message, "error");
     }
-
 };

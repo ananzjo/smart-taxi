@@ -129,7 +129,7 @@ tr:hover { background-color: #fff9e6; }
 .odometer-red {
     color: #e74c3c; /* أحمر زاهي وواضح */
     font-family: 'Digital Numbers', sans-serif; /* الخط الرقمي */
-    font-size: 1.4rem; /* حجم كبير للوضوح */
+    font-size: 1.0rem; /* حجم كبير للوضوح */
     font-weight: 800;
     padding: 2px 8px;
     display: inline-block;
