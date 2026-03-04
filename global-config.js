@@ -53,27 +53,42 @@ function injectGlobalStyles() {
     .user-avatar { width: 32px; height: 32px; background: var(--taxi-gold); color: var(--taxi-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; border: 2px solid #fff; }
 
     /* السايدبار المحدث بحركة ناعمة (Soft Manner) */
+    /* السايدبار المحدث: شفافية أعلى، عرض أقل، وظهور فوق الهيدر */
     .sidebar { 
-        height: calc(100vh - 70px); /* الارتفاع تحت الهيدر */
-        width: var(--sidebar-w); /* العرض المحدد */
-        position: fixed; /* تثبيت الموقع */
-        z-index: 3000; /* فوق كل العناصر */
-        top: 70px; /* البداية من تحت الهيدر */
-        right: calc(var(--sidebar-w) * -1.1); /* إخفاء لجهة اليمين تماماً */
-        background: rgba(18, 18, 18, 0.98); /* لون داكن بلمسة شفافة */
-        backdrop-filter: blur(20px); /* تأثير ضبابي للخلفية */
-        transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); /* حركة انسيابية جداً */
-        overflow-y: auto; /* السماح بالتمرير */
-        -webkit-overflow-scrolling: touch; /* دعم تمرير الآيفون */
-        border-left: 1px solid rgba(241, 196, 15, 0.2); /* خط جانبي خفيف */
-        box-shadow: -10px 0 30px rgba(0,0,0,0.3); /* ظل جانبي للعمق */
+        height: 100vh; /* الطول كامل ليغطي الهيدر */
+        width: 230px; /* تصغير العرض قليلاً كما طلبت */
+        position: fixed; 
+        z-index: 4000; /* رفع الـ z-index ليكون فوق الهيدر (2000) */
+        top: 0; /* البداية من أعلى نقطة في الشاشة */
+        right: -240px; /* مخفي خلف الحافة */
+        /* شفافية زجاجية عالية (More Transparent) */
+        background: rgba(18, 18, 18, 0.75); 
+        backdrop-filter: blur(15px); /* تأثير الضبابية خلف الزجاج */
+        -webkit-backdrop-filter: blur(15px); 
+        transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); 
+        overflow-y: auto; 
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: -10px 0 30px rgba(0,0,0,0.5);
     }
 
-    /* كلاس التفعيل عند الفتح */
-    .sidebar.open { transform: translateX(calc(var(--sidebar-w) * -1.1)); }
+    /* كلاس الفتح: يزيح القائمة للداخل ليغطي الهيدر */
+    .sidebar.open { 
+        transform: translateX(-240px); 
+    }
+
+    /* إضافة زر إغلاق (X) داخل القائمة لأنها ستغطي زر المنيو في الهيدر */
+    .sidebar-close-btn {
+        display: block;
+        text-align: left;
+        padding: 15px;
+        color: var(--taxi-gold);
+        font-size: 24px;
+        cursor: pointer;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
 
     /* تنسيق روابط القائمة بخطوط معقولة */
-    .sidebar a { padding: 12px 25px; text-decoration: none; color: white; display: block; transition: 0.3s; font-size: 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.03); white-space: nowrap; }
+    .sidebar a { padding: 12px 25px; text-decoration: none; color: white; display: block; transition: 0.3s; font-size: 0.7rem; border-bottom: 4px solid rgba(255,255,255,0.03); white-space: nowrap; }
     .sidebar a:hover { background: rgba(241, 196, 15, 0.2); color: var(--taxi-gold); padding-right: 35px; }
     
     /* طبقة التعتيم الخلفية */
