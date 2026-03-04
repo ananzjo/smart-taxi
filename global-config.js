@@ -22,33 +22,55 @@ function startBootSequence(pageTitle) {
   initGlobalModalStructure();
 }
 
-function injectGlobalStyles() {
-  const style = document.createElement('style');
-  style.id = 'global-styles';
+function injectGlobalStyles() { // دالة تحتوي على كافة تنسيقات النظام
+  const style = document.createElement('style'); // إنشاء عنصر تنسيق جديد
+  style.id = 'global-styles'; // تمييز عنصر التنسيق بمعرف خاص
   style.textContent = `
-    @import url('https://fonts.cdnfonts.com/css/digital-numbers');
-    :root { --taxi-gold: #f1c40f; --taxi-dark: #121212; --taxi-red: #e74c3c; --taxi-green: #2ecc71; }
-    body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; direction: rtl; background: #f4f4f4; padding-top: 80px; }
+    @import url('https://fonts.cdnfonts.com/css/digital-numbers'); /* استيراد خط عداد التاكسي الرقمي */
+    :root { 
+        --taxi-gold: #f1c40f; /* اللون الذهبي الخاص بالهوية */
+        --taxi-dark: #121212; /* اللون الأسود الداكن للخلفيات */
+        --taxi-red: #e74c3c; /* لون التنبيهات والأخطاء */
+        --taxi-green: #2ecc71; /* لون النجاح والعمليات المكتملة */
+        --sidebar-w: 225px; /* عرض السايدبار المصغر بنسبة 25% */
+    }
+    body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; direction: rtl; background: #f4f4f4; padding-top: 80px; } /* إعدادات جسم الصفحة والاتجاه العربي */
     
-    .global-header { display: flex; justify-content: space-between; align-items: center; background: var(--taxi-dark); color: white; height: 70px; padding: 0 20px; position: fixed; top: 0; width: 100%; z-index: 2000; border-bottom: 3px solid var(--taxi-gold); box-sizing: border-box; }
-    .taxi-meter-clock { font-family: 'Digital Numbers', sans-serif; font-size: 1.8rem; color: #00ff41; background: #000; padding: 2px 12px; border-radius: 6px; box-shadow: inset 0 0 5px #00ff41; }
+    .global-header { display: flex; justify-content: space-between; align-items: center; background: var(--taxi-dark); color: white; height: 70px; padding: 0 15px; position: fixed; top: 0; width: 100%; z-index: 2000; border-bottom: 3px solid var(--taxi-gold); box-sizing: border-box; } /* تنسيق الهيدر العلوي */
+    .taxi-meter-clock { font-family: 'Digital Numbers', sans-serif; font-size: 1.5rem; color: #00ff41; background: #000; padding: 2px 10px; border-radius: 6px; box-shadow: inset 0 0 5px #00ff41; } /* تنسيق ساعة عداد التاكسي */
     
-    /* ستايل الترحيب المدمج */
-    .user-welcome-section { display: flex; align-items: center; gap: 10px; margin-left: 15px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 15px; }
-    .user-name-text { font-size: 0.9rem; font-weight: bold; color: var(--taxi-gold); }
-    .user-avatar { width: 32px; height: 32px; background: var(--taxi-gold); color: var(--taxi-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; border: 2px solid #fff; }
+    .user-welcome-section { display: flex; align-items: center; gap: 8px; margin-left: 10px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 10px; } /* قسم الترحيب بالمستخدم */
+    .user-name-text { font-size: 0.8rem; font-weight: bold; color: var(--taxi-gold); } /* تنسيق نص اسم المستخدم */
+    .user-avatar { width: 28px; height: 28px; background: var(--taxi-gold); color: var(--taxi-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; border: 2px solid #fff; font-size: 0.8rem; } /* تنسيق الأفاتار */
 
-    .sidebar { height: 100vh; width: 0; position: fixed; z-index: 3000; top: 0; right: 0; background: rgba(18, 18, 18, 0.95); backdrop-filter: blur(15px); transition: 0.4s; overflow-x: hidden; padding-top: 60px; }
-    .sidebar a { padding: 12px 25px; text-decoration: none; color: white; display: block; transition: 0.3s; font-size: 0.95rem; }
-    .sidebar a:hover { background: rgba(241, 196, 15, 0.2); color: var(--taxi-gold); padding-right: 35px; }
-    .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2500; }
+    .sidebar { 
+        height: calc(100vh - 70px); /* الارتفاع الكلي ناقص طول الهيدر */
+        width: var(--sidebar-w); /* العرض المحدد بـ 225 بكسل */
+        position: fixed; /* تثبيت القائمة في جانب الشاشة */
+        z-index: 3000; /* طبقة فوق المحتوى الرئيسي */
+        top: 70px; /* جعل القائمة تبدأ من تحت الهيدر مباشرة */
+        right: calc(var(--sidebar-w) * -1); /* إخفاء القائمة خارج يمين الشاشة */
+        background: rgba(18, 18, 18, 0.98); /* خلفية داكنة بلمسة شفافة */
+        backdrop-filter: blur(25px); /* تأثير ضبابي خلف المنيو */
+        transition: transform 0.8s ease-in-out; /* سرعة حركة الفتح والإغلاق انسيابية جداً */
+        overflow-y: auto; /* السماح بالتمرير العمودي لروابط المنيو */
+        -webkit-overflow-scrolling: touch; /* تمرير ناعم ومريح لأجهزة آيفون */
+        padding-top: 10px; /* مساحة علوية بسيطة للمنيو */
+        padding-bottom: 50px; /* مساحة سفلية للأمان في الموبايل */
+        border-left: 1px solid rgba(241, 196, 15, 0.3); /* خط جانبي ذهبي جمالي */
+    }
+    
+    .sidebar.open { transform: translateX(calc(var(--sidebar-w) * -1)); } /* إزاحة السايدبار لليسار عند فتحه */
 
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; }
-    .modal-card { background: white; padding: 30px; border-radius: 15px; text-align: center; max-width: 400px; width: 90%; border-top: 10px solid var(--taxi-gold); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
-    .sort-icon { display: inline-block; margin-right: 5px; color: #ccc; transition: 0.3s; }
-    .sort-active { color: var(--taxi-gold) !important; font-weight: bold; }
+    .sidebar a { padding: 10px 20px; text-decoration: none; color: white; display: block; transition: 0.3s; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.05); } /* تنسيق روابط المنيو والخط */
+    .sidebar a:hover { background: rgba(241, 196, 15, 0.2); color: var(--taxi-gold); padding-right: 30px; } /* تأثير التمرير فوق الروابط */
+    
+    .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2500; } /* طبقة التعتيم الخلفية عند فتح المنيو */
+    
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; } /* خلفية المودال */
+    .modal-card { background: white; padding: 30px; border-radius: 15px; text-align: center; max-width: 400px; width: 90%; border-top: 10px solid var(--taxi-gold); box-shadow: 0 20px 40px rgba(0,0,0,0.3); } /* تصميم كرت المودال */
   `;
-  document.head.appendChild(style);
+  document.head.appendChild(style); // إضافة التنسيقات لترويسة الصفحة
 }
 
 function renderGlobalLayout(title) {
