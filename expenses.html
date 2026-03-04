@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة المصاريف | Expense Management</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="global-config.js"></script>
+    <link rel="stylesheet" href="expenses.css">
+</head>
+<body>
+    <div class="main-container">
+        <div class="elegant-card">
+            <div class="card-header">
+                <span>💰 تسجيل مصروف (ذمة دائنة) | New Payable Expense</span>
+                <small>t06_expenses</small>
+            </div>
+            
+            <form id="expenseForm" class="taxi-form">
+                <div class="input-grid">
+                    
+                    <div class="form-group">
+                        <label>التاريخ | Date (f02)</label>
+                        <input type="date" id="f02_date" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>رقم السيارة | Car No (f03)</label>
+                        <select id="f03_car_no" required>
+                            <option value="">-- اختر السيارة --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>السائق | Driver (f04)</label>
+                        <select id="f04_driver_id" required>
+                            <option value="">-- اختر السائق --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>نوع المصروف | Type (f05)</label>
+                        <select id="f05_expense_type" required>
+                            <option value="">-- اختر النوع --</option>
+                            <option value="صيانة">صيانة | Maintenance</option>
+                            <option value="اطارات">اطارات | Tires</option>
+                            <option value="بطاريات">بطاريات | Batteries</option>
+                            <option value="زيوت">زيوت | Oil Change</option>
+                            <option value="وقود">وقود | Fuel</option>
+                            <option value="بريكات">بريكات | Brakes</option>
+                            <option value="أخرى">أخرى | Others</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>المورد/البائع | Seller (f06)</label>
+                        <input type="text" id="f06_seller" placeholder="اسم المحل أو المورد">
+                    </div>
+
+                    <div class="form-group">
+                        <label>المبلغ | Amount (f07)</label>
+                        <input type="number" id="f07_amount" step="0.01" placeholder="0.00" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>رقم الفاتورة | Ref No (f08)</label>
+                        <input type="text" id="f08_ref_no" placeholder="رقم المرجع الورقي">
+                    </div>
+
+                    <div class="form-group">
+                        <label>الموظف المسؤول | Staff (f09)</label>
+                        <select id="f09_user_id" required>
+                            <option value="">-- اختر الموظف --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>حالة السداد | Status (f10)</label>
+                        <select id="f10_status" required>
+                            <option value="Pending">معلق | Pending</option>
+                            <option value="Partial">جزئي | Partial</option>
+                            <option value="Paid">مسدد | Paid</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>ملاحظات | Notes (f11)</label>
+                        <textarea id="f11_notes" rows="2" placeholder="أي تفاصيل إضافية عن المصروف..."></textarea>
+                    </div>
+
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="primary-btn">حفظ المصروف | Save Expense ✅</button>
+                    <button type="reset" class="secondary-btn">مسح الحقول | Reset 🔄</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="elegant-card">
+            <div class="card-header">
+                <span>📋 سجل المصاريف | Expenses Log</span>
+            </div>
+            <div id="expensesTableContainer" class="table-responsive">
+                </div>
+        </div>
+    </div>
+
+    <div id="systemModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle"></h3>
+            <p id="modalMessage"></p>
+            <button onclick="closeModal()" class="primary-btn">موافق | OK</button>
+        </div>
+    </div>
+
+    <script src="expenses.js"></script>
+    <script>
+        window.onload = () => { 
+            bootSystem("إدارة المصاريف"); // من global-config
+            loadInitialData(); 
+        };
+    </script>
+</body>
+</html>

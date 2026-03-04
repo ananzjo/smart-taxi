@@ -1,0 +1,37 @@
+/* [expenses.css] */
+:root {
+    --gold: #f1c40f;
+    --dark: #1e1e1e;
+    --pending: #e74c3c;
+    --partial: #f39c12;
+    --paid: #27ae60;
+}
+
+body { font-family: 'Tajawal', sans-serif; background: #f8f9fa; direction: rtl; margin: 0; }
+.main-container { padding: 25px; max-width: 1200px; margin: auto; }
+
+.elegant-card { background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 25px; overflow: hidden; border-top: 5px solid var(--gold); }
+.card-header { background: var(--dark); color: var(--gold); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+
+.input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; padding: 20px; }
+.form-group { display: flex; flex-direction: column; }
+.form-group label { font-size: 0.85rem; margin-bottom: 5px; color: #666; font-weight: bold; }
+.form-group input, .form-group select, .form-group textarea { padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; }
+.full-width { grid-column: 1 / -1; }
+
+.primary-btn { background: var(--dark); color: var(--gold); border: none; padding: 12px 50px; border-radius: 25px; cursor: pointer; font-weight: bold; display: block; margin: 0 auto 20px; transition: 0.3s; }
+.primary-btn:hover { background: #000; transform: scale(1.05); }
+
+/* Table Styles */
+table { width: 100%; border-collapse: collapse; }
+th { background: #f1f1f1; padding: 12px; text-align: right; font-size: 0.9rem; }
+td { padding: 12px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+.amt { font-weight: bold; color: #c0392b; }
+
+.badge { padding: 4px 12px; border-radius: 20px; color: white; font-size: 0.75rem; font-weight: bold; }
+.badge-pending { background: var(--pending); }
+.badge-partial { background: var(--partial); }
+.badge-paid { background: var(--paid); }
+
+.btn-del { background: none; border: none; cursor: pointer; filter: grayscale(1); }
+.btn-del:hover { filter: none; }
