@@ -84,19 +84,26 @@ function renderGlobalLayout(title) {
       </div>
       
       <a href="index.html">📉 لوحة التحكم | Dashboard</a>
-      <a href="cars.html">🚗 أسطول السيارات</a>
+
+      <a href="owners.html">👤 اصحاب السيارات</a>
+
+      <a href="cars.html">🚗 سجل السيارات</a>
+
       <a href="drivers.html">👨‍✈️ السائقين</a>
-      <a href="contracts.html">📜 العقود والضمانات</a>
-      <a href="shifts.html">⏱️ المناوبات</a>
+
       <a href="revenues.html">💰 الإيرادات والتحصيل</a>
+
       <a href="expenses.html">🔧 المصاريف والصيانة</a>
-      <a href="handover.html">📦 تسليم واستلام السيارات</a>
-      <a href="payments.html">💰 المدفوعات وتسوية المصاريف</a>
-      <a href="t08-violations⚠️ المخالفات والحوادث</a>
-      <a href="t09-permits.html">🪪 التصاريح والأوراق</a>
+
+      <a href="handover.html">📦 تسليم واستلام</a>
+
+      <a href="payments.html">💳 المدفوعات والتسوية</a>
+
       <a href="staff.html">👥 الموظفين والإدارة</a>
-      <a href="t11-assets.html">🏢 الأصول والممتلكات</a>
-      <a href="t12-settings.html">⚙️ إعدادات النظام</a>
+
+      <a href="login_logs.html">🕵️‍♂️سجلات الدخول</a>
+
+      <a href="settings.html">⚙️ إعدادات النظام</a>
 
       <div style="border-top:1px solid rgba(255,255,255,0.1); margin:15px 0;"></div>
       <a href="reports.html" style="color:var(--taxi-gold); font-weight:bold;">📊 التقارير المركزية</a>
