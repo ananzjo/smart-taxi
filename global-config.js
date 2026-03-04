@@ -23,15 +23,23 @@ function injectGlobalStyles() {
     
     /* تعديل السايدبار ليدعم الآيفون والتصغير */
     .sidebar { 
-        height: 100vh; 
-        width: 0; 
-        position: fixed; 
-        z-index: 3000; 
-        top: 0; 
-        right: 0; 
-        background: rgba(18, 18, 18, 0.98); 
-        backdrop-filter: blur(15px); 
-        transition: 0.4s; 
+        height: calc(100vh - 70px); /* الارتفاع الكلي ناقص طول الهيدر */
+        width: var(--sidebar-w); /* العرض المحدد بـ 225px */
+        position: fixed; /* تثبيت الموقع في الشاشة */
+        z-index: 3000; /* ضمان الظهور فوق المحتوى */
+        top: 70px; /* البداية من تحت الهيدر مباشرة */
+        right: calc(var(--sidebar-w) * -1); /* إخفاء القائمة خارج جهة اليمين */
+        background: rgba(18, 18, 18, 0.98); /* لون الخلفية مع شفافية بسيطة */
+        backdrop-filter: blur(25px); /* تأثير تمويه خلفية القائمة */
+        transition: transform 0.8s ease-in-out; /* حركة انسيابية طويلة المدى للظهور */
+        overflow-y: auto; /* السماح بالتمرير العمودي للمنيو الطويل */
+        -webkit-overflow-scrolling: touch; /* تحسين التمرير في أجهزة iOS */
+        padding-top: 10px; /* مساحة علوية بسيطة */
+        padding-bottom: 50px; /* مساحة سفلية لضمان عدم اختفاء الروابط */
+        border-left: 1px solid rgba(241, 196, 15, 0.3); /* خط جانبي ذهبي نحيف */
+    }
+
+
         
         /* حل مشكلة الطول على iPhone */
         overflow-y: auto; 
