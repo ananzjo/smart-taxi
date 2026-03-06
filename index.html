@@ -2,17 +2,26 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة التحكم الذكية</title>
+    <title>لوحة التحكم الذكية | v1.1.2</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="global-config.js"></script>
-    
     <link rel="stylesheet" href="dashboard.css">
 </head>
 <body>
     <main class="main-container">
-        <div class="elegant-card" style="display: flex; align-items: center; gap: 30px; padding: 20px; justify-content: center; background: white; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-            <div style="font-weight: bold; color: var(--taxi-dark); font-size: 1.2rem;">📅 اختر شهر التقرير:</div>
-            <input type="month" id="monthFilter" style="padding: 10px; border-radius: 10px; border: 2px solid #ddd;">
+        <div class="elegant-card" style="display: flex; align-items: center; gap: 20px; padding: 20px; flex-wrap: wrap; justify-content: center; background: white; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+            
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-weight: bold; color: var(--taxi-dark);">📅 الشهر:</span>
+                <input type="month" id="monthFilter" style="padding: 10px; border-radius: 10px; border: 2px solid #ddd;">
+            </div>
+
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-weight: bold; color: var(--taxi-dark);">👤 المحصل:</span>
+                <select id="collectorFilter" onchange="handleRefresh()" style="padding: 10px; border-radius: 10px; border: 2px solid #ddd; min-width: 180px;">
+                    <option value="all">-- جميع المحصلين --</option>
+                </select>
+            </div>
             
             <button onclick="handleRefresh()" class="refresh-btn-luxury">
                 <span>🔄</span> تحديث البيانات 
@@ -20,23 +29,17 @@
         </div>
 
         <div class="dashboard-section">
-            <div class="section-header">
-                <div class="section-title-box"><span>🏢</span> مجاميع دخل اصحاب السيارات</div>
-            </div>
+            <div class="section-header"><div class="section-title-box"><span>🏢</span> مجاميع دخل اصحاب السيارات</div></div>
             <div id="ownersSection" class="cards-container"></div>
         </div>
 
         <div class="dashboard-section">
-            <div class="section-header">
-                <div class="section-title-box"><span>🚖</span> أداء أسطول السيارات</div>
-            </div>
+            <div class="section-header"><div class="section-title-box"><span>🚖</span> أداء أسطول السيارات</div></div>
             <div id="carsSection" class="cards-container"></div>
         </div>
 
         <div class="dashboard-section">
-            <div class="section-header">
-                <div class="section-title-box"><span>👨‍✈️</span> إنتاجية السائقين</div>
-            </div>
+            <div class="section-header"><div class="section-title-box"><span>👨‍✈️</span> إنتاجية السائقين</div></div>
             <div id="driversSection" class="cards-container"></div>
         </div>
     </main>
@@ -48,14 +51,29 @@
             
             const now = new Date();
             document.getElementById('monthFilter').value = now.toISOString().substring(0, 7);
+            
+            await fillCollectorsList();
             await loadComprehensiveDashboard();
         };
 
+        async function fillCollectorsList() {
+            try {
+                const { data } = await _supabase.from('t11_staff').select('f02_name');
+                const select = document.getElementById('collectorFilter');
+                if (data && select) {
+                    select.innerHTML = '<option value="all">-- جميع المحصلين --</option>';
+                    data.forEach(staff => {
+                        const opt = document.createElement('option');
+                        opt.value = staff.f02_name;
+                        opt.textContent = staff.f02_name;
+                        select.appendChild(opt);
+                    });
+                }
+            } catch (e) { console.error("Error filling collectors:", e); }
+        }
+
         async function handleRefresh() {
             await loadComprehensiveDashboard();
-            if(window.showModal) {
-                window.showModal("تم التحديث", "تم جلب بيانات الشهر بنجاح ✅", "success");
-            }
         }
     </script>
 </body>

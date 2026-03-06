@@ -1,35 +1,49 @@
-/* ==================================================================
- [dashboard.js] - النسخة المصححة والمغلقة بالكامل
- ================================================================== */
+/* === START OF FILE === */
+/**
+ * File: dashboard.js
+ * Version: v1.1.2
+ * Function: إدارة حسابات لوحة التحكم مع فلترة المحصلين
+ */
 
 async function loadComprehensiveDashboard() {
     try {
         const monthFilter = document.getElementById('monthFilter');
-        if (!monthFilter) return;
+        const collectorFilter = document.getElementById('collectorFilter');
+        if (!monthFilter || !collectorFilter) return;
         
         const selectedMonth = monthFilter.value; 
+        const selectedCollector = collectorFilter.value;
+        
         const year = selectedMonth.split('-')[0];
         const month = selectedMonth.split('-')[1];
         const startDate = `${selectedMonth}-01`;
         const lastDay = new Date(year, month, 0).getDate();
         const endDate = `${selectedMonth}-${lastDay}`;
 
-        const ownersSection = document.getElementById('ownersSection');
-        if (ownersSection) ownersSection.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:20px;">⏳ جاري تحديث البيانات...</div>';
+        // تنظيف الحاويات وإظهار حالة التحميل
+        document.querySelectorAll('.cards-container').forEach(c => c.innerHTML = '<div style="padding:20px; color:#666;">⏳ جاري المعالجة...</div>');
 
         const [revRes, carsRes, driversRes, ownersRes] = await Promise.all([
-            _supabase.from('t05_revenues').select('*').gte('f02_date', startDate).lte('f02_date', endDate).order('f02_date', { ascending: false }),
+            _supabase.from('t05_revenues').select('*').gte('f02_date', startDate).lte('f02_date', endDate),
             _supabase.from('t01_cars').select('*'),
             _supabase.from('t02_drivers').select('*'),
             _supabase.from('t10_owners').select('*')
         ]);
 
-        const revenues = revRes.data || [];
+        let revenues = revRes.data || [];
         const cars = carsRes.data || [];
         const drivers = driversRes.data || [];
         const owners = ownersRes.data || [];
 
-        // بناء بيانات الملاك بنسبة 25/75
+        // الفلترة بناءً على المحصل
+        if (selectedCollector !== 'all') {
+            revenues = revenues.filter(r => 
+                String(r.f08_collector).trim() === String(selectedCollector).trim()
+            );
+        }
+
+        // 1. معالجة بطاقات أصحاب السيارات
+        const ownersSection = document.getElementById('ownersSection');
         if (ownersSection) {
             ownersSection.innerHTML = owners.map((owner, index) => {
                 const ownerCarsList = cars.filter(c => c.f11_owner_id == owner.f01_id);
@@ -54,15 +68,15 @@ async function loadComprehensiveDashboard() {
                         <div class="card-split-body">
                             <div class="revenue-section-quarter">
                                 <div class="revenue-display-box-compact">
-                                    <span class="rev-label-tiny">إجمالي الإيراد</span>
+                                    <span class="rev-label-tiny">إيراد المحصل</span>
                                     <div class="rev-value-bold">${totalOwnerRevenue.toLocaleString()}</div>
                                     <span class="currency-tag">دينار</span>
                                 </div>
                             </div>
                             <div class="list-section-three-quarters">
                                 <div class="cars-scroll-wrapper-wide">
-                                    <div class="list-header-info">الأسطول (${ownerCarsList.length} سيارة)</div>
-                                    <div class="cars-grid-layout">${carsDetailHTML || 'لا توجد سيارات'}</div>
+                                    <div class="list-header-info">الأسطول (${ownerCarsList.length})</div>
+                                    <div class="cars-grid-layout">${carsDetailHTML || 'لا توجد تحصيلات'}</div>
                                 </div>
                             </div>
                         </div>
@@ -70,7 +84,7 @@ async function loadComprehensiveDashboard() {
             }).join('');
         }
 
-        // بناء بيانات السيارات
+        // 2. معالجة أداء السيارات
         const carsData = cars.map(c => {
             const carRev = revenues.filter(r => r.f03_car_no === c.f02_plate_no);
             const total = carRev.reduce((sum, r) => sum + parseFloat(r.f06_amount || 0), 0);
@@ -78,12 +92,12 @@ async function loadComprehensiveDashboard() {
                 label: `السيارة: ${c.f02_plate_no}`, 
                 value: total, 
                 icon: '🚖', 
-                sub: `حركات الشهر: ${carRev.length}`, 
-                footer: `آخر سائق: ${carRev[0]?.f04_driver_name || 'N/A'}<br>بتاريخ: ${carRev[0]?.f02_date || '-'}` 
+                sub: `دفعات: ${carRev.length}`,
+                footer: `المحصل: ${selectedCollector === 'all' ? 'الكل' : selectedCollector}`
             };
         });
 
-        // بناء بيانات السائقين
+        // 3. معالجة إنتاجية السائقين
         const driversData = drivers.map(d => {
             const driverRev = revenues.filter(r => r.f04_driver_name === d.f02_name);
             const total = driverRev.reduce((sum, r) => sum + parseFloat(r.f06_amount || 0), 0);
@@ -91,8 +105,8 @@ async function loadComprehensiveDashboard() {
                 label: d.f02_name, 
                 value: total, 
                 icon: '👨‍✈️', 
-                sub: `إنتاجية الشهر: ${total.toLocaleString()}`, 
-                footer: `آخر سيارة: ${driverRev[0]?.f03_car_no || 'N/A'}<br>بتاريخ: ${driverRev[0]?.f02_date || '-'}` 
+                sub: `تحصيل: ${total.toLocaleString()}`,
+                footer: `بواسطة: ${selectedCollector === 'all' ? 'الكل' : selectedCollector}`
             };
         });
 
@@ -108,7 +122,10 @@ function renderGroupedCards(containerId, dataList, typeClass) {
     const container = document.getElementById(containerId);
     if (!container) return;
     
-    container.innerHTML = dataList.map((item, index) => `
+    const isFiltered = document.getElementById('collectorFilter').value !== 'all';
+    const displayList = isFiltered ? dataList.filter(i => i.value > 0) : dataList;
+
+    container.innerHTML = displayList.map((item, index) => `
         <div class="mini-card ${typeClass}">
             <div class="card-badge">${index + 1}</div>
             <div>
@@ -123,16 +140,10 @@ function renderGroupedCards(containerId, dataList, typeClass) {
                     ${item.sub}
                 </div>
             </div>
-            <div style="margin-top:15px; padding-top:12px; border-top:1px dashed #eee; font-size:0.75rem; color:#666; line-height:1.5;">
+            <div style="margin-top:15px; padding-top:12px; border-top:1px dashed #eee; font-size:0.75rem; color:#666;">
                 ${item.footer}
             </div>
         </div>
     `).join('');
 }
-
-async function handleRefresh() {
-    await loadComprehensiveDashboard();
-    if(window.showModal) {
-        window.showModal("تم التحديث", "تمت مزامنة بيانات الشهر بنجاح ✅", "success");
-    }
-}
+/* === END OF FILE === */
