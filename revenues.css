@@ -103,3 +103,29 @@ th.sort-desc::after {
     content: '▼';
     color: #f1c40f;
 }
+
+/* --- Record Counter Style (Strong Blue Edition) --- */
+.table-info-bar {
+    display: flex;
+    justify-content: flex-end;
+    margin: 15px 0 10px 0;
+}
+
+.record-badge {
+    background-color: #eff6ff; /* أزرق فاتح جداً للخلفية */
+    color: #1e40af; /* أزرق ملكي قوي للنص */
+    border: 1px solid #bfdbfe; /* إطار أزرق متناسق */
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-weight: 700; /* خط عريض ليبرز الرقم */
+    font-size: 0.9rem;
+    box-shadow: 0 2px 4px rgba(30, 64, 175, 0.1); /* ظل أزرق خفيف */
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#recordCount {
+    color: #1d4ed8; /* لون أزرق أكثر حدة للرقم نفسه */
+    font-size: 1rem;
+}

@@ -69,11 +69,22 @@
         </div>
 
         <div class="elegant-card">
-            <div class="excel-controls">
-                <span>📋 سجل الإيرادات | Revenues Log</span>
-                <input type="text" id="excelSearch" placeholder="بحث سريع | Quick Search..." onkeyup="excelFilter()">
+            <div class="excel-controls" style="display: flex; align-items: center; justify-content: flex-start; gap: 20px; padding: 10px;">
+                
+                <span style="white-space: nowrap; font-weight: bold; color: var(--taxi-dark);">📋 سجل الإيرادات</span>
+        
+                <input type="text" id="excelSearch" placeholder="بحث سريع..." onkeyup="excelFilter()" 
+                       style="width: 300px; padding: 8px 15px; border-radius: 6px; border: 1px solid #ddd;">
+        
+                <div class="record-badge">
+                    <span id="recordCount" style="margin-left: 5px;">0</span> سجل
+                </div>
             </div>
-            <div id="tableContainer" class="table-responsive"></div>
+        
+            <div id="tableContainer">
+                </div>
+        </div>
+<div id="tableContainer" class="table-responsive"></div>
         </div>
     </main>
 
