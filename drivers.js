@@ -35,6 +35,7 @@ async function loadData() {
 }
 
 function renderTable(list) {
+    document.getElementById('recordCount').innerText = list.length;
     let html = `<table><thead><tr>
         <th onclick="sortTable(0)">الاسم ↕</th>
         <th onclick="sortTable(1)">رقم الهاتف ↕</th>

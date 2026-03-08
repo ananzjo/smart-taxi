@@ -1,79 +1,84 @@
 /* ==================================================================
- [login_logs.js] - إدارة سجلات الأمان
+ [login_logs.js] - سجل الدخول
  ================================================================== */
 
- async function loadLoginLogs() {
+let allLogs = [];
+let sortDirections = {};
+
+async function loadData() {
     const { data, error } = await _supabase
         .from('t15_login_logs')
         .select('*')
         .order('f02_datetime', { ascending: false });
 
-    if (data) {
-        renderLogsTable(data);
+    if (error) {
+        window.showModal("خطأ", `تعذر جلب البيانات: ${error.message}`);
+        return;
     }
+    allLogs = data;
+    renderTable(data);
 }
 
-function renderLogsTable(data) {
-    const tbody = document.getElementById('logsBody');
-    tbody.innerHTML = data.map(log => {
-        // تنسيق الحالة بالألوان
-        const statusStyle = log.f04_status === 'Success' 
-            ? 'color: #27ae60; font-weight: bold;' 
-            : 'color: #e74c3c; font-weight: bold;';
+function renderTable(list) {
+    if (window.updateRecordCounter) {
+        window.updateRecordCounter(list.length);
+    }
 
-        return `
-            <tr>
-                <td>${new Date(log.f02_datetime).toLocaleString('ar-EG')}</td>
-                <td>${log.f03_username}</td>
-                <td style="${statusStyle}">${log.f04_status === 'Success' ? '✅ ناجح' : '❌ فاشل'}</td>
-                <td>${log.f05_failure_reason || '-'}</td>
-                <td>${log.f06_ip_address || 'Unknown'}</td>
-                <td>${log.f07_location || '-'}</td>
-                <td style="font-size: 0.75rem; color: #777;">${log.f08_device_info || '-'}</td>
-            </tr>
-        `;
-    }).join('');
+    let html = `<table><thead><tr>
+        <th onclick="sortTable(0)">التاريخ والوقت</th>
+        <th onclick="sortTable(1)">المستخدم</th>
+        <th onclick="sortTable(2)">الحالة</th>
+    </tr></thead><tbody>`;
+
+    list.forEach(item => {
+        html += `<tr>
+            <td>${new Date(item.f02_datetime).toLocaleString()}</td>
+            <td>${item.f03_username}</td>
+            <td>${item.f04_status}</td>
+        </tr>`;
+    });
+    document.getElementById('tableContainer').innerHTML = html + "</tbody></table>";
+    updateSortVisuals();
 }
 
-function filterLogs() {
-    const val = document.getElementById('logSearch').value.toLowerCase();
-    const rows = document.querySelectorAll('#logsBody tr');
-    rows.forEach(row => {
-        row.style.display = row.innerText.toLowerCase().includes(val) ? '' : 'none';
+function sortTable(columnIndex) {
+    if (allLogs.length === 0) return;
+    const sortKey = Object.keys(allLogs[0])[columnIndex + 1];
+    sortDirections[sortKey] = sortDirections[sortKey] === 'asc' ? 'desc' : 'asc';
+
+    allLogs.sort((a, b) => {
+        if (a[sortKey] < b[sortKey]) return sortDirections[sortKey] === 'asc' ? -1 : 1;
+        if (a[sortKey] > b[sortKey]) return sortDirections[sortKey] === 'asc' ? 1 : -1;
+        return 0;
+    });
+
+    renderTable(allLogs);
+    updateSortVisuals(columnIndex);
+}
+
+function updateSortVisuals(columnIndex) {
+    document.querySelectorAll('th').forEach((th, i) => {
+        th.classList.remove('sort-asc', 'sort-desc');
+        if (allLogs.length > 0) {
+            const sortKey = Object.keys(allLogs[0])[i + 1];
+            if (i === columnIndex) {
+                th.classList.add(sortDirections[sortKey] === 'asc' ? 'sort-asc' : 'sort-desc');
+            }
+        }
     });
 }
 
-async function loginProcess() {
-    const user = document.getElementById('username').value;
-    const pass = document.getElementById('password').value;
-
-    // 1. تسجيل المحاولة فوراً (قبل التحقق من صحة البيانات)
-    // هذا يضمن أنه حتى لو كان الاسم خطأ "anan"، سيتم تدوينه في t15
-    await recordLoginEvent(user, 'Attempting', 'بدء محاولة الدخول');
-
-    // 2. التحقق من وجود المستخدم في جدول الموظفين t11
-    const { data, error } = await _supabase
-        .from('t11_staff')
-        .select('*')
-        .eq('f08_login_name', user)
-        .single();
-
-    if (error || !data) {
-        // تحديث السجل لحالة الفشل
-        await recordLoginEvent(user, 'Failure', 'اسم المستخدم غير موجود في t11');
-        window.showModal("خطأ", "اسم المستخدم غير صحيح", "error");
-        return;
-    }
-
-    // 3. التحقق من كلمة المرور (بافتراض أنك تشفرها أو تقارنها)
-    if (data.f09_password !== pass) {
-        await recordLoginEvent(user, 'Failure', 'كلمة مرور خاطئة');
-        window.showModal("خطأ", "كلمة المرور غير صحيحة", "error");
-        return;
-    }
-
-    // 4. نجاح الدخول
-    await recordLoginEvent(user, 'Success', 'دخول ناجح للنظام');
-    sessionStorage.setItem('full_name_ar', data.f02_name);
-    window.location.href = 'dashboard.html';
+function excelFilter() {
+    const val = document.getElementById('excelSearch').value.toLowerCase();
+    const filtered = allLogs.filter(o =>
+        new Date(o.f02_datetime).toLocaleString().toLowerCase().includes(val) ||
+        o.f03_username.toLowerCase().includes(val) ||
+        o.f04_status.toLowerCase().includes(val)
+    );
+    renderTable(filtered);
 }
+
+window.onload = () => {
+    bootSystem('سجلات الدخول');
+    loadData();
+};

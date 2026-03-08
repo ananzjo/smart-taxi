@@ -12,7 +12,6 @@
         <div class="elegant-card">
             <div class="card-header header-flex">
                 <span>👤 إدارة بيانات السائقين | Drivers Management</span>
-                
             </div>
             
             <form id="driverForm" class="taxi-form">
@@ -35,27 +34,17 @@
         </div>
 
         <div class="elegant-card">
-            <div class="excel-controls">
-                <span>📋 سجل السائقين | Drivers Log</span>
-                <input type="text" id="excelSearch" placeholder="بحث سريع | Quick Search..." onkeyup="excelFilter()">
+            <div class="excel-controls" style="display: flex; align-items: center; justify-content: flex-start; gap: 20px; padding: 10px;">
+                <span style="white-space: nowrap; font-weight: bold; color: var(--taxi-dark);">📋 سجل السائقين</span>
+                <input type="text" id="excelSearch" placeholder="بحث سريع..." onkeyup="excelFilter()" 
+                       style="width: 300px; padding: 8px 15px; border-radius: 6px; border: 1px solid #ddd;">
+                <div class="record-badge">
+                    <span id="recordCount" style="margin-left: 5px;">0</span> سجل
+                </div>
             </div>
-            <div class="table-info-bar">
-    <span class="record-badge">عدد السجلات: <span id="recordCount">0</span></span>
-</div>
-<div id="tableContainer" class="table-responsive"></div>
+            <div id="tableContainer" class="table-responsive"></div>
         </div>
     </main>
-
-    <div id="customModal" class="modal-overlay">
-        <div class="modal-content">
-            <h3 id="modalTitle">تنبيه</h3>
-            <p id="modalMessage"></p>
-            <div class="modal-btns">
-                <button id="modalConfirmBtn" class="btn-main">موافق</button>
-                <button id="modalCancelBtn" class="btn-sub">إلغاء</button>
-            </div>
-        </div>
-    </div>
 
     <script src="drivers.js"></script>
     <script>

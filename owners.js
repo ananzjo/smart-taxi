@@ -1,59 +1,90 @@
 let allOwners = [];
+let sortDirections = {};
 
-// [1] جلب البيانات
 async function loadData() {
-    const { data, error } = await _supabase.from('t10_owners').select('*').order('f02_owner_name');
+    const { data, error } = await _supabase.from('t10_owners').select('*').order('f02_full_name');
     if (error) {
-        showLocalModal("خطأ", "تعذر جلب البيانات من السحابة");
+        window.showModal("خطأ", "تعذر جلب البيانات");
         return;
     }
     allOwners = data;
     renderTable(data);
 }
 
-// [2] رسم الجدول
 function renderTable(list) {
+    if (window.updateRecordCounter) {
+        window.updateRecordCounter(list.length);
+    }
+
     let html = `<table><thead><tr>
-        <th>الاسم | Name</th>
-        <th>الهاتف | Phone</th>
-        <th>النوع | Type</th>
-        <th>إجراءات | Actions</th>
+        <th onclick="sortTable(0)">الاسم</th>
+        <th onclick="sortTable(1)">رقم الهوية</th>
+        <th onclick="sortTable(2)">رقم الجوال</th>
+        <th>إجراءات</th>
     </tr></thead><tbody>`;
 
     list.forEach(item => {
         html += `<tr>
-            <td style="font-weight:bold;">${item.f02_owner_name}</td>
-            <td>${item.f04_contact_number}</td>
-            <td>${item.f03_owner_type}</td>
+            <td style="font-weight:bold;">${item.f02_full_name}</td>
+            <td>${item.f03_id_number}</td>
+            <td>${item.f04_mobile_number}</td>
             <td>
-                <button onclick='editRecord(${JSON.stringify(item)})' class="btn-icon">📝</button>
-                <button onclick="deleteRecord(${item.f01_id})" class="btn-icon delete">🗑️</button>
+                <button onclick='editRecord(${JSON.stringify(item)})' class="btn-action edit-btn">📝</button>
+                <button onclick="deleteRecord(${item.f01_id})" class="btn-action delete-btn">🗑️</button>
             </td>
         </tr>`;
     });
     document.getElementById('tableContainer').innerHTML = html + "</tbody></table>";
+    updateSortVisuals();
 }
 
-// [3] فلتر الإكسل (البحث السريع)
+function sortTable(columnIndex) {
+    const sortKey = Object.keys(allOwners[0])[columnIndex + 1]; 
+    sortDirections[sortKey] = sortDirections[sortKey] === 'asc' ? 'desc' : 'asc';
+
+    allOwners.sort((a, b) => {
+        if (a[sortKey] < b[sortKey]) return sortDirections[sortKey] === 'asc' ? -1 : 1;
+        if (a[sortKey] > b[sortKey]) return sortDirections[sortKey] === 'asc' ? 1 : -1;
+        return 0;
+    });
+
+    renderTable(allOwners);
+    updateSortVisuals(columnIndex);
+}
+
+function updateSortVisuals(columnIndex) {
+    document.querySelectorAll('th').forEach((th, i) => {
+        th.classList.remove('sort-asc', 'sort-desc');
+        const sortKey = Object.keys(allOwners[0])[i + 1];
+        if (i === columnIndex) {
+            th.classList.add(sortDirections[sortKey] === 'asc' ? 'sort-asc' : 'sort-desc');
+        }
+    });
+}
+
 function excelFilter() {
     const val = document.getElementById('excelSearch').value.toLowerCase();
     const filtered = allOwners.filter(o => 
-        o.f02_owner_name.toLowerCase().includes(val) || 
-        o.f04_contact_number.includes(val)
+        o.f02_full_name.toLowerCase().includes(val) || 
+        o.f03_id_number.includes(val) ||
+        o.f04_mobile_number.includes(val)
     );
     renderTable(filtered);
 }
 
-// [4] الحفظ (إضافة وتعديل)
 async function saveData() {
     const id = document.getElementById('f01_id').value;
-    const payload = {};
-    document.querySelectorAll('[id^="f"]').forEach(el => {
-        if (el.value) payload[el.id] = el.value;
-    });
+    const payload = {
+        f02_full_name: document.getElementById('f02_full_name').value,
+        f03_id_number: document.getElementById('f03_id_number').value,
+        f04_mobile_number: document.getElementById('f04_mobile_number').value,
+        f05_nationality: document.getElementById('f05_nationality').value,
+        f06_email: document.getElementById('f06_email').value,
+        f07_notes: document.getElementById('f07_notes').value
+    };
 
-    if (!payload.f02_owner_name || !payload.f04_contact_number) {
-        showLocalModal("تنبيه", "الاسم والهاتف مطلوبان");
+    if (!payload.f02_full_name || !payload.f04_mobile_number) {
+        window.showModal("تنبيه", "الاسم ورقم الجوال مطلوبان");
         return;
     }
 
@@ -62,46 +93,41 @@ async function saveData() {
         : await _supabase.from('t10_owners').insert([payload]);
 
     if (!error) {
-        showLocalModal("تم بنجاح", "تم حفظ البيانات ✅");
+        window.showModal("تم بنجاح", "تم حفظ البيانات ✅");
         resetForm();
         loadData();
+    } else {
+        window.showModal("خطأ", error.message);
     }
 }
 
-// [5] الحذف والتعديل والمودال
 async function deleteRecord(id) {
-    showLocalModal("تأكيد", "هل تريد مسح هذا المالك؟", true, async () => {
+    window.showModal("تأكيد", "هل تريد مسح هذا المالك؟", true, async () => {
         const { error } = await _supabase.from('t10_owners').delete().eq('f01_id', id);
         if (!error) loadData();
     });
 }
 
 function editRecord(item) {
-    Object.keys(item).forEach(key => {
-        if(document.getElementById(key)) document.getElementById(key).value = item[key];
-    });
+    document.getElementById('f01_id').value = item.f01_id;
+    document.getElementById('f02_full_name').value = item.f02_full_name;
+    document.getElementById('f03_id_number').value = item.f03_id_number;
+    document.getElementById('f04_mobile_number').value = item.f04_mobile_number;
+    document.getElementById('f05_nationality').value = item.f05_nationality;
+    document.getElementById('f06_email').value = item.f06_email;
+    document.getElementById('f07_notes').value = item.f07_notes;
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function showLocalModal(title, msg, isConfirm = false, onConfirm = null) {
-    const modal = document.getElementById('customModal');
-    document.getElementById('modalTitle').innerText = title;
-    document.getElementById('modalMessage').innerText = msg;
-    const confirmBtn = document.getElementById('modalConfirmBtn');
-    const cancelBtn = document.getElementById('modalCancelBtn');
-
-    modal.style.display = 'flex';
-    cancelBtn.style.display = isConfirm ? 'inline-block' : 'none';
-
-    confirmBtn.onclick = () => { modal.style.display = 'none'; if(onConfirm) onConfirm(); };
-    cancelBtn.onclick = () => modal.style.display = 'none';
-}
-
 function confirmReset() {
-    showLocalModal("تأكيد", "مسح الحقول؟", true, () => resetForm());
+    window.showModal("تأكيد", "مسح الحقول؟", true, () => resetForm());
 }
 
 function resetForm() {
     document.getElementById('ownerForm').reset();
     document.getElementById('f01_id').value = "";
 }
+
+window.onload = () => {
+    loadData();
+};

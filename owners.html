@@ -1,50 +1,35 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
-    <title>إدارة المُلاك | Owners Management</title>
+    <title>نظام إدارة التاكسي الذكي | الملاك</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="global-config.js"></script>
     <link rel="stylesheet" href="owners.css">
 </head>
 <body>
-
-    <main class="main-container" id="mainContent">
+    <main class="main-container">
         <div class="elegant-card">
-            <div class="card-header">👥 إضافة مالك جديد | Add New Owner (t10)</div>
+            <div class="card-header header-flex">
+                <span>👥 إدارة الملاك | Owners Management</span>
+                
+            </div>
+            
             <form id="ownerForm" class="taxi-form">
                 <input type="hidden" id="f01_id">
-                
                 <div class="input-grid">
-                    <div class="form-group">
-                        <label>الاسم الكامل | Full Name</label>
-                        <input type="text" id="f02_owner_name" required title="f02_owner_name: اسم المالك الثلاثي">
+                    <div class="form-group"><label>الاسم الكامل | Full Name</label><input type="text" id="f02_full_name" required></div>
+                    <div class="form-group"><label>رقم الهوية | ID Number</label><input type="text" id="f03_id_number" required></div>
+                    <div class="form-group"><label>رقم الجوال | Mobile Number</label><input type="text" id="f04_mobile_number" required></div>
+                    <div class="form-group"><label>الجنسية | Nationality</label><input type="text" id="f05_nationality" required></div>
+                    <div class="form-group"><label>البريد الإلكتروني | Email</label><input type="email" id="f06_email"></div>
                     </div>
-                    <div class="form-group">
-                        <label>نوع المالك | Owner Type</label>
-                        <select id="f03_owner_type" title="f03_owner_type: تصنيف المالك">
-                            <option value="فرد">فرد | Individual</option>
-                            <option value="شركة">شركة | Company</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>رقم الهاتف | Phone Number</label>
-                        <input type="text" id="f04_contact_number" required title="f04_contact_number: رقم التواصل الأساسي">
-                    </div>
-                    <div class="form-group">
-                        <label>الرقم الوطني | National ID</label>
-                        <input type="text" id="f05_national_id" title="f05_national_id: الرقم الوطني أو السجل">
-                    </div>
-                    <div class="form-group">
-                        <label>الحساب البنكي | Bank Account</label>
-                        <input type="text" id="f06_bank_account" title="f06_bank_account: رقم الآيبان IBAN">
-                    </div>
-                    <div class="form-group">
+                    <div class="form-group full-width">
                         <label>ملاحظات | Notes</label>
-                        <input type="text" id="f07_owner_notes" title="f07_owner_notes: أي ملاحظات إضافية">
+                        <textarea id="f07_notes" rows="2"></textarea>
                     </div>
-                </div>
-
+                
                 <div class="form-actions">
                     <button type="button" onclick="saveData()" class="btn-main">حفظ البيانات | Save</button>
                     <button type="button" onclick="confirmReset()" class="btn-sub">تفريغ | Clear</button>
@@ -53,33 +38,29 @@
         </div>
 
         <div class="elegant-card">
-            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; background: #1a1a1a;">
-                <span>📋 سجل المُلاك | Owners Registry</span>
+            <div class="excel-controls" style="display: flex; align-items: center; justify-content: flex-start; gap: 20px; padding: 10px;">
+                
+                <span style="white-space: nowrap; font-weight: bold; color: var(--taxi-dark);">📋 سجل الملاك</span>
+        
                 <input type="text" id="excelSearch" placeholder="بحث سريع..." onkeyup="excelFilter()" 
-                       style="padding: 6px 15px; border-radius: 20px; border: 1px solid #f1c40f; width: 250px;">
+                       style="width: 300px; padding: 8px 15px; border-radius: 6px; border: 1px solid #ddd;">
+        
+                <div class="record-badge">
+                    <span id="recordCount" style="margin-left: 5px;">0</span> سجل
+                </div>
             </div>
-            <div class="table-info-bar">
-    <span class="record-badge">عدد السجلات: <span id="recordCount">0</span></span>
-</div>
+        
+            <div id="tableContainer">
+                </div>
+        </div>
 <div id="tableContainer" class="table-responsive"></div>
         </div>
     </main>
 
-    <div id="customModal" class="modal-overlay" style="display:none;">
-        <div class="modal-content">
-            <h3 id="modalTitle">تنبيه</h3>
-            <p id="modalMessage"></p>
-            <div class="modal-btns">
-                <button id="modalConfirmBtn" class="btn-main">موافق</button>
-                <button id="modalCancelBtn" class="btn-sub">إلغاء</button>
-            </div>
-        </div>
-    </div>
-
     <script src="owners.js"></script>
     <script>
-        window.onload = () => {
-            if(typeof bootSystem === 'function') bootSystem("المُلاك");
+        window.onload = () => { 
+            bootSystem("إدارة الملاك"); 
             loadData();
         };
     </script>
