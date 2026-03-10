@@ -1,5 +1,5 @@
 /* ==================================================================
- [owners.js] - إدارة الملاك (الإصدار المعتمد بناءً على Schema t10_owners)
+ [owners.js] - إدارة الملاك (النسخة الكاملة والمصححة بناءً على Schema)
  ================================================================== */
 
 let allOwners = [];
@@ -17,11 +17,11 @@ async function loadData() {
         renderTable(data);
     } catch (err) {
         console.error("Supabase Error:", err);
-        if (window.showModal) window.showModal("خطأ", "تعذر جلب بيانات الملاك", "error");
+        if (window.showModal) window.showModal("خطأ في الاتصال", "تعذر جلب بيانات الملاك من السيرفر", "error");
     }
 }
 
-// [2] بناء الجدول - ربط الأعمدة (اسم، نوع، هاتف، حساب بنكي)
+// [2] بناء الجدول - ربط الأعمدة (اسم، نوع، هاتف، ملاحظات)
 function renderTable(list) {
     if (window.updateRecordCounter) window.updateRecordCounter(list.length);
     const tableDiv = document.getElementById('tableContainer');
@@ -31,18 +31,21 @@ function renderTable(list) {
         <th>اسم المالك ↕</th>
         <th>النوع ↕</th>
         <th>رقم الهاتف ↕</th>
-        <th>الحساب البنكي ↕</th>
+        <th>الملاحظات ↕</th>
         <th>إجراءات</th>
     </tr></thead><tbody>`;
 
     list.forEach(owner => {
+        // تحويل الكائن لنص آمن لاستخدامه في زر التعديل
+        const ownerData = JSON.stringify(owner).replace(/'/g, "&apos;");
+        
         html += `<tr>
             <td style="font-weight:bold; color:var(--taxi-dark)">${owner.f02_owner_name}</td>
-            <td>${owner.f03_owner_type || '-'}</td>
+            <td>${owner.f03_owner_type || 'فرد'}</td>
             <td dir="ltr" style="text-align:right">${owner.f04_contact_number || '-'}</td>
-            <td>${owner.f06_bank_account || '-'}</td>
+            <td style="font-size: 0.85rem; color: #666;">${owner.f07_owner_notes || '-'}</td>
             <td>
-                <button onclick='editRecord(${JSON.stringify(owner)})' class="btn-action edit-btn" title="تعديل">📝</button>
+                <button onclick='editRecord(${ownerData})' class="btn-action edit-btn" title="تعديل">📝</button>
                 <button onclick="deleteRecord(${owner.f01_id})" class="btn-action delete-btn" title="حذف">🗑️</button>
             </td>
         </tr>`;
@@ -53,12 +56,12 @@ function renderTable(list) {
 // [3] حفظ وتحديث البيانات (saveData)
 window.saveData = async function() {
     const id = document.getElementById('f01_id').value;
-    const payload = {};
-    
-    // جمع المدخلات بناءً على IDs الحقول في الـ HTML (يجب أن تطابق f02, f03... إلخ)
-    document.querySelectorAll('[id^="f"]').forEach(el => {
-        if (el.value.trim() !== "") payload[el.id] = el.value.trim();
-    });
+    const payload = {
+        f02_owner_name: document.getElementById('f02_owner_name').value.trim(),
+        f03_owner_type: document.getElementById('f03_owner_type').value,
+        f04_contact_number: document.getElementById('f04_contact_number').value.trim(),
+        f07_owner_notes: document.getElementById('f07_owner_notes').value.trim()
+    };
 
     if (!payload.f02_owner_name || !payload.f04_contact_number) {
         window.showModal("تنبيه", "الاسم ورقم الهاتف حقول إجبارية", "warning");
@@ -70,7 +73,7 @@ window.saveData = async function() {
         : await _supabase.from('t10_owners').insert([payload]);
 
     if (error) {
-        window.showModal("فشل العملية", error.message, "error");
+        window.showModal("فشل العملية", "تأكد من عدم تكرار رقم الهاتف: " + error.message, "error");
     } else {
         window.showModal("تم الحفظ", "تم تحديث بيانات المالك بنجاح ✅", "success");
         resetForm();
@@ -80,10 +83,12 @@ window.saveData = async function() {
 
 // [4] التعديل (تعبئة النموذج)
 window.editRecord = function(owner) {
-    Object.keys(owner).forEach(key => {
-        const el = document.getElementById(key);
-        if (el) el.value = owner[key];
-    });
+    if (document.getElementById('f01_id')) document.getElementById('f01_id').value = owner.f01_id;
+    if (document.getElementById('f02_owner_name')) document.getElementById('f02_owner_name').value = owner.f02_owner_name;
+    if (document.getElementById('f03_owner_type')) document.getElementById('f03_owner_type').value = owner.f03_owner_type;
+    if (document.getElementById('f04_contact_number')) document.getElementById('f04_contact_number').value = owner.f04_contact_number;
+    if (document.getElementById('f07_owner_notes')) document.getElementById('f07_owner_notes').value = owner.f07_owner_notes;
+    
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
@@ -92,7 +97,7 @@ window.deleteRecord = function(id) {
     window.showModal("تأكيد الحذف", "هل أنت متأكد من حذف هذا المالك؟ لا يمكن التراجع!", "warning", async () => {
         const { error } = await _supabase.from('t10_owners').delete().eq('f01_id', id);
         if (error) {
-            window.showModal("خطأ", "لا يمكن الحذف لوجود سجلات مرتبطة", "error");
+            window.showModal("خطأ", "لا يمكن الحذف (قد يكون المالك مرتبط بسيارات مسجلة)", "error");
         } else {
             loadData();
         }
@@ -110,19 +115,19 @@ window.excelFilter = function() {
 };
 
 window.resetForm = function() {
-    const form = document.getElementById('ownerForm');
-    if (form) form.reset();
-    document.getElementById('f01_id').value = "";
+    const fields = ['f01_id', 'f02_owner_name', 'f04_contact_number', 'f07_owner_notes'];
+    fields.forEach(f => { if(document.getElementById(f)) document.getElementById(f).value = ""; });
+    if(document.getElementById('f03_owner_type')) document.getElementById('f03_owner_type').value = "فرد";
 };
 
 window.confirmReset = function() {
     window.showModal("تأكيد", "هل تريد تفريغ جميع الحقول؟", "info", () => resetForm());
 };
 
-// [7] تشغيل النظام
+// [7] تشغيل النظام بآلية الانتظار (Safe Boot)
 document.addEventListener("DOMContentLoaded", () => {
     const systemChecker = setInterval(() => {
-        if (window._supabase && window.bootSystem) {
+        if (window._supabase && window.bootSystem && typeof window.showModal === "function") {
             clearInterval(systemChecker);
             window.bootSystem("إدارة الملاك");
             loadData();
