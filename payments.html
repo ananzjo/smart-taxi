@@ -21,40 +21,45 @@
                 <div class="input-grid">
                     <div class="form-group"><label>التاريخ | Date</label><input type="date" id="f02_date" required></div>
                     <div class="form-group">
-    <label>اسم المستلم</label>
-    <select id="f03_payee_name" required>
-        <option value="">-- اختر المستلم --</option>
-    </select>
-</div>
-
-                    <div class="form-group">
-                        <label>الفئة | Category</label>
-                        <select id="f04_category" required>
-                            <option value="راتب">راتب | Salary</option>
+                        <label>نوع الدفع | Type</label>
+                        <select id="f03_type" required>
+                            <option value="">صيانة | Maintenance</option>
+                            <option value="">ترخيص | License</option>
+                            <option value="">وقود | Fuel</option>
+                            <option value="">مخالفات | Fines</option>
+                            <option value="">تأمين | Insurance</option>
+                            <option value="">رسوم هيئة  النقل | Transport Authority Fees</option>
+                            <option value="">رسوم مكتب | Office Fees</option>
+                            <option value="">راتب | Salary</option>
                             <option value="مكافأة">مكافأة | Bonus</option>
                             <option value="سلفة">سلفة | Advance</option>
+                            <option value="دفعة مالك">دفعة مالك | Owner Payment</option>
                             <option value="أخرى">أخرى | Other</option>
                         </select>
                     </div>
-                    <div class="form-group"><label>المبلغ | Amount</label><input type="number" step="0.01" id="f05_amount" required></div>
+                    <div class="form-group"><label>المبلغ | Amount</label><input type="number" step="0.01" id="f04_amount" required></div>
                     <div class="form-group">
-                        <label>طريقة الدفع | Payment Method</label>
-                        <select id="f06_method" required>
+                        <label>رقم السيارة | Car No.</label>
+                        <select id="f05_car_no">
+                            <option value="">-- اختياري --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>طريقة الدفع | Method</label>
+                        <select id="f07_method">
                             <option value="نقدي">نقدي | Cash</option>
                             <option value="بنك">بنك | Bank</option>
                             <option value="محفظة">محفظة | E-Wallet</option>
                         </select>
                     </div>
-                    
-                        <div class="form-group"><label>المسؤول | Officer</label><select id="f07_officer" required>
-                            <option value="">-- اختر المسؤول --</option>
-                        </select></div>
-                    </div>
-                    <div class="form-group full-width">
-                        <label>ملاحظات | Notes</label>
-                        <textarea id="f08_notes" rows="2"></textarea>
-                    </div>
-                
+                    <div class="form-group"><label>الدافع | Payer</label><input type="text" id="f08_payer" placeholder="اسم الدافع..."></div>
+                    <div class="form-group"><label>المستلم | Recipient</label><input type="text" id="f09_recipient" placeholder="اسم المستلم..."></div>
+                    <div class="form-group"><label>المرجع | Reference</label><input type="text" id="f10_reference" placeholder="رقم المرجع..."></div>
+                </div>
+                <div class="form-group full-width">
+                    <label>ملاحظات | Notes</label>
+                    <textarea id="f13_notes" rows="2"></textarea>
+                </div>
                 <div class="form-actions">
                     <button type="button" onclick="saveData()" class="btn-main">حفظ البيانات | Save</button>
                     <button type="button" onclick="confirmReset()" class="btn-sub">تفريغ | Clear</button>
@@ -62,54 +67,29 @@
             </form>
         </div>
 
-        <div class="elegant-card">
-            <div class="excel-controls" style="display: flex; align-items: center; justify-content: flex-start; gap: 20px; padding: 10px;">
-                
-                <span style="white-space: nowrap; font-weight: bold; color: var(--taxi-dark);">📋 سجل المدفوعات</span>
-        
-                <input type="text" id="excelSearch" placeholder="بحث سريع..." onkeyup="excelFilter()" 
-                       style="width: 300px; padding: 8px 15px; border-radius: 6px; border: 1px solid #ddd;">
-        
+        <div class="elegant-card" style="padding: 0;">
+            <div class="table-header-controls">
                 <div class="record-badge">
-                    <span id="recordCount" style="margin-left: 5px;">0</span> سجل
+                    <span id="pageRecordCount">0</span> دفعة
+                </div>
+                <div class="global-search-wrapper">
+                    <input type="text" id="globalSearch" class="global-search-input" placeholder="بحث شامل..." onkeyup="multiColumnSearch()">
+                    <span class="search-icon">🔍</span>
                 </div>
             </div>
-        
-            <div id="tableContainer">
-                </div>
+            <div id="tableContainer" class="table-responsive" style="padding: 0 20px 20px 20px;"></div>
         </div>
-<div id="tableContainer" class="table-responsive"></div>
-        </div>
-    </main>
 
-    <div id="customModal" class="modal-overlay">
-        <div class="modal-content">
-            <h3 id="modalTitle">تنبيه</h3>
-            <p id="modalMessage"></p>
-            <div class="modal-btns">
-                <button id="modalConfirmBtn" class="btn-main">موافق</button>
-                <button id="modalCancelBtn" class="btn-sub">إلغاء</button>
-            </div>
-        </div>
-    </div>
-
+    <!-- script tags for bootSystem -->
     <script src="payments.js"></script>
     <script>
-        window.onload = () => { 
+        window.onload = async () => { 
             bootSystem("إدارة المدفوعات"); 
-            loadData(); 
-          if(!document.getElementById('f01_id').value) document.getElementById('f02_date').valueAsDate = new Date();
+            await fillPaymentDropdowns();
+            await loadData(); 
+            document.getElementById('f02_date').valueAsDate = new Date();
         };
     </script>
-
-<script>
-    window.onload = async () => { 
-        bootSystem("إدارة المدفوعات"); 
-        await fillPaymentDropdowns();
-        await loadData(); 
-        document.getElementById('f02_date').valueAsDate = new Date();
-    };
-</script>
 
 </body>
 </html>

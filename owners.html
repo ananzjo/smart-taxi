@@ -19,16 +19,18 @@
             <form id="ownerForm" class="taxi-form">
                 <input type="hidden" id="f01_id">
                 <div class="input-grid">
-                    <div class="form-group"><label>الاسم الكامل | Full Name</label><input type="text" id="f02_full_name" required></div>
-                    <div class="form-group"><label>رقم الهوية | ID Number</label><input type="text" id="f03_id_number" required></div>
-                    <div class="form-group"><label>رقم الجوال | Mobile Number</label><input type="text" id="f04_mobile_number" required></div>
-                    <div class="form-group"><label>الجنسية | Nationality</label><input type="text" id="f05_nationality" required></div>
-                    <div class="form-group"><label>البريد الإلكتروني | Email</label><input type="email" id="f06_email"></div>
+                    <div class="form-group"><label>اسم المالك</label><input type="text" id="f02_owner_name" required></div>
+                    <div class="form-group"><label>رقم الهوية / السجل</label><input type="text" id="f03_national_id"></div>
+                    <div class="form-group"><label>رقم التواصل</label><input type="text" id="f04_contact_number" required></div>
+                    <div class="form-group full-width">
+                        <label>العنوان</label>
+                        <textarea id="f05_address" rows="2"></textarea>
                     </div>
                     <div class="form-group full-width">
-                        <label>ملاحظات | Notes</label>
-                        <textarea id="f07_notes" rows="2"></textarea>
+                        <label>ملاحظات</label>
+                        <textarea id="f06_notes" rows="2"></textarea>
                     </div>
+                </div>
                 
                 <div class="form-actions">
                     <button type="button" onclick="saveData()" class="btn-main">حفظ البيانات | Save</button>
@@ -37,23 +39,17 @@
             </form>
         </div>
 
-        <div class="elegant-card">
-            <div class="excel-controls" style="display: flex; align-items: center; justify-content: flex-start; gap: 20px; padding: 10px;">
-                
-                <span style="white-space: nowrap; font-weight: bold; color: var(--taxi-dark);">📋 سجل الملاك</span>
-        
-                <input type="text" id="excelSearch" placeholder="بحث سريع..." onkeyup="excelFilter()" 
-                       style="width: 300px; padding: 8px 15px; border-radius: 6px; border: 1px solid #ddd;">
-        
+        <div class="elegant-card" style="padding: 0;">
+            <div class="table-header-controls">
                 <div class="record-badge">
-                    <span id="recordCount" style="margin-left: 5px;">0</span> سجل
+                    <span id="pageRecordCount">0</span> مالك
+                </div>
+                <div class="global-search-wrapper">
+                    <input type="text" id="globalSearch" class="global-search-input" placeholder="بحث شامل..." onkeyup="window.multiColumnSearch()">
+                    <span class="search-icon">🔍</span>
                 </div>
             </div>
-        
-            <div id="tableContainer">
-                </div>
-        </div>
-<div id="tableContainer" class="table-responsive"></div>
+            <div id="tableContainer" class="table-responsive" style="padding: 0 20px 20px 20px;"></div>
         </div>
     </main>
 

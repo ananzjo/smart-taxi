@@ -21,39 +21,45 @@
                 <div class="input-grid">
                     <div class="form-group"><label>التاريخ | Date</label><input type="date" id="f02_date" required></div>
                     <div class="form-group">
-                        <label>الفئة | Category</label>
-                        <select id="f03_category" required>
+                        <label>رقم السيارة | Car</label>
+                        <select id="f03_car_no" required>
+                            <option value="">-- اختر السيارة --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>نوع المصروف | Expense Type</label>
+                        <select id="f05_expense_type" required>
                             <option value="صيانة">صيانة | Maintenance</option>
                             <option value="وقود">وقود | Fuel</option>
                             <option value="قطع غيار">قطع غيار | Spare Parts</option>
                             <option value="رسوم">رسوم | Fees</option>
+                            <option value="تأمين">تأمين | Insurance</option>
                             <option value="أخرى">أخرى | Other</option>
                         </select>
                     </div>
-                    <div class="form-group"><label>المبلغ | Amount</label><input type="number" step="0.01" id="f04_amount" required></div>
+                    <div class="form-group"><label>المبلغ | Amount</label><input type="number" step="0.01" id="f07_amount" required></div>
+                    <div class="form-group"><label>المورد / البائع | Seller</label><input type="text" id="f06_seller" placeholder="اسم المورد..."></div>
+                    <div class="form-group"><label>رقم المرجع | Ref No.</label><input type="text" id="f08_ref_no" placeholder="فاتورة / رقم..."></div>
                     <div class="form-group">
-                        <label>طريقة الدفع | Payment Method</label>
-                        <select id="f05_method" required>
-                            <option value="نقدي">نقدي | Cash</option>
-                            <option value="بنك">بنك | Bank</option>
-                            <option value="محفظة">محفظة | E-Wallet</option>
+                        <label>المسؤول | Officer</label>
+                        <select id="f09_user_id">
+                            <option value="">-- اختر المسؤول --</option>
                         </select>
                     </div>
-                     <div class="form-group">
-    <label>رقم السيارة</label>
-    <select id="f06_car_no" required>
-        <option value="">-- اختر السيارة --</option>
-    </select>
-</div>
-                        <div class="form-group"><label>المسؤول | Officer</label><select id="f07_officer" required>
-                            <option value="">-- اختر المسؤول --</option>
-                        </select></div>
+                    <div class="form-group">
+                        <label>الحالة | Status</label>
+                        <select id="f10_status">
+                            <option value="Pending">Pending</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Rejected">Rejected</option>
+                        </select>
                     </div>
-                    <div class="form-group full-width">
-                        <label>ملاحظات | Notes</label>
-                        <textarea id="f08_notes" rows="2"></textarea>
-                    </div>
-                
+                </div>
+                <div class="form-group full-width">
+                    <label>ملاحظات | Notes</label>
+                    <textarea id="f11_notes" rows="2"></textarea>
+                </div>
+            
                 <div class="form-actions">
                     <button type="button" onclick="saveData()" class="btn-main">حفظ البيانات | Save</button>
                     <button type="button" onclick="confirmReset()" class="btn-sub">تفريغ | Clear</button>
@@ -61,21 +67,17 @@
             </form>
         </div>
 
-        <div class="elegant-card">
-            <div class="excel-controls" style="display: flex; align-items: center; justify-content: flex-start; gap: 20px; padding: 10px;">
-                
-                <span style="white-space: nowrap; font-weight: bold; color: var(--taxi-dark);">📋 سجل المصروفات</span>
-        
-                <input type="text" id="excelSearch" placeholder="بحث سريع..." onkeyup="excelFilter()" 
-                       style="width: 300px; padding: 8px 15px; border-radius: 6px; border: 1px solid #ddd;">
-        
+        <div class="elegant-card" style="padding: 0;">
+            <div class="table-header-controls">
                 <div class="record-badge">
-                    <span id="recordCount" style="margin-left: 5px;">0</span> سجل
+                    <span id="pageRecordCount">0</span> مصروف
+                </div>
+                <div class="global-search-wrapper">
+                    <input type="text" id="globalSearch" class="global-search-input" placeholder="بحث شامل..." onkeyup="multiColumnSearch()">
+                    <span class="search-icon">🔍</span>
                 </div>
             </div>
-        
-            <div id="tableContainer">
-                </div>
+            <div id="tableContainer" class="table-responsive" style="padding: 0 20px 20px 20px;"></div>
         </div>
     </main>
 

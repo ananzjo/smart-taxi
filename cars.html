@@ -55,25 +55,17 @@
         </div>
 
 
-        <div class="elegant-card">
-            <div class="excel-controls" style="display: flex; align-items: center; justify-content: flex-start; gap: 20px; padding: 10px;">
-                
-                <span style="white-space: nowrap; font-weight: bold; color: var(--taxi-dark);">📋 سجل الأسطول</span>
-        
-                <input type="text" id="excelSearch" placeholder="بحث سريع..." onkeyup="excelFilter()" 
-                       style="width: 300px; padding: 8px 15px; border-radius: 6px; border: 1px solid #ddd;">
-        
+        <div class="elegant-card" style="padding: 0;">
+            <div class="table-header-controls">
                 <div class="record-badge">
-                    <span id="recordCount" style="margin-left: 5px;">0</span> سجل
+                    <span id="pageRecordCount">0</span> سيارة
+                </div>
+                <div class="global-search-wrapper">
+                    <input type="text" id="globalSearch" class="global-search-input" placeholder="بحث شامل..." onkeyup="multiColumnSearch()">
+                    <span class="search-icon">🔍</span>
                 </div>
             </div>
-        
-            <div id="tableContainer">
-                </div>
-        </div>
-
-  
-<div id="tableContainer" class="table-responsive"></div>
+            <div id="tableContainer" class="table-responsive" style="padding: 0 20px 20px 20px;"></div>
         </div>
     </main>
 

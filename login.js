@@ -73,6 +73,7 @@ async function handleLogin(event) {
         if (String(userRecord.f03_password) === String(passVal)) {
             await recordLoginEvent(userVal, 'Success', 'دخول ناجح');
             sessionStorage.setItem('full_name_ar', userRecord.f02_name);
+            sessionStorage.setItem('user_id', userRecord.f01_id);
             
             btn.style.background = "#2ecc71";
             btn.style.opacity = "1";

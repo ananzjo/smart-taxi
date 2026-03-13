@@ -1,128 +1,189 @@
-let allDrivers = [];
+/* ==================================================================
+ [drivers.js] - إدارة السائقين (v1.1.0)
+ ================================================================== */
 
-// [1] ساعة ونبض
-function startTaxiClock() {
-    setInterval(() => {
-        const el = document.getElementById('live-clock');
-        if(el) el.innerText = new Date().toLocaleTimeString('ar-EG');
-    }, 1000);
-}
-
-// [2] نظام المودال
-function showModal(title, message, isConfirm = false, onConfirm = null) {
-    const modal = document.getElementById('customModal');
-    document.getElementById('modalTitle').innerText = title;
-    document.getElementById('modalMessage').innerText = message;
-    const confirmBtn = document.getElementById('modalConfirmBtn');
-    const cancelBtn = document.getElementById('modalCancelBtn');
-
-    modal.style.display = 'flex';
-    cancelBtn.style.display = isConfirm ? 'inline-block' : 'none';
-
-    confirmBtn.onclick = () => {
-        modal.style.display = 'none';
-        if (onConfirm) onConfirm();
-    };
-    cancelBtn.onclick = () => modal.style.display = 'none';
-}
-
-// [3] جلب البيانات
-async function loadData() {
-    const { data, error } = await _supabase.from('t02_drivers').select('*').order('created_at', { ascending: false });
-    if (error) { showModal("خطأ | Error", "تعذر جلب بيانات السائقين"); return; }
-    allDrivers = data;
-    renderTable(data);
-}
-
-function renderTable(list) {
-    document.getElementById('recordCount').innerText = list.length;
-    let html = `<table><thead><tr>
-        <th onclick="sortTable(0)">الاسم ↕</th>
-        <th onclick="sortTable(1)">رقم الهاتف ↕</th>
-        <th onclick="sortTable(2)">الموقع ↕</th>
-        <th>إجراءات</th>
-    </tr></thead><tbody>`;
-    list.forEach(driver => {
-        const locationLink = driver.f06_location_url ? `<a href="${driver.f06_location_url}" target="_blank">📍 عرض</a>` : '-';
-        html += `<tr>
-            <td style="font-weight:bold;">${driver.f02_name}</td>
-            <td>${driver.f04_mobile}</td>
-            <td>${locationLink}</td>
-            <td>
-                <button onclick='editRecord(${JSON.stringify(driver)})' style="cursor:pointer; border:none; background:none;">📝</button>
-                <button onclick="deleteRecord('${driver.f01_id}')" style="cursor:pointer; border:none; background:none; margin-right:8px;">🗑️</button>
-            </td>
-        </tr>`;
-    });
-    document.getElementById('tableContainer').innerHTML = html + "</tbody></table>";
-}
-
-// [4] الحفظ مع التحقق
-async function saveData() {
-    const id = document.getElementById('f01_id').value;
-    
-    const payload = {
-        f02_name: document.getElementById('f02_name').value,
-        f03_national_no: document.getElementById('f03_national_no').value,
-        f04_mobile: document.getElementById('f04_mobile').value,
-        f05_address: document.getElementById('f05_address').value,
-        f06_location_url: document.getElementById('f06_location_url').value
-    };
-
-    // رسائل تحقق معبرة
-    if (!payload.f02_name || !payload.f03_national_no || !payload.f04_mobile) {
-        showModal("بيانات ناقصة | Missing Data", "يرجى تعبئة الاسم والرقم الوطني ورقم الهاتف لإتمام عملية الحفظ.");
-        return;
-    }
-
-    const { error } = id 
-        ? await _supabase.from('t02_drivers').update(payload).eq('f01_id', id)
-        : await _supabase.from('t02_drivers').insert([payload]);
-
-    if (error) {
-        if (error.code === '23505') {
-            showModal("تنبيه تكرار | Duplicate Error", "رقم الهاتف أو الرقم الوطني مسجل مسبقاً لسائق آخر.");
-        } else {
-            showModal("خطأ في النظام | System Error", error.message);
-        }
-    } else { 
-        showModal("تم بنجاح | Success", "تم حفظ بيانات السائق بنجاح ✅");
-        resetFieldsOnly();
-        loadData();
-    }
-}
-
-function confirmReset() {
-    showModal("تأكيد | Confirm", "هل تريد تفريغ جميع الحقول؟", true, () => {
-        resetFieldsOnly();
-    });
-}
-
-function resetFieldsOnly() {
-    document.getElementById('driverForm').reset();
-    document.getElementById('f01_id').value = "";
-}
-
-function deleteRecord(id) {
-    showModal("تأكيد الحذف", "هل أنت متأكد من حذف هذا السائق نهائياً؟", true, async () => {
-        const { error } = await _supabase.from('t02_drivers').delete().eq('f01_id', id);
-        if (!error) loadData();
-    });
-}
-
-function editRecord(driver) {
-    Object.keys(driver).forEach(key => { if(document.getElementById(key)) document.getElementById(key).value = driver[key]; });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function excelFilter() {
-    const val = document.getElementById('excelSearch').value.toLowerCase();
-    renderTable(allDrivers.filter(d => Object.values(d).some(v => String(v).toLowerCase().includes(val))));
-}
-
-function sortTable(n) {
-    const table = document.querySelector("table");
-    let rows = Array.from(table.rows).slice(1);
-    let sorted = rows.sort((a, b) => a.cells[n].innerText.localeCompare(b.cells[n].innerText));
-    table.tBodies[0].append(...sorted);
-}
+ let allDrivers = []; 
+ let sortDirections = {}; 
+ 
+ // [1] جلب البيانات من t02_drivers
+ async function loadData() {
+     const { data, error } = await _supabase
+         .from('t02_drivers')
+         .select('*')
+         .order('f02_name');
+ 
+     if (error) { 
+         console.error('Drivers fetch error:', error);
+         window.showToast("تعذر جلب بيانات السائقين", "error"); 
+         return; 
+     }
+     allDrivers = data || [];
+     renderTable(data || []);
+ }
+ 
+ // [2] بناء الجدول — تصفية فوق العناوين
+ function renderTable(list) {
+     const countEl = document.getElementById('pageRecordCount');
+     if (countEl) countEl.innerText = list.length;
+ 
+     let html = `<table>
+         <thead>
+             <tr class="column-search-row">
+                 <th><input type="text" class="column-search-input" id="col0Filter" onkeyup="multiColumnSearch()" placeholder="بحث..."></th>
+                 <th><input type="text" class="column-search-input" id="col1Filter" onkeyup="multiColumnSearch()" placeholder="بحث..."></th>
+                 <th><input type="text" class="column-search-input" id="col2Filter" onkeyup="multiColumnSearch()" placeholder="بحث..."></th>
+                 <th><input type="text" class="column-search-input" id="col3Filter" onkeyup="multiColumnSearch()" placeholder="بحث..."></th>
+                 <th></th>
+             </tr>
+             <tr>
+                 <th onclick="sortTable(0)">الاسم</th>
+                 <th onclick="sortTable(1)">الرقم الوطني</th>
+                 <th onclick="sortTable(2)">رقم الهاتف</th>
+                 <th onclick="sortTable(3)">الحالة</th>
+                 <th>إجراءات</th>
+             </tr>
+         </thead>
+         <tbody>`;
+ 
+     list.forEach(item => {
+         html += `<tr>
+             <td style="font-weight:bold;">${item.f02_name || ''}</td>
+             <td>${item.f03_national_no || ''}</td>
+             <td>${item.f04_mobile || ''}</td>
+             <td><span class="badge ${item.f07_status === 'نشط' ? 'bg-success' : 'bg-warning'}">${item.f07_status || 'نشط'}</span></td>
+             <td>
+                 <div class="action-btns-group">
+                     <button onclick='viewRecord(${JSON.stringify(item)})' class="btn-action-sm btn-view" title="عرض">👁️</button>
+                     <button onclick='editRecord(${JSON.stringify(item)})' class="btn-action-sm btn-edit" title="تعديل">✍️</button>
+                     <button onclick="deleteRecord('${item.f01_id}')" class="btn-action-sm btn-delete" title="حذف">🗑️</button>
+                 </div>
+             </td>
+         </tr>`;
+     });
+     
+     const container = document.getElementById('tableContainer');
+     if(container) container.innerHTML = html + "</tbody></table>";
+ }
+ 
+ // [3] حفظ البيانات
+ async function saveData() {
+     const id = document.getElementById('f01_id').value;
+     const payload = {};
+     ['f02_name','f03_national_no','f04_mobile','f05_license_type','f06_license_expiry','f07_status','f08_notes']
+     .forEach(fid => {
+         const el = document.getElementById(fid);
+         if (el && el.value.trim() !== '') payload[fid] = el.value.trim();
+     });
+ 
+     if (!payload.f02_name || !payload.f04_mobile) {
+         window.showToast("الاسم والهاتف مطلوبان", "warning");
+         return;
+     }
+ 
+     const btn = document.querySelector('.btn-main');
+     const originalText = btn?.innerHTML;
+     if (btn) { btn.innerHTML = '🔄 جاري الحفظ...'; btn.disabled = true; }
+ 
+     try {
+         const { error } = id 
+             ? await _supabase.from('t02_drivers').update(payload).eq('f01_id', id)
+             : await _supabase.from('t02_drivers').insert([payload]);
+             
+         if (error) { 
+             window.showToast(error.message, 'error'); 
+         } else { 
+             window.showToast('تم حفظ بيانات السائق بنجاح ✅', 'success');
+             resetFieldsOnly(); loadData();
+         }
+     } finally {
+         if (btn) { btn.innerHTML = originalText; btn.disabled = false; }
+     }
+ }
+ 
+ // [4] البحث المتقدم
+ function multiColumnSearch() {
+     const globalVal = (document.getElementById('globalSearch')?.value || '').toLowerCase();
+     const colFilters = [
+         (document.getElementById('col0Filter')?.value || '').toLowerCase(),
+         (document.getElementById('col1Filter')?.value || '').toLowerCase(),
+         (document.getElementById('col2Filter')?.value || '').toLowerCase(),
+         (document.getElementById('col3Filter')?.value || '').toLowerCase()
+     ];
+     const fields = ['f02_name', 'f03_national_no', 'f04_mobile', 'f07_status'];
+ 
+     const filtered = allDrivers.filter(item => {
+         const matchesGlobal = globalVal === '' || Object.values(item).some(v => String(v).toLowerCase().includes(globalVal));
+         if (!matchesGlobal) return false;
+         return fields.every((f, i) => colFilters[i] === '' || String(item[f] || '').toLowerCase().includes(colFilters[i]));
+     });
+ 
+     const activeId = document.activeElement.id;
+     renderTable(filtered);
+     if (activeId) {
+         const input = document.getElementById(activeId);
+         if (input) { input.focus(); const v = input.value; input.value = ''; input.value = v; }
+     }
+ }
+ 
+ // [5] دوال مساعدة
+ function resetFieldsOnly() {
+     document.getElementById('f01_id').value = '';
+     document.getElementById('driverForm').reset();
+ }
+ 
+ function confirmReset() {
+     window.showModal('تنبيه', 'هل تريد إفراغ جميع الحقول؟', 'warning', () => { resetFieldsOnly(); });
+ }
+ 
+ function deleteRecord(id) {
+     window.showModal('تأكيد', 'هل أنت متأكد من حذف هذا السائق؟', 'error', async () => {
+         const { error } = await _supabase.from('t02_drivers').delete().eq('f01_id', id);
+         if (error) { window.showToast('فشل الحذف', 'error'); }
+         else { window.showToast('تم الحذف بنجاح 🗑️', 'success'); loadData(); }
+     });
+ }
+ 
+ function editRecord(item) {
+     document.getElementById('f01_id').value = item.f01_id;
+     ['f02_name','f03_national_no','f04_mobile','f05_license_type','f06_license_expiry','f07_status','f08_notes']
+     .forEach(fid => {
+         const el = document.getElementById(fid);
+         if (el) el.value = item[fid] || '';
+     });
+     window.scrollTo({ top: 0, behavior: 'smooth' });
+     window.showToast('تم تحميل البيانات للتعديل', 'info');
+ }
+ 
+ function viewRecord(item) {
+     let msg = `
+         <div style="text-align:right; font-family:inherit;">
+             <p><b>الاسم:</b> ${item.f02_name || '-'}</p>
+             <p><b>الرقم الوطني:</b> ${item.f03_national_no || '-'}</p>
+             <p><b>رقم الهاتف:</b> ${item.f04_mobile || '-'}</p>
+             <p><b>فئة الرخصة:</b> ${item.f05_license_type || '-'}</p>
+             <p><b>انتهاء الرخصة:</b> ${item.f06_license_expiry || '-'}</p>
+             <p><b>الحالة:</b> ${item.f07_status || '-'}</p>
+             <p><b>ملاحظات:</b> ${item.f08_notes || '-'}</p>
+         </div>
+     `;
+     window.showModal('تفاصيل السائق', msg, 'info');
+ }
+ 
+ function sortTable(n) {
+     const tbody = document.querySelector("table tbody");
+     const rows = Array.from(tbody.rows);
+     const isAsc = sortDirections[n] !== true;
+     
+     rows.sort((a, b) => {
+         let x = a.cells[n].innerText.toLowerCase();
+         let y = b.cells[n].innerText.toLowerCase();
+         if (!isNaN(x) && !isNaN(y)) { x = parseFloat(x); y = parseFloat(y); }
+         return isAsc ? (x > y ? 1 : -1) : (x < y ? 1 : -1);
+     });
+     
+     sortDirections[n] = isAsc;
+     rows.forEach(row => tbody.appendChild(row));
+     
+     if (window.updateSortVisuals) window.updateSortVisuals(n, isAsc);
+ }
+/* === END OF FILE === */

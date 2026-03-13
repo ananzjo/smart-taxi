@@ -17,13 +17,27 @@
             <form id="driverForm" class="taxi-form">
                 <input type="hidden" id="f01_id">
                 <div class="input-grid">
-                    <div class="form-group"><label>اسم السائق | Driver Name</label><input type="text" id="f02_name" required></div>
-                    <div class="form-group"><label>الرقم الوطني | National ID</label><input type="text" id="f03_national_no" required></div>
-                    <div class="form-group"><label>رقم الهاتف | Mobile Number</label><input type="text" id="f04_mobile" required></div>
-                    <div class="form-group"><label>الموقع الجغرافي (رابط) | Location URL</label><input type="url" id="f06_location_url" placeholder="https://maps.google.com/..."></div>
+                    <div class="form-group"><label>اسم السائق</label><input type="text" id="f02_name" required></div>
+                    <div class="form-group"><label>الرقم الوطني</label><input type="text" id="f03_national_no"></div>
+                    <div class="form-group"><label>رقم الهاتف</label><input type="text" id="f04_mobile" required></div>
+                    <div class="form-group">
+                        <label>فئة الرخصة</label>
+                        <select id="f05_license_type">
+                            <option value="عمومي">عمومي</option>
+                            <option value="خصوصي">خصوصي</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>انتهاء الرخصة</label><input type="date" id="f06_license_expiry"></div>
+                    <div class="form-group">
+                        <label>الحالة</label>
+                        <select id="f07_status">
+                            <option value="نشط">نشط</option>
+                            <option value="إجازة">إجازة</option>
+                            <option value="موقوف">موقوف</option>
+                        </select>
+                    </div>
                     <div class="form-group full-width">
-                        <label>العنوان بالتفصيل | Detailed Address</label>
-                        <textarea id="f05_address" rows="2"></textarea>
+                        <label>ملاحظات</label><textarea id="f08_notes" rows="2"></textarea>
                     </div>
                 </div>
                 <div class="form-actions">
@@ -33,16 +47,17 @@
             </form>
         </div>
 
-        <div class="elegant-card">
-            <div class="excel-controls" style="display: flex; align-items: center; justify-content: flex-start; gap: 20px; padding: 10px;">
-                <span style="white-space: nowrap; font-weight: bold; color: var(--taxi-dark);">📋 سجل السائقين</span>
-                <input type="text" id="excelSearch" placeholder="بحث سريع..." onkeyup="excelFilter()" 
-                       style="width: 300px; padding: 8px 15px; border-radius: 6px; border: 1px solid #ddd;">
+        <div class="elegant-card" style="padding: 0;">
+            <div class="table-header-controls">
                 <div class="record-badge">
-                    <span id="recordCount" style="margin-left: 5px;">0</span> سجل
+                    <span id="pageRecordCount">0</span> سائق
+                </div>
+                <div class="global-search-wrapper">
+                    <input type="text" id="globalSearch" class="global-search-input" placeholder="بحث شامل..." onkeyup="multiColumnSearch()">
+                    <span class="search-icon">🔍</span>
                 </div>
             </div>
-            <div id="tableContainer" class="table-responsive"></div>
+            <div id="tableContainer" class="table-responsive" style="padding: 0 20px 20px 20px;"></div>
         </div>
     </main>
 

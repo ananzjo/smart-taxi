@@ -19,17 +19,20 @@
             <form id="staffForm" class="taxi-form">
                 <input type="hidden" id="f01_id">
                 <div class="input-grid">
-                    <div class="form-group"><label>الاسم الكامل | Full Name</label><input type="text" id="f02_full_name" required></div>
-                    <div class="form-group"><label>رقم الهوية | ID Number</label><input type="text" id="f03_id_number" required></div>
-                    <div class="form-group"><label>رقم الجوال | Mobile Number</label><input type="text" id="f04_mobile_number" required></div>
-                    <div class="form-group"><label>الجنسية | Nationality</label><input type="text" id="f05_nationality" required></div>
-                    <div class="form-group"><label>الوظيفة | Job Title</label><input type="text" id="f06_job_title" required></div>
-                    <div class="form-group"><label>الراتب | Salary</label><input type="number" step="0.01" id="f07_salary" required></div>
+                    <div class="form-group"><label>الاسم الكامل | Full Name</label><input type="text" id="f02_name" required></div>
+                    <div class="form-group"><label>اسم المستخدم | Login Name</label><input type="text" id="f08_login_name" required></div>
+                    <div class="form-group"><label>كلمة المرور | Password</label><input type="password" id="f03_password" placeholder="اتركها فارغة للإبقاء على الحالية"></div>
+                    <div class="form-group"><label>رقم الجوال | Mobile</label><input type="text" id="f04_mobile"></div>
+                    <div class="form-group"><label>المسمى الوظيفي | Title</label><input type="text" id="f05_title"></div>
+                    <div class="form-group">
+                        <label>الصلاحية | Authority</label>
+                        <select id="f06_authority">
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                            <option value="manager">Manager</option>
+                        </select>
                     </div>
-                    <div class="form-group full-width">
-                        <label>ملاحظات | Notes</label>
-                        <textarea id="f08_notes" rows="2"></textarea>
-                    </div>
+                </div>
                 
                 <div class="form-actions">
                     <button type="button" onclick="saveData()" class="btn-main">حفظ البيانات | Save</button>
@@ -38,23 +41,17 @@
             </form>
         </div>
 
-        <div class="elegant-card">
-            <div class="excel-controls" style="display: flex; align-items: center; justify-content: flex-start; gap: 20px; padding: 10px;">
-                
-                <span style="white-space: nowrap; font-weight: bold; color: var(--taxi-dark);">📋 سجل الموظفين</span>
-        
-                <input type="text" id="excelSearch" placeholder="بحث سريع..." onkeyup="excelFilter()" 
-                       style="width: 300px; padding: 8px 15px; border-radius: 6px; border: 1px solid #ddd;">
-        
+        <div class="elegant-card" style="padding: 0;">
+            <div class="table-header-controls">
                 <div class="record-badge">
-                    <span id="recordCount" style="margin-left: 5px;">0</span> سجل
+                    <span id="pageRecordCount">0</span> موظف
+                </div>
+                <div class="global-search-wrapper">
+                    <input type="text" id="globalSearch" class="global-search-input" placeholder="بحث شامل..." onkeyup="multiColumnSearch()">
+                    <span class="search-icon">🔍</span>
                 </div>
             </div>
-        
-            <div id="tableContainer">
-                </div>
-        </div>
-<div id="tableContainer" class="table-responsive"></div>
+            <div id="tableContainer" class="table-responsive" style="padding: 0 20px 20px 20px;"></div>
         </div>
     </main>
 
