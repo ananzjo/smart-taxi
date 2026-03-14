@@ -33,7 +33,7 @@
  // [2] جلب البيانات
  async function loadData() {
      const { data, error } = await _supabase
-         .from('t07_expenses')
+         .from('t06_expenses')
          .select('*')
          .order('f02_date', { ascending: false });
  
