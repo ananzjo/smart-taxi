@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>نظام إدارة التاكسي الذكي | الإيرادات</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="global-config.js"></script>
+    <link rel="stylesheet" href="revenues.css">
+</head>
+<body>
+    <main class="main-container">
+        <div class="elegant-card">
+            <div class="card-header header-flex">
+                <span>💰 إدارة بيانات الإيرادات | Revenues Management</span>
+                
+            </div>
+            
+            <form id="revenueForm" class="taxi-form">
+                <input type="hidden" id="f01_id">
+                <div class="input-grid">
+                    <div class="form-group"><label>التاريخ | Date</label><input type="date" id="f02_date" required></div>
+                    <div class="form-group">
+    <label>رقم السيارة</label>
+    <select id="f03_car_no" required>
+        <option value="">-- اختر السيارة --</option>
+    </select>
+</div>
+
+<div class="form-group">
+    <label>اسم السائق</label>
+    <select id="f04_driver_name" required>
+        <option value="">-- اختر السائق --</option>
+    </select>
+</div>
+                    <div class="form-group">
+                        <label>الفئة | Category</label>
+                        <select id="f05_category" required>
+                            <option value="ضمان يومي">ضمان يومي | Daily Rent</option>
+                            <option value="دفعة مقدمة">دفعة مقدمة | Pre-payment</option>
+                            <option value="مخالفة">مخالفة | Violation</option>
+                            <option value="أخرى">أخرى | Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>المبلغ | Amount</label><input type="number" step="0.01" id="f06_amount" required></div>
+                    <div class="form-group">
+                        <label>طريقة الدفع | Payment Method</label>
+                        <select id="f07_method" required>
+                            <option value="نقدي">نقدي | Cash</option>
+                            <option value="بنك">بنك | Bank</option>
+                            <option value="محفظة">محفظة | E-Wallet</option>
+                        </select>
+                    </div>
+                    
+                        <div class="form-group"><label>المحصل | Collector</label><select id="f08_collector" required>
+                            <option value="">-- اختر المحصل --</option>
+                        </select></div>
+                    </div>
+                    <div class="form-group full-width">
+                        <label>ملاحظات | Notes</label>
+                        <textarea id="f09_notes" rows="2"></textarea>
+                    </div>
+                
+                <div class="form-actions">
+                    <button type="button" onclick="saveData()" class="btn-main">حفظ البيانات | Save</button>
+                    <button type="button" onclick="confirmReset()" class="btn-sub">تفريغ | Clear</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="elegant-card">
+            <div class="excel-controls" style="display: flex; align-items: center; justify-content: flex-start; gap: 20px; padding: 10px;">
+                
+                <span style="white-space: nowrap; font-weight: bold; color: var(--taxi-dark);">📋 سجل الإيرادات</span>
+        
+                <input type="text" id="excelSearch" placeholder="بحث سريع..." onkeyup="excelFilter()" 
+                       style="width: 300px; padding: 8px 15px; border-radius: 6px; border: 1px solid #ddd;">
+        
+                <div class="record-badge">
+                    <span id="recordCount" style="margin-left: 5px;">0</span> سجل
+                </div>
+            </div>
+        
+            <div id="tableContainer">
+                </div>
+        </div>
+<div id="tableContainer" class="table-responsive"></div>
+        </div>
+    </main>
+
+    <div id="customModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modalTitle">تنبيه</h3>
+            <p id="modalMessage"></p>
+            <div class="modal-btns">
+                <button id="modalConfirmBtn" class="btn-main">موافق</button>
+                <button id="modalCancelBtn" class="btn-sub">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="revenues.js"></script>
+    <script>
+        window.onload = () => { 
+            bootSystem("إدارة الإيرادات"); 
+            loadData(); 
+          if(!document.getElementById('f01_id').value) document.getElementById('f02_date').valueAsDate = new Date();
+        };
+    </script>
+
+<script>
+    window.onload = async () => { 
+        bootSystem("إدارة الإيرادات"); 
+        await fillRevenueDropdowns(); // الجراحة الجديدة
+        await loadData(); 
+        document.getElementById('f02_date').valueAsDate = new Date(); // تاريخ اليوم افتراضياً
+    };
+</script>
+
+</body>
+</html>
