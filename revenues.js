@@ -1,8 +1,6 @@
-/*
-==================================================================
+/* ==================================================================
  [revenues.js] - إدارة الإيرادات (النسخة النهائية المصفاة + العداد الأزرق)
-==================================================================
- */
+ ================================================================== */
 
  let allRevenues = []; 
  let sortDirections = {}; 
@@ -77,8 +75,7 @@
              <td style="color:var(--taxi-green); font-weight:bold;">${rev.f06_amount}</td>
              <td>${rev.f08_collector || '-'}</td>
              <td>
-                 <button onclick='viewRecord(${JSON.stringify(rev)})' class="btn-action-sm btn-view" title="عرض">👁️</button>
-                 <button onclick='editRecord(${JSON.stringify(rev)})' class="btn-action edit-btn" title="تعديل">✍️</button>
+                 <button onclick='editRecord(${JSON.stringify(rev)})' class="btn-action edit-btn" title="تعديل">📝</button>
                  <button onclick="deleteRecord('${rev.f01_id}')" class="btn-action delete-btn" title="حذف">🗑️</button>
              </td>
          </tr>`;
