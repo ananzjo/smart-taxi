@@ -1,5 +1,5 @@
 /* ==================================================================
- [global-config.js] - النسخة المعتمدة والمحصنة (العداد + حماية التكرار)
+ [global-config.js] - القاموس الموحد + التلميحات الذكية + نظام الجداول المطور
  نظام إدارة التاكسي الذكي - Smart Taxi Management System
  ================================================================== */
 
@@ -8,27 +8,30 @@ const SB_URL = "https://jmalxvhumgygqxqislut.supabase.co".trim();
 const SB_KEY = "sb_publishable_62y7dPN9SEc4U_8Lpu4ZNQ_H1PLDVv8".trim();
 const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-// --- [1] نظام حماية الإرسال المتعدد (Submission Guard) ---
+// --- [1] نظام حماية الإرسال المتعدد والتغذية الراجعة ---
 let isSubmitting = false;
-
-/**
- * دالة الحماية: تمنع تشغيل أي دالة (مثل الحفظ) أكثر من مرة في ثانية واحدة
- * الاستخدام: safeSubmit(saveData)
- */
 window.safeSubmit = async function(submitFunction) {
-    if (isSubmitting) {
-        console.warn("⚠️ محاولة إرسال مكررة تم حجبها بنجاح.");
-        return; 
-    }
-
+    if (isSubmitting) return; 
+    const activeBtns = document.querySelectorAll('button[type="submit"], .primary-btn');
+    activeBtns.forEach(btn => { 
+        btn.disabled = true; 
+        btn.classList.add('btn-clicked');
+        btn.innerHTML = '⌛ جاري المعالجة...'; 
+    });
     isSubmitting = true;
     try {
-        await submitFunction(); // تشغيل الدالة الأصلية
+        await submitFunction();
     } catch (err) {
         console.error("Submission Error:", err);
+        window.showToast("حدث خطأ تقني، حاول مرة أخرى", "error");
     } finally {
-        // إعادة التفعيل بعد ثانية واحدة (1000ms)
-        setTimeout(() => { isSubmitting = false; }, 1000);
+        setTimeout(() => {
+            isSubmitting = false;
+            activeBtns.forEach(btn => { 
+                btn.disabled = false; 
+                btn.innerHTML = btn.dataset.oldText || 'حفظ | Save';
+            });
+        }, 1000);
     }
 };
 
@@ -42,391 +45,256 @@ function bootSystem(pageTitle) {
 }
 
 function startBootSequence(pageTitle) {
-    if (document.getElementById('global-styles')) return;
+    if (!document.getElementById('unified-ui-css')) {
+        const link = document.createElement('link');
+        link.id = 'unified-ui-css'; link.rel = 'stylesheet'; link.href = 'unified-ui.css';
+        document.head.appendChild(link);
+    }
     injectGlobalStyles();  
     renderGlobalLayout(pageTitle); 
     startPulseEngine(); 
     initGlobalModalStructure(); 
     initGlobalToastStructure();
+    initViewModalStructure();
+    applyAdvancedTooltips(); // تشغيل نظام التلميحات الذكي
 }
 
-// --- [3] التنسيقات العالمية (CSS) ---
+// --- [3] التنسيقات والواجهة العامة ---
 function injectGlobalStyles() {
     const style = document.createElement('style');
-    style.id = 'global-styles';
+    style.id = 'global-styles-extra';
     style.textContent = `
         @import url('https://fonts.cdnfonts.com/css/digital-numbers');
-        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
-        :root { 
-            --taxi-gold: #d4af37; /* Premium Gold */
-            --taxi-gold-light: #f3e5ab;
-            --taxi-dark: #0b0c10; /* Elegant deep dark */
-            --taxi-red: #ff4c4c; 
-            --taxi-green: #00d289; 
-            --taxi-bg-light: #f5f6f8;
-            --taxi-glass: rgba(11, 12, 16, 0.85);
-        }
-        body { margin: 0; padding: 0; font-family: 'Tajawal', 'Segoe UI', sans-serif; direction: rtl; background: var(--taxi-bg-light); padding-top: 80px; }
-        
-        /* ============================
-           LUXURY GLOBAL HEADER
-           ============================ */
-        .global-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: linear-gradient(135deg, rgba(11,12,16,0.96) 0%, rgba(20,22,30,0.95) 100%);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            color: white;
-            height: 72px;
-            padding: 0 28px;
-            position: fixed;
-            top: 0;
-            width: 100%;
-            z-index: 2000;
-            border-bottom: 1px solid rgba(212,175,55,0.25);
-            border-radius: 0 0 20px 20px;
-            box-shadow:
-                0 8px 32px rgba(0,0,0,0.5),
-                0 2px 0 rgba(212,175,55,0.3),
-                inset 0 1px 0 rgba(255,255,255,0.05);
-            box-sizing: border-box;
-            transition: box-shadow 0.3s ease;
-        }
-        .global-header::after {
-            content: '';
-            position: absolute;
-            bottom: 0; left: 5%; right: 5%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--taxi-gold), transparent);
-            border-radius: 50%;
-        }
-        .header-logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .header-logo-icon {
-            font-size: 1.8rem;
-            filter: drop-shadow(0 0 8px rgba(212,175,55,0.6));
-        }
-        .header-title {
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: rgba(255,255,255,0.85);
-            letter-spacing: 0.8px;
-            border-right: 2px solid var(--taxi-gold);
-            padding-right: 12px;
-        }
-        .header-page-name {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--taxi-gold);
-            margin-right: 10px;
-        }
-        .header-menu-btn {
-            background: rgba(212,175,55,0.1);
-            border: 1px solid rgba(212,175,55,0.3);
-            color: var(--taxi-gold);
-            font-size: 1.4rem;
-            cursor: pointer;
-            width: 42px; height: 42px;
-            border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            transition: all 0.3s ease;
-        }
-        .header-menu-btn:hover {
-            background: rgba(212,175,55,0.25);
-            box-shadow: 0 0 15px rgba(212,175,55,0.3);
-            transform: scale(1.05);
-        }
-        .taxi-meter-clock { font-family: 'Digital Numbers', monospace; font-size: 1.6rem; color: #39ff14; background: #000; padding: 5px 14px; border-radius: 10px; box-shadow: inset 0 0 12px rgba(57,255,20,0.25), 0 0 20px rgba(57,255,20,0.1); text-shadow: 0 0 6px #39ff14; letter-spacing: 3px; border: 1px solid rgba(57,255,20,0.4); }
-        
-        /* Record Capsule */
-        .record-counter-capsule {
-            display: none; /* Moved to local pages */
-        }
-
-        .user-welcome-section { display: flex; align-items: center; gap: 12px; margin-left: 20px; border-left: 1px solid rgba(255,255,255,0.15); padding-left: 20px; }
-        .user-name-text { font-size: 0.95rem; font-weight: 700; color: var(--taxi-gold); letter-spacing: 0.5px; }
-        .user-avatar { width: 38px; height: 38px; background: linear-gradient(135deg, var(--taxi-gold), #b58500); color: var(--taxi-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; border: 2px solid #fff; box-shadow: 0 2px 10px rgba(212,175,55,0.4); font-size: 1.1rem; }
-
-        /* Glassmorphism Sidebar */
-        .sidebar { height: 100vh; width: 260px; position: fixed; z-index: 4000; top: 0; right: -280px; background: var(--taxi-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1); overflow-y: auto; border-left: 1px solid rgba(212, 175, 55, 0.2); box-shadow: -15px 0 50px rgba(0,0,0,0.7); }
-        .sidebar.open { transform: translateX(-280px); }
-        .sidebar a { padding: 15px 25px; text-decoration: none; color: #ddd; display: block; transition: all 0.3s ease; font-size: 0.95rem; border-bottom: 1px solid rgba(255,255,255,0.03); white-space: nowrap; font-weight: 500; position: relative; }
-        .sidebar a::before { content: ''; position: absolute; right: 0; top: 0; height: 100%; width: 0; background: linear-gradient(90deg, rgba(212,175,55,0.1) 0%, transparent 100%); transition: width 0.3s ease; z-index: -1; }
-        .sidebar a:hover { color: var(--taxi-gold); padding-right: 35px; border-right: 4px solid var(--taxi-gold); font-weight: 700; text-shadow: 0 0 8px rgba(212,175,55,0.3); }
-        .sidebar a:hover::before { width: 100%; }
-        
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 2500; transition: opacity 0.3s; }
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .modal-card { background: white; padding: 35px; border-radius: 20px; text-align: center; max-width: 420px; width: 90%; border-top: 10px solid var(--taxi-gold); box-shadow: 0 25px 50px rgba(0,0,0,0.4); transform: scale(0.9); animation: modalPop 0.3s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes modalPop { to { transform: scale(1); } }
-        .sort-icon { display: inline-block; margin-right: 5px; color: #ccc; transition: 0.3s; }
-        .sort-active { color: var(--taxi-gold) !important; font-weight: bold; text-shadow: 0 0 5px rgba(212,175,55,0.5); }
-        
-        /* Toast Notification System */
-        .toast-container { position: fixed; bottom: 30px; left: 30px; z-index: 10000; display: flex; flex-direction: column; gap: 15px; }
-        .toast-msg { min-width: 250px; background: var(--taxi-glass); backdrop-filter: blur(10px); color: white; padding: 15px 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); display: flex; align-items: center; gap: 12px; font-weight: 500; border-right: 5px solid; transform: translateX(-120%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s; opacity: 0; border-left: 1px solid rgba(255,255,255,0.1); border-top: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .toast-msg.show { transform: translateX(0); opacity: 1; }
-        .toast-icon { font-size: 1.4rem; }
-        .toast-success { border-right-color: var(--taxi-green); }
-        .toast-error { border-right-color: var(--taxi-red); }
-        .toast-warning { border-right-color: var(--taxi-gold); }
-        .toast-info { border-right-color: #3498db; }
-        /* ===== ADVANCED TABLE CONTROLS ===== */
-        .table-header-controls { display: flex; justify-content: space-between; align-items: center; padding: 18px 30px; background: linear-gradient(135deg, #fff 0%, #fafafa 100%); border-bottom: 2px solid var(--taxi-gold); border-radius: 20px 20px 0 0; }
-        .record-badge { background: linear-gradient(135deg, var(--taxi-dark) 0%, #1a1c22 100%); color: var(--taxi-gold); padding: 8px 22px; border-radius: 30px; font-size: 0.9rem; font-weight: 700; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.15), 0 0 0 1px rgba(212,175,55,0.3); letter-spacing: 0.5px; }
-        .record-badge span { font-size: 1.4rem; color: white; font-weight: 900; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: inline-block; }
-        .global-search-wrapper { position: relative; width: 350px; }
-        .global-search-input { width: 100%; padding: 12px 20px; padding-right: 45px; border-radius: 30px; border: 1.5px solid #e0e0e0; font-family: inherit; font-size: 1rem; transition: all 0.3s; background: #fff; box-shadow: inset 0 2px 5px rgba(0,0,0,0.02); box-sizing: border-box; }
-        .global-search-input:focus { border-color: var(--taxi-gold); box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.12); outline: none; }
-        .search-icon { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--taxi-gold); font-size: 1.2rem; pointer-events: none; }
-        
-        /* Column Search Row Styling (Filters above labels) */
-        .column-search-row th { 
-            padding: 10px 8px 4px; 
-            background: #fdfdfd; 
-            border-bottom: 1px solid #f0f0f0; 
-        }
-        .column-search-input { 
-            width: 92%; 
-            padding: 8px 12px; 
-            border: 1.5px solid #e2e2e2; 
-            border-radius: 10px; 
-            font-family: inherit; 
-            font-size: 0.82rem; 
-            text-align: center; 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            background: #ffffff; 
-            color: var(--taxi-dark);
-        }
-        .column-search-input:focus { 
-            border-color: var(--taxi-gold); 
-            outline: none; 
-            box-shadow: 0 4px 12px rgba(212,175,55,0.15); 
-            background: #fff;
-        }
-        .column-search-input::placeholder { color: #ccc; font-weight: 400; }
-        
-        /* Sort Indicator Arrows (Prominent Yellow) */
-        th[onclick] { 
-            cursor: pointer; 
-            user-select: none; 
-            padding: 12px 10px !important; 
-            font-weight: 800 !important;
-            color: var(--taxi-dark);
-            position: relative;
-            transition: background 0.2s;
-        }
-        th[onclick]:hover { background: rgba(212,175,55,0.03); }
-        th[onclick]::after { 
-            content: ' \u2195'; 
-            color: var(--taxi-gold); 
-            font-size: 1.15rem; 
-            font-weight: 900; 
-            opacity: 0.3; 
-            transition: opacity 0.2s, transform 0.2s;
-            margin-right: 6px;
-        }
-        th[onclick]:hover::after { opacity: 0.8; }
-        th.sorted-asc::after  { content: ' \u25B2'; color: var(--taxi-gold) !important; opacity: 1 !important; }
-        th.sorted-desc::after { content: ' \u25BC'; color: var(--taxi-gold) !important; opacity: 1 !important; }
-        
-        .sort-icon { display: none; } /* Hide old sort icons if any */
-        
-        /* ==== Unified Action Buttons ==== */
-        .action-btns-group { display: flex; gap: 6px; justify-content: center; }
-        .btn-action-sm { background: none; border: none; font-size: 1.35rem; cursor: pointer; transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); padding: 6px; opacity: 0.8; border-radius: 8px; line-height: 1; }
-        .btn-action-sm:hover { opacity: 1; transform: scale(1.5); }
-        .btn-view { color: #3498db; }
-        .btn-edit { color: #e6ac00; }
-        .btn-delete { color: #e74c3c; }
-        .btn-view:hover  { background: rgba(52, 152, 219, 0.12); }
-        .btn-edit:hover  { background: rgba(230, 172, 0, 0.12); }
-        .btn-delete:hover { background: rgba(231, 76, 60, 0.12); }
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap');
+        :root { --taxi-gold: #d4af37; --taxi-dark: #0b0c10; --status-green: #39ff14; --status-red: #ff3131; }
+        body { margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; direction: rtl; background: #f4f7f6; padding-top: 85px; }
+        .global-header { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(180deg, #1a1c1e 0%, #0b0c10 100%); color: white; height: 75px; padding: 0 30px; position: fixed; top: 0; width: 100%; z-index: 2000; border-bottom: 3px solid var(--taxi-gold); box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
+        .header-left { display: flex; align-items: center; gap: 20px; }
+        .header-right { display: flex; align-items: center; gap: 25px; }
+        .taxi-meter-clock { font-family: 'Digital Numbers', monospace; font-size: 2.2rem; background: #000; padding: 4px 18px; border-radius: 10px; border: 2px solid #333; letter-spacing: 4px; box-shadow: inset 0 0 15px rgba(0,0,0,0.8); }
+        .status-online { color: var(--status-green); text-shadow: 0 0 15px var(--status-green); animation: pulse-glow-green 2s infinite; }
+        .status-offline { color: var(--status-red); text-shadow: 0 0 15px var(--status-red); animation: pulse-glow-red 1s infinite; }
+        @keyframes pulse-glow-green { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
+        @keyframes pulse-glow-red { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        .header-page-name { color: var(--taxi-gold); font-weight: 900; font-size: 1.2rem; margin-right: 15px; border-right: 2px solid #444; padding-right: 15px; }
+        .sidebar { height: 100vh; width: 280px; position: fixed; z-index: 4000; top: 0; right: -300px; background: rgba(15,15,15,0.98); backdrop-filter: blur(15px); transition: 0.5s ease; border-left: 2px solid var(--taxi-gold); }
+        .sidebar.open { transform: translateX(-300px); }
+        .sidebar a { padding: 18px 25px; text-decoration: none; color: #ccc; display: block; border-bottom: 1px solid #222; transition: 0.3s; font-weight: 600; }
+        .sidebar a:hover { color: var(--taxi-gold); background: rgba(212,175,55,0.08); padding-right: 40px; }
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2500; }
+        .table-header-controls { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; background: #fff; border-bottom: 2px solid var(--taxi-gold); border-radius: 12px 12px 0 0; margin-top: 20px; }
+        .global-search-wrapper { position: relative; width: 320px; order: 1; }
+        .global-search-input { width: 100%; padding: 10px 15px 10px 40px; border-radius: 8px; border: 1px solid #ddd; font-family: inherit; }
+        .record-badge { background: #fcfcfc; color: #666; padding: 8px 18px; border-radius: 8px; font-weight: 700; border: 1px solid #eee; order: 2; }
     `;
     document.head.appendChild(style);
 }
 
-// --- [4] بناء الهيكل العام (Header & Sidebar) ---
 function renderGlobalLayout(title) {
     const fullNameAr = sessionStorage.getItem('full_name_ar') || "مستخدم النظام";
-    const initials = fullNameAr.trim().charAt(0) || 'م';
     const layout = `
         <header class="global-header">
-            <div class="header-logo">
-                <button onclick="toggleNav(true)" class="header-menu-btn" title="القائمة">☰</button>
-                <span class="header-logo-icon">🚖</span>
-                <span class="header-title">نظام إدارة التاكسي</span>
-                <span class="header-page-name">${title}</span>
-            </div>
-            <div style="display:flex; align-items:center; gap: 16px;">
-                <div class="user-welcome-section">
-                    <div style="text-align: left;">
-                        <div style="font-size:0.62rem; color:rgba(255,255,255,0.4); letter-spacing:1px; text-transform:uppercase;">مرحباً</div>
-                        <div class="user-name-text">${fullNameAr}</div>
-                    </div>
-                    <div class="user-avatar">${initials}</div>
+            <div class="header-left">
+                <button onclick="toggleNav(true)" style="background:rgba(212,175,55,0.1); border:1px solid rgba(212,175,55,0.3); color:var(--taxi-gold); font-size:1.6rem; cursor:pointer; width:45px; height:45px; border-radius:12px;">☰</button>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:2rem;">🚖</span>
+                    <span class="header-page-name">${title}</span>
                 </div>
-                <div id="meterClock" class="taxi-meter-clock">00:00:00</div>
-                <button onclick="handleLogout()" style="background:rgba(231,76,60,0.1); border:1px solid rgba(231,76,60,0.3); color:#e74c3c; cursor:pointer; font-size:1.3rem; width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; transition:all 0.3s;" title="خروج" onmouseover="this.style.background='rgba(231,76,60,0.25)'" onmouseout="this.style.background='rgba(231,76,60,0.1)'">🚨</button>
+            </div>
+            <div class="header-right">
+                <div style="color:var(--taxi-gold); font-weight:900; font-size:1rem; border-left:1px solid #333; padding-left:20px;">${fullNameAr}</div>
+                <div id="meterClock" class="taxi-meter-clock status-online">00:00:00</div>
+                <button onclick="handleLogout()" style="background:#e74c3c; border:none; color:white; padding:8px 15px; border-radius:8px; cursor:pointer;">خروج</button>
             </div>
         </header>
         <div id="navOverlay" class="overlay" onclick="toggleNav(false)"></div>
         <nav id="sideNav" class="sidebar">
-            <div style="padding:25px 20px 15px; color:var(--taxi-gold); font-weight:800; text-align:center; font-size:1.05rem; border-bottom:1px solid rgba(212,175,55,0.2); letter-spacing:0.5px;">🚖 نظام إدارة التاكسي الذكي</div>
+            <div style="padding:35px 20px; color:var(--taxi-gold); font-weight:900; text-align:center; border-bottom:1px solid #333;">🚖 مـديـر الـتـاكـسـي</div>
             <a href="index.html">📉 لوحة التحكم | Dashboard</a>
-            <a href="owners.html">👤 أصحاب السيارات</a>
+            <a href="work_days.html">📅 أيام العمل والضمان</a>
             <a href="cars.html">🚗 أسطول السيارات</a>
             <a href="drivers.html">👨‍✈️ السائقين</a>
             <a href="revenues.html">💰 الإيرادات والتحصيل</a>
+            <a href="fines_accidents.html">⚠️ المخالفات والحوادث</a>
             <a href="expenses.html">🔧 المصاريف والصيانة</a>
+            <a href="suppliers.html">🤝 الموردين والجهات</a>
             <a href="handover.html">📦 تسليم واستلام السيارات</a>
             <a href="payments.html">💳 المدفوعات والتسوية</a>
-            <a href="staff.html">👥 الموظفين والإدارة</a>
-            <a href="login_logs.html">📜 سجلات الدخول</a>
-            <a href="settings.html">⚙️ إعدادات النظام</a>
-            <div style="border-top:1px solid rgba(255,255,255,0.08); margin:15px 0;"></div>
             <a href="reports.html" style="color:var(--taxi-gold); font-weight:bold;">📊 التقارير المركزية</a>
-            <a href="#" onclick="handleLogout()" style="color:#e74c3c;">🚨 تسجيل الخروج</a>
         </nav>
     `;
     document.body.insertAdjacentHTML('afterbegin', layout);
 }
 
-// --- [5] الدوال الوظيفية المساعدة ---
+function toggleNav(open) {
+    const nav = document.getElementById("sideNav"); const overlay = document.getElementById("navOverlay");
+    if (open) { nav.classList.add("open"); overlay.style.display = "block"; } else { nav.classList.remove("open"); overlay.style.display = "none"; }
+}
 function handleLogout() { sessionStorage.clear(); window.location.href = 'login.html'; }
 
-function toggleNav(open) {
-    const nav = document.getElementById("sideNav");
-    const overlay = document.getElementById("navOverlay");
-    if (open) { nav.classList.add("open"); overlay.style.display = "block"; document.body.style.overflow = "hidden"; } 
-    else { nav.classList.remove("open"); overlay.style.display = "none"; document.body.style.overflow = "auto"; }
-}
-
 function startPulseEngine() {
+    setInterval(async () => {
+        const clock = document.getElementById('meterClock');
+        if (clock) {
+            try {
+                const { error } = await _supabase.from('t01_cars').select('count', { count: 'exact', head: true }).limit(1);
+                if (error) throw error;
+                clock.classList.remove('status-offline'); clock.classList.add('status-online');
+            } catch (err) { clock.classList.remove('status-online'); clock.classList.add('status-offline'); }
+        }
+    }, 5000);
     setInterval(() => {
         const clock = document.getElementById('meterClock');
-        if (clock) clock.textContent = new Date().toLocaleTimeString('en-GB', { hour12: false });
+        if(clock) clock.textContent = new Date().toLocaleTimeString('en-GB', { hour12: false });
     }, 1000);
 }
 
-// --- [6] نظام المودال العالمي ---
+// --- [4] Jordan Plate Formatter ---
+window.formatJordanPlate = function(plateNo, isSm = false) {
+    if (!plateNo) return '---';
+    const smClass = isSm ? 'sm' : '';
+    return `
+        <div class="jordan-plate ${smClass}" title="Jordan Taxi Plate - الترميز 50">
+            <div class="plate-left">الاردن<br>JORDAN</div>
+            <div class="plate-right">
+                <span class="prefix">50</span>
+                <span class="main-no">${plateNo}</span>
+            </div>
+        </div>
+    `;
+};
+
+// --- [5] Smart Tooltips System ---
+const tooltipsDictionary = {
+    f02_plate_no: { ar: 'رقم اللوحة المعدنية المسجل في الترخيص', en: 'Official license plate number' },
+    f04_brand: { ar: 'الشركة المصنعة للسيارة (مثال: تويوتا، هيونداي)', en: 'Vehicle manufacturer brand' },
+    f06_model: { ar: 'سنة تصنيع المركبة', en: 'Year of manufacture' },
+    f08_standard_rent: { ar: 'قيمة الضمان اليومي المتفق عليها أساساً', en: 'Base daily rental/guarantee amount' },
+    f02_name: { ar: 'الاسم الكامل للسائق كما في الهوية', en: 'Full legal name of the driver' },
+    f04_mobile: { ar: 'رقم الهاتف الفعال للتواصل السريع', en: 'Active mobile number for contact' },
+    f06_amount: { ar: 'المبلغ المالي المدفوع أو المصروف', en: 'Financial amount paid or spent' },
+    f09_car: { ar: 'السيارة الحالية الموجودة بحوزة السائق', en: 'Current vehicle assigned to driver' },
+    f10_notes: { ar: 'أي ملاحظات إضافية بخصوص هذا السجل', en: 'Additional remarks for this record' }
+};
+
+function applyAdvancedTooltips() {
+    document.querySelectorAll('label').forEach(label => {
+        const fieldId = label.getAttribute('for');
+        if (fieldId && tooltipsDictionary[fieldId]) {
+            const data = tooltipsDictionary[fieldId];
+            label.classList.add('label-help');
+            label.innerHTML += `
+                <div class="tooltip-box">
+                    <b>تعليمات | Instructions</b>
+                    ${data.ar}
+                    <span>${data.en}</span>
+                </div>
+            `;
+        }
+    });
+}
+
+// --- [6] قاموس المصطلحات الموحد ---
+const globalLabels = {
+    f02_date: 'التاريخ | Date',
+    f03_car_no: 'رقم السيارة | Car No',
+    f04_driver_id: 'كود السائق | Driver ID',
+    f04_driver_name: 'اسم السائق | Driver Name',
+    f05_revenue_type: 'نوع الإيراد | Rev Type',
+    f05_expense_type: 'نوع المصروف | Exp Type',
+    f05_category: 'الفئة | Category',
+    f06_payment_type: 'وسيلة الدفع | Payment',
+    f06_seller: 'المورد/البائع | Vendor',
+    f06_amount: 'المبلغ | Amount',
+    f07_amount: 'المبلغ الإجمالي | Total Amount',
+    f07_method: 'الطريقة | Method',
+    f08_ref_no: 'رقم المرجع | Ref No',
+    f08_collector: 'المحصّل | Collector',
+    f09_user_id: 'الموظف | Staff',
+    f09_notes: 'الملاحظات | Notes',
+    f10_status: 'الحالة | Status',
+    f11_notes: 'تفاصيل إضافية | Details',
+    f12_created_at: 'وقت التسجيل | Created At',
+    f03_time: 'الوقت | Time',
+    f04_car_id: 'رقم السيارة | Car No',
+    f05_driver_id: 'كود السائق | Driver ID',
+    f06_staff_id: 'موظف الاستلام | Staff ID',
+    f07_action_type: 'نوع الحركة | Mov Type',
+    f08_daman: 'الضمان | Rent',
+    f09_km_reading: 'العداد | KM Reading',
+    f10_car_condition: 'حالة السيارة | Condition',
+    t02_drivers: 'اسم السائق | Driver Name',
+    f02_plate_no: 'رقم اللوحة | Plate No',
+    f03_car_office: 'المكتب | Office',
+    f04_brand: 'الماركة | Brand',
+    f06_model: 'الموديل | Year',
+    f07_license_expiry: 'انتهاء الترخيص | License Expiry',
+    f08_standard_rent: 'الضمان الافتراضي | Std. Rent',
+    f09_management_fee: 'رسوم الإدارة | Admin Fee',
+    f11_owner_id: 'المالك | Owner',
+    f12_is_active: 'الحالة | Status',
+    f13_current_driver_id: 'السائق الحالي | Driver',
+    f14_car_notes: 'ملاحظات السيارة | Car Notes',
+    f15_fuel_type: 'الوقود | Fuel',
+    f02_name: 'الاسم | Name',
+    f03_national_no: 'الرقم الوطني | National ID',
+    f04_mobile: 'الهاتف | Mobile',
+    f05_address: 'العنوان | Address',
+    f06_location_url: 'الموقع | Location',
+    f07_status: 'الحالة | Status'
+};
+
+// --- [7] نظام العرض التفصيلي ---
+function initViewModalStructure() {
+    if (document.getElementById('viewModalOverlay')) return;
+    const modalHtml = `<div id="viewModalOverlay" class="view-modal-overlay" onclick="closeViewModal(event)"><div class="view-modal-card"><div class="view-modal-header"><h2 id="viewModalTitle">Record Details</h2><button onclick="closeViewModal(null, true)">&times;</button></div><div class="view-modal-body" id="viewModalBody"></div><div class="view-modal-footer"><button class="close-view-btn" onclick="closeViewModal(null, true)">إغلاق | Close</button></div></div></div>`;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+window.showViewModal = function(data, title = "Record Details", labelsMapping = {}) {
+    const body = document.getElementById('viewModalBody'); document.getElementById('viewModalTitle').innerText = title;
+    let html = '<div class="view-data-grid" style="direction:rtl;">';
+    const finalMapping = { ...globalLabels, ...labelsMapping };
+    Object.keys(data).forEach(key => {
+        if (['f01_id', 'id', 'created_at', 'updated_at', 'f15_id', 'f08_status_date'].includes(key)) return;
+        let value = data[key]; if (value === null || value === undefined) value = '---';
+        if (typeof value === 'object' && value.f02_name) value = value.f02_name;
+        if (typeof value === 'object' && value.f02_plate_no) value = value.f02_plate_no;
+        if (key === 'f02_plate_no' || key === 'f03_car_no') value = window.formatJordanPlate(value);
+        const label = finalMapping[key] || key;
+        const isFullWidth = (String(value).length > 35 || key === 'f09_notes' || key === 'f11_notes') ? 'full-width' : '';
+        html += `<div class="view-item ${isFullWidth}"><span class="view-label">${label}</span><span class="view-value">${value}</span></div>`;
+    });
+    html += '</div>'; body.innerHTML = html; document.getElementById('viewModalOverlay').classList.add('active');
+};
+window.closeViewModal = function(event, force = false) { if (force || event.target.id === 'viewModalOverlay') document.getElementById('viewModalOverlay').classList.remove('active'); };
+
 function initGlobalModalStructure() {
     if (document.getElementById('globalModal')) return;
-    const html = `
-        <div id="globalModal" class="modal-overlay">
-            <div id="modalCard" class="modal-card">
-                <div id="modalIconRow" style="font-size:2.5rem; margin-bottom:8px;"></div>
-                <h2 id="modalTitle" style="margin:0 0 16px; font-size:1.2rem;"></h2>
-                <div id="modalMsg" style="font-size:0.95rem; text-align:right; line-height:2; color:#333; max-height:55vh; overflow-y:auto; padding:16px 20px; background:#f8f9fa; border-radius:12px; border:1px solid #eee; margin-bottom:16px;"></div>
-                <div id="modalBtnContainer" style="display:flex; gap:10px; justify-content:center;"></div>
-            </div>
-        </div>`;
+    const html = `<div id="globalModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center;"><div style="background:white; padding:40px; border-radius:15px; text-align:center; max-width:400px; width:90%; border-top:8px solid var(--taxi-gold);"><h2 id="modalTitle"></h2><div id="modalMsg" style="margin:20px 0;"></div><div id="modalBtnContainer"></div></div></div>`;
     document.body.insertAdjacentHTML('beforeend', html);
 }
-
 window.showModal = function(title, message, type = 'info', onConfirm = null) {
     const modal = document.getElementById('globalModal');
-    const card = document.getElementById('modalCard');
-    const colors = { success: '#2ecc71', error: '#e74c3c', warning: '#f1c40f', info: '#3498db' };
-    
-    if (!modal) return;
-    
-    card.style.borderTopColor = colors[type] || colors.info;
-    document.getElementById('modalTitle').innerText = title;
-    document.getElementById('modalTitle').style.color = colors[type];
-    // Use innerHTML so viewRecord HTML (<b> tags) renders properly
-    document.getElementById('modalMsg').innerHTML = message;
-    
-    const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
-    const iconEl = document.getElementById('modalIconRow');
-    if (iconEl) iconEl.innerText = icons[type] || icons.info;
-    
-    const container = document.getElementById('modalBtnContainer');
-    container.innerHTML = '';
-
+    document.getElementById('modalTitle').innerText = title; document.getElementById('modalMsg').innerHTML = message;
+    const container = document.getElementById('modalBtnContainer'); container.innerHTML = '';
     if (onConfirm) {
-        const okBtn = document.createElement('button');
-        okBtn.innerText = 'تأكيد';
-        okBtn.style = `background:${colors.error}; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer; font-weight:bold;`;
-        okBtn.onclick = async () => { await onConfirm(); closeGlobalModal(); };
-        
-        const cancelBtn = document.createElement('button');
-        cancelBtn.innerText = 'إلغاء';
-        cancelBtn.style = `background:#eee; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;`;
-        cancelBtn.onclick = closeGlobalModal;
-        
-        container.appendChild(okBtn);
-        container.appendChild(cancelBtn);
+        const okBtn = document.createElement('button'); okBtn.innerText = 'تأكيد'; okBtn.className = 'primary-btn'; okBtn.style.background = '#e74c3c';
+        okBtn.onclick = async () => { await onConfirm(); modal.style.display = 'none'; };
+        const cancelBtn = document.createElement('button'); cancelBtn.innerText = 'إلغاء'; cancelBtn.className = 'secondary-btn'; cancelBtn.style.marginRight = '10px';
+        cancelBtn.onclick = () => modal.style.display = 'none';
+        container.appendChild(okBtn); container.appendChild(cancelBtn);
     } else {
-        const closeBtn = document.createElement('button');
-        closeBtn.innerText = 'موافق';
-        closeBtn.style = `background:var(--taxi-dark); color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;`;
-        closeBtn.onclick = closeGlobalModal;
-        container.appendChild(closeBtn);
+        const closeBtn = document.createElement('button'); closeBtn.innerText = 'موافق'; closeBtn.className = 'primary-btn';
+        closeBtn.onclick = () => modal.style.display = 'none'; container.appendChild(closeBtn);
     }
     modal.style.display = 'flex';
-}
-
-function closeGlobalModal() { 
-    const modal = document.getElementById('globalModal');
-    if(modal) modal.style.display = 'none'; 
-}
-
-window.updateSortVisuals = function(columnIndex, isAscending) {
-    document.querySelectorAll('.sort-icon').forEach(icon => {
-        icon.innerText = "↕";
-        icon.classList.remove('sort-active');
-    });
-    const activeIcon = document.getElementById('sortIcon' + columnIndex);
-    if (activeIcon) {
-        activeIcon.innerText = isAscending ? "↑" : "↓";
-        activeIcon.classList.add('sort-active');
-    }
-}
-
-// --- [7] نظام الإشعارات الفاخر (Toast Notifications) ---
-function initGlobalToastStructure() {
-    if (document.getElementById('toastContainer')) return;
-    const toastContainer = document.createElement('div');
-    toastContainer.id = 'toastContainer';
-    toastContainer.className = 'toast-container';
-    document.body.appendChild(toastContainer);
-}
-
-/**
- * يعرض رسالة إشعار منسدلة بشكل فاخر.
- * @param {string} message - نص الرسالة
- * @param {string} type - نوع الرسالة (success | error | warning | info)
- */
+};
+function initGlobalToastStructure() { if (document.getElementById('toastContainer')) return; const container = document.createElement('div'); container.id = 'toastContainer'; container.className = 'toast-container'; document.body.appendChild(container); }
 window.showToast = function(message, type = 'success') {
-    const container = document.getElementById('toastContainer');
-    if (!container) return;
-
-    const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
-    const toastClass = 'toast-' + type;
-
-    const toast = document.createElement('div');
-    toast.className = `toast-msg ${toastClass}`;
-    toast.innerHTML = `
-        <span class="toast-icon">${icons[type] || icons.info}</span>
-        <span>${message}</span>
-    `;
-
-    container.appendChild(toast);
-
-    // Trigger reflow to animate
-    requestAnimationFrame(() => {
-        toast.classList.add('show');
-    });
-
-    // Remove after 3.5 seconds
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 400); // Wait for transition to end
-    }, 3500);
-}
+    const container = document.getElementById('toastContainer'); const toast = document.createElement('div'); toast.className = 'toast-msg';
+    if(type === 'error') toast.style.borderRightColor = '#e74c3c'; toast.innerText = message; container.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, 3000);
+};
+window.bootSystem = bootSystem;

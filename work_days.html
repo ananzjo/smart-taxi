@@ -1,0 +1,131 @@
+<!-- START OF FILE: work_days.html -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <!-- 
+    File: work_days.html
+    Version: v1.3.0
+    Function: إدارة أيام العمل وتوليد مديونية الضمان | Work Days Ledger
+    Design: Dual-Language Luxury Format
+    -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أيام العمل والمديونية | Work Days Tracking</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="global-config.js"></script>
+    <link rel="stylesheet" href="work_days.css">
+    <link rel="stylesheet" href="revenues.css">
+</head>
+<body onload="bootSystem('أيام العمل | Work Days')">
+
+    <div class="main-container">
+        
+        <!-- Header -->
+        <div class="luxury-page-header">
+            <div class="header-info">
+                <h1>📅 سجل أيام العمل والضمان | Work Ledger</h1>
+                <p>تتبع توليد المديونية اليومية الآلي ومطابقتها | Automated Debt & Payment Matching</p>
+            </div>
+            <div class="header-actions">
+                <button id="generateBtn" onclick="triggerAutoGeneration()" class="action-btn-gold">
+                    ⚡ توليد مديونية اليوم | Generate Today
+                </button>
+            </div>
+        </div>
+
+        <!-- Quick Summary Mini Cards -->
+        <div class="stats-grid">
+            <div class="mini-stat-card">
+                <span class="stat-label">أيام العمل | Total Days</span>
+                <span id="stat_total_days" class="stat-value">0</span>
+            </div>
+            <div class="mini-stat-card warning">
+                <span class="stat-label">أيام مكسورة | Broken Days</span>
+                <span id="stat_broken_days" class="stat-value">0</span>
+            </div>
+            <div class="mini-stat-card success">
+                <span class="stat-label">إجمالي المستحق | Total Due</span>
+                <span id="stat_total_daman" class="stat-value">0 <small>د.أ</small></span>
+            </div>
+        </div>
+
+        <!-- Filter Controls (Unified Look) -->
+        <div class="elegant-card luxury-card-border">
+            <div class="card-header">
+                <span>🔍 خيارات الفرز والبحث | Filters & Search</span>
+            </div>
+            <div class="taxi-form">
+                <div class="input-grid">
+                    <div class="form-group">
+                        <label>الشهر | Month</label>
+                        <input type="month" id="monthFilter" onchange="fetchWorkDays()">
+                    </div>
+                    <div class="form-group">
+                        <label>السيارة | Plate No</label>
+                        <select id="carFilter" onchange="filterLocalData()">
+                            <option value="all">كل السيارات | All Cars</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>السائق | Driver Name</label>
+                        <select id="driverFilter" onchange="filterLocalData()">
+                            <option value="all">كل السائقين | All Drivers</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- The Main Ledger -->
+        <div class="elegant-card grid-card">
+            <div class="card-header">
+                <span>📋 سجل المديونية اليومية | Daily Ledger</span>
+            </div>
+            <div id="workDaysTableContainer" class="table-responsive">
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>جاري تحميل البيانات... | Loading Data...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manual Adjustment Modal (Kept for refinement) -->
+    <div id="adjustmentModal" class="modal-overlay">
+        <div class="modal-card luxury-modal shadow-gold">
+            <div class="modal-header">
+                <h2>تعديل الحالة | Adjust Status</h2>
+                <button onclick="closeModal()" class="close-btn">&times;</button>
+            </div>
+            <form id="adjustmentForm" class="luxury-form">
+                <input type="hidden" id="f01_id">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>نوع التعديل | Adjustment</label>
+                        <select id="adj_type" onchange="toggleOffDayReason()">
+                            <option value="active">يوم عمل نشط | Active Day</option>
+                            <option value="off">يوم توقف | Off Day</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="reasonGroup" style="display:none;">
+                        <label>السبب | Reason</label>
+                        <input type="text" id="f07_reason" placeholder="صيانة، ترخيص (t08_work_days.f07_reason_if_off)">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>القيمة | Amount</label>
+                        <input type="number" id="f05_amount" step="0.5" placeholder="قيمة الضمان (t08_work_days.f05_daily_amount)">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="save-btn">تحديث السجل | Update ✅</button>
+                    <button type="button" onclick="closeModal()" class="cancel-btn">إلغاء | Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="work_days.js"></script>
+</body>
+</html>
+<!-- END OF FILE: work_days.html -->

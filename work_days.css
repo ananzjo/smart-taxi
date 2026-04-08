@@ -1,0 +1,106 @@
+/* START OF FILE: work_days.css */
+/* 
+File: work_days.css
+Version: v1.0.0
+Function: Styles for Work Days & Broken Days Ledger
+*/
+
+:root {
+    --taxi-gold: #d4af37;
+    --taxi-gold-bright: #ffdf00;
+    --taxi-dark: #0b0c10;
+    --taxi-red: #e74c3c;
+    --taxi-green: #2ecc71;
+    --shadow-lux: 0 15px 35px rgba(0,0,0,0.1);
+}
+
+.main-container { padding: 30px; max-width: 1400px; margin: 0 auto; }
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.mini-stat-card {
+    background: white;
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: var(--shadow-lux);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border-bottom: 4px solid #eee;
+    transition: transform 0.3s;
+}
+
+.mini-stat-card:hover { transform: translateY(-5px); }
+.mini-stat-card.warning { border-bottom-color: var(--taxi-red); }
+.mini-stat-card.success { border-bottom-color: var(--taxi-green); }
+
+.stat-label { font-size: 0.85rem; color: #777; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-value { font-size: 1.8rem; font-weight: 900; color: var(--taxi-dark); }
+.stat-value small { font-size: 0.9rem; color: #999; }
+
+/* Special Action Button */
+.action-btn-gold {
+    background: linear-gradient(135deg, var(--taxi-dark) 0%, #1a1c22 100%);
+    color: var(--taxi-gold);
+    border: 2px solid var(--taxi-gold);
+    padding: 14px 30px;
+    border-radius: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(212, 175, 55, 0.2);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.action-btn-gold:hover {
+    background: var(--taxi-gold);
+    color: white;
+    box-shadow: 0 10px 25px rgba(212, 175, 55, 0.4);
+    transform: scale(1.05);
+}
+
+/* Filters */
+.filter-group { display: flex; gap: 15px; align-items: center; }
+.filter-group select, .filter-group input {
+    padding: 10px 15px;
+    border-radius: 10px;
+    border: 1.5px solid #eee;
+    font-family: inherit;
+    outline: none;
+}
+
+/* Ledger Table Specifics */
+.badge-status {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 800;
+}
+
+.badge-paid { background: rgba(46, 204, 113, 0.15); color: #27ae60; }
+.badge-broken { background: rgba(231, 76, 60, 0.15); color: #c0392b; animation: pulseRed 2s infinite; }
+.badge-off { background: #f1f1f1; color: #777; }
+
+@keyframes pulseRed {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+}
+
+.car-tag { background: #34495e; color: #fff; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-family: monospace; }
+.amount-due { font-family: 'Digital Numbers', monospace; font-weight: bold; color: var(--taxi-dark); }
+
+/* Modal Shadow Enhancement */
+.shadow-gold { box-shadow: 0 0 50px rgba(212, 175, 55, 0.2) !important; }
+
+/* Responsive */
+@media (max-width: 800px) {
+    .table-header-controls { flex-direction: column; gap: 15px; }
+    .filter-group { width: 100%; justify-content: space-between; }
+}
+/* END OF FILE: work_days.css */

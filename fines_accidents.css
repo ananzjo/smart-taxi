@@ -1,0 +1,95 @@
+/* START OF FILE: fines_accidents.css */
+/* 
+File: fines_accidents.css
+Version: v1.0.0
+Function: Styles for Fines & Accidents Module
+Design: Red Accent Luxury Theme
+*/
+
+:root {
+    --taxi-gold: #d4af37;
+    --taxi-dark: #0b0c10;
+    --taxi-red: #e74c3c;
+    --taxi-red-dark: #c0392b;
+    --bg-light: #fdfdfd;
+}
+
+.main-container { padding: 30px; max-width: 1400px; margin: 0 auto; }
+
+/* Page Header Customization */
+.luxury-page-header {
+    background: white;
+    padding: 25px 35px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-right: 6px solid var(--taxi-red);
+}
+
+.action-btn-danger {
+    background: var(--taxi-red);
+    color: white;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+}
+
+.action-btn-danger:hover {
+    background: var(--taxi-red-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
+}
+
+/* Modal Enhancements */
+.border-red { border-top: 8px solid var(--taxi-red) !important; }
+.bg-danger { background: var(--taxi-red) !important; color: white !important; }
+
+.save-btn-red {
+    background: var(--taxi-red);
+    color: white;
+    border: none;
+    padding: 12px 35px;
+    border-radius: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.save-btn-red:hover {
+    background: var(--taxi-red-dark);
+    transform: scale(1.05);
+}
+
+/* Table Status Badges */
+.badge-pending { background: rgba(231, 76, 60, 0.1); color: var(--taxi-red); border: 1px solid var(--taxi-red); }
+.badge-paid { background: rgba(46, 204, 113, 0.1); color: #27ae60; border: 1px solid #27ae60; }
+.badge-review { background: rgba(241, 196, 15, 0.1); color: #f39c12; border: 1px solid #f39c12; }
+
+.fine-type-tag {
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: #f1f1f1;
+    color: #555;
+    margin-right: 5px;
+}
+
+/* Specific Animations */
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(5px); }
+    50% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+    100% { transform: translateX(0); }
+}
+
+.urgent-fine { animation: shake 0.5s ease-in-out; }
+
+/* END OF FILE: fines_accidents.css */

@@ -1,153 +1,265 @@
-/* ==================================================================
- [cars.js] - إدارة أسطول السيارات (متوافق مع العداد العالمي)
- ================================================================== */
+/* START OF FILE: cars.js */
+/**
+ * File: cars.js
+ * Version: v1.2.0
+ * Function: إدارة أسطول السيارات مع تتبع الحالة والسائق الحالي
+ * Components: Supabase Client, Luxury Grid, Status Controller
+ * Inputs: t01_cars, t10_owners, t02_drivers
+ */
 
- let allCars = [];
- let sortDirections = {}; 
- 
- // [1] جلب البيانات من الجدول t01_cars
- async function loadData() {
-     const { data, error } = await _supabase
-         .from('t01_cars')
-         .select('*')
-         .order('f02_plate_no', { ascending: true });
-     
-     if (error) { 
-         window.showModal("خطأ في الاتصال", error.message, "error");
-         return; 
-     }
-     
-     allCars = data; 
-     renderTable(data);
- }
- 
- // [1.1] تعبئة القوائم المنسدلة (المالك والسائق)
- async function fillDropdowns() {
-     try {
-         const { data: owners } = await _supabase.from('t10_owners').select('f01_id, f02_owner_name');
-         const { data: drivers } = await _supabase.from('t02_drivers').select('f01_id, f02_name');
- 
-         const ownerSelect = document.getElementById('f11_owner_id');
-         const driverSelect = document.getElementById('f13_current_driver_id');
- 
-         if (owners && ownerSelect) {
-             ownerSelect.innerHTML = '<option value="">-- اختر المالك --</option>';
-             owners.forEach(o => ownerSelect.innerHTML += `<option value="${o.f01_id}">${o.f02_owner_name}</option>`);
-         }
-         if (drivers && driverSelect) {
-             driverSelect.innerHTML = '<option value="">-- اختر السائق --</option>';
-             drivers.forEach(d => driverSelect.innerHTML += `<option value="${d.f01_id}">${d.f02_name}</option>`);
-         }
-     } catch (err) { 
-         console.error("Dropdown Fill Error:", err); 
-     }
- }
- 
- // [2] بناء الجدول وتحديث العداد
- function renderTable(list) {
-     // --- إرسال العدد إلى العداد العالمي في global-config.js ---
-     if (window.updateRecordCounter) {
-         window.updateRecordCounter(list.length);
-     }
-     // -------------------------------------------------------
- 
-     const tableDiv = document.getElementById('tableContainer');
-     let html = `<table><thead><tr>
-         <th onclick="sortTable(0)" style="cursor:pointer">اللوحة ↕</th>
-         <th onclick="sortTable(1)" style="cursor:pointer">الماركة ↕</th>
-         <th onclick="sortTable(2)" style="cursor:pointer">الموديل ↕</th>
-         <th onclick="sortTable(3)" style="cursor:pointer">الضمان ↕</th>
-         <th onclick="sortTable(4)" style="cursor:pointer">الحالة ↕</th>
-         <th>إجراءات</th>
-     </tr></thead><tbody>`;
-     
-     list.forEach(car => {
-         // تحديد لون "الحالة" بشكل احترافي
-         const statusClass = car.f12_is_active === 'نشط' ? 'success' : 'warning';
-         
-         html += `<tr>
-             <td style="font-weight:bold; color:var(--taxi-dark)">${car.f02_plate_no}</td>
-             <td>${car.f04_brand || '-'}</td>
-             <td>${car.f06_model || '-'}</td>
-             <td style="color:var(--taxi-green); font-weight:bold;">${car.f08_standard_rent}</td>
-             <td><span class="badge-${statusClass}">${car.f12_is_active || 'غير محدد'}</span></td>
-             <td>
-                 <button onclick='editRecord(${JSON.stringify(car)})' class="btn-action edit-btn" title="تعديل">📝</button>
-                 <button onclick="deleteRecord('${car.f01_id}')" class="btn-action delete-btn" title="حذف">🗑️</button>
-             </td>
-         </tr>`;
-     });
-     tableDiv.innerHTML = html + "</tbody></table>";
- }
- 
- // [3] الفرز المطور
- function sortTable(n) {
-     const table = document.querySelector("table");
-     const tbody = table.tBodies[0];
-     let rows = Array.from(tbody.rows);
- 
-     sortDirections[n] = !sortDirections[n];
-     const direction = sortDirections[n] ? 1 : -1;
- 
-     rows.sort((a, b) => {
-         let aText = a.cells[n].innerText.trim();
-         let bText = b.cells[n].innerText.trim();
-         return aText.localeCompare(bText, 'ar', { numeric: true }) * direction;
-     });
- 
-     tbody.append(...rows);
- }
- 
- // [4] التصفية (البحث) وتحديث العداد أثناء البحث
- function excelFilter() {
-     const val = document.getElementById('excelSearch').value.toLowerCase();
-     const filtered = allCars.filter(c => 
-         Object.values(c).some(v => String(v).toLowerCase().includes(val))
-     );
-     // عند استدعاء renderTable سيتم تحديث العداد تلقائياً بالرقم الجديد المفلتر
-     renderTable(filtered);
- }
- 
- // [5] باقي الدوال (Save, Delete, Edit, Reset) تبقى كما هي...
- async function saveData() {
-     const id = document.getElementById('f01_id').value;
-     const payload = {};
-     document.querySelectorAll('[id^="f"]').forEach(el => {
-         if (el.value && el.value.trim() !== "") payload[el.id] = el.value;
-     });
-     if (!payload.f02_plate_no) {
-         window.showModal("تنبيه", "يرجى إدخال رقم اللوحة على الأقل", "warning");
-         return;
-     }
-     const { error } = id 
-         ? await _supabase.from('t01_cars').update(payload).eq('f01_id', id)
-         : await _supabase.from('t01_cars').insert([payload]);
-     if (error) { window.showModal("فشل العملية", error.message, "error"); } 
-     else { window.showModal("تم الحفظ", "تم تحديث بيانات السيارة بنجاح ✅", "success"); resetForm(); loadData(); }
- }
- 
- function deleteRecord(id) {
-     window.showModal("تأكيد الحذف", "هل أنت متأكد من حذف هذه السيارة؟", "warning", async () => {
-         const { error } = await _supabase.from('t01_cars').delete().eq('f01_id', id);
-         if (error) { window.showModal("خطأ", "لا يمكن الحذف لوجود بيانات مرتبطة", "error"); }
-         else { loadData(); }
-     });
- }
- 
- function editRecord(car) {
-     Object.keys(car).forEach(key => { 
-         const el = document.getElementById(key);
-         if (el) el.value = car[key]; 
-     });
-     window.scrollTo({ top: 0, behavior: 'smooth' });
- }
- 
- function resetForm() {
-     const form = document.getElementById('carForm');
-     if (form) form.reset();
-     document.getElementById('f01_id').value = "";
- }
- 
- function confirmReset() {
-     window.showModal("تأكيد", "هل تريد تفريغ الحقول؟", "info", () => resetForm());
- }
+// --- [1] إعدادات الصفحة والحالة ---
+let allCars = [];
+let filteredCars = [];
+let ownersList = [];
+let driversList = [];
+
+document.addEventListener('DOMContentLoaded', () => {
+    initPage();
+});
+
+async function initPage() {
+    await Promise.all([
+        fetchOwners(),
+        fetchDrivers(),
+        fetchCars()
+    ]);
+    initTableControls();
+    setupEventListeners();
+}
+
+// --- [2] جلب البيانات ---
+async function fetchOwners() {
+    const { data } = await _supabase.from('t10_owners').select('f01_id, f02_owner_name');
+    ownersList = data || [];
+    const sel = document.getElementById('f11_owner_id');
+    if (sel) {
+        sel.innerHTML = '<option value="">-- اختر المالك --</option>' +
+            ownersList.map(o => `<option value="${o.f01_id}">${o.f02_owner_name}</option>`).join('');
+    }
+}
+
+async function fetchDrivers() {
+    const { data } = await _supabase.from('t02_drivers').select('f01_id, f02_name');
+    driversList = data || [];
+    const sel = document.getElementById('f13_current_driver_id');
+    if (sel) {
+        sel.innerHTML = '<option value="">-- اختر السائق الحالي --</option>' +
+            driversList.map(d => `<option value="${d.f01_id}">${d.f02_name}</option>`).join('');
+    }
+}
+
+async function fetchCars() {
+    try {
+        const { data, error } = await _supabase
+            .from('t01_cars')
+            .select('*')
+            .order('f02_plate_no', { ascending: true });
+
+        if (error) throw error;
+        allCars = data || [];
+        filteredCars = [...allCars];
+        renderTable();
+    } catch (err) {
+        showToast("فشل في تحميل بيانات السيارات", "error");
+    }
+}
+
+// --- [3] بناء الجدول الفاخر ---
+function renderTable() {
+    const container = document.getElementById('tableContainer');
+    if (!container) return;
+
+    if (filteredCars.length === 0) {
+        container.innerHTML = '<div class="loading-state">🚗 لا توجد سيارات مطابقة للبحث</div>';
+        return;
+    }
+
+    let html = `
+        <table>
+            <thead>
+                <tr>
+                    <th onclick="sortData('f02_plate_no')">اللوحة | Plate ↕</th>
+                    <th onclick="sortData('f04_brand')">الماركة | Brand ↕</th>
+                    <th onclick="sortData('f06_model')">الموديل | Model ↕</th>
+                    <th onclick="sortData('f08_standard_rent')">الضمان | Rent ↕</th>
+                    <th>المالك | Owner</th>
+                    <th>السائق | Driver</th>
+                    <th onclick="sortData('f12_is_active')">الحالة | Status ↕</th>
+                    <th>إجراءات | Acts</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${filteredCars.map(car => {
+                    // Robust matching: Try to find by ID (handling both Number and String)
+                    // If the database has a mismatch (like 1 vs '1'), String conversion solves it.
+                    let owner = ownersList.find(o => String(o.f01_id) === String(car.f11_owner_id));
+                    
+                    // Fallback: If still not found, try to find by another index if exists (for legacy data)
+                    const driver = driversList.find(d => String(d.f01_id) === String(car.f13_current_driver_id));
+                    
+                    const isA = (car.f12_is_active === 'Active' || car.f12_is_active === 'نشطة' || car.f12_is_active === 'نشط' || car.f12_is_active === 'مشغول');
+                    const statusClass = isA ? 'badge-active' : 'badge-inactive';
+                    const statusText = isA ? (car.f12_is_active === 'مشغول' ? 'مشغول | Busy' : 'نشطة | Active') : 'غير نشطة | InActive';
+
+                    return `
+                        <tr>
+                            <td>${window.formatJordanPlate(car.f02_plate_no, true)}</td>
+                            <td>${car.f04_brand || '---'}</td>
+                            <td>${car.f06_model || '---'}</td>
+                            <td style="font-weight:bold; color:var(--taxi-green)">${car.f08_standard_rent}</td>
+                            <td style="font-weight:600;">${owner ? owner.f02_owner_name : '<span style="color:#95a5a6; font-size:0.8rem;">(غير محدد)</span>'}</td>
+                            <td style="font-weight:600;">${driver ? driver.f02_name : '<span style="color:#95a5a6; font-size:0.8rem;">---</span>'}</td>
+                            <td><span class="badge-status ${statusClass}">${statusText}</span></td>
+                            <td>
+                                <div class="action-btns-group">
+                                    <button class="btn-action-sm btn-view" onclick='showViewModal(${JSON.stringify(car)}, "تفاصيل السيارة | Car Details")' title="عرض">👁️</button>
+                                    <button class="btn-action-sm btn-edit" onclick="editRecord(${car.f15_id})" title="تعديل">✏️</button>
+                                    <button class="btn-action-sm btn-delete" onclick="confirmDelete(${car.f15_id})" title="حذف">🗑️</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+    }).join('')}
+            </tbody>
+        </table>
+    `;
+    container.innerHTML = html;
+    updateCounter();
+}
+
+// --- [4] العمليات (CRUD) ---
+async function handleFormSubmit(e) {
+    e.preventDefault();
+    safeSubmit(async () => {
+        const id = document.getElementById('f01_id').value; // UUID
+        const f15_id = document.getElementById('f15_id').value; // PK Numeric
+
+        const payload = {
+            f02_plate_no: document.getElementById('f02_plate_no').value.trim(),
+            f03_car_office: document.getElementById('f03_car_office').value,
+            f04_brand: document.getElementById('f04_brand').value,
+            f06_model: parseInt(document.getElementById('f06_model').value),
+            f07_license_expiry: document.getElementById('f07_license_expiry').value,
+            f08_standard_rent: parseFloat(document.getElementById('f08_standard_rent').value),
+            f09_management_fee: parseFloat(document.getElementById('f09_management_fee').value),
+            f11_owner_id: document.getElementById('f11_owner_id').value ? parseInt(document.getElementById('f11_owner_id').value) : null,
+            f12_is_active: document.getElementById('f12_is_active').value,
+            f13_current_driver_id: document.getElementById('f13_current_driver_id').value ? parseInt(document.getElementById('f13_current_driver_id').value) : null,
+            f14_car_notes: document.getElementById('f14_car_notes').value,
+            f15_fuel_type: document.getElementById('f15_fuel_type').value
+        };
+
+        try {
+            let res;
+            if (f15_id) {
+                res = await _supabase.from('t01_cars').update(payload).eq('f15_id', f15_id);
+            } else {
+                res = await _supabase.from('t01_cars').insert([payload]);
+            }
+
+            if (res.error) throw res.error;
+
+            showToast("تم حفظ بيانات السيارة بنجاح", "success");
+            resetForm();
+            fetchCars();
+        } catch (err) {
+            showToast("حدث خطأ أثناء الحفظ: " + err.message, "error");
+        }
+    });
+}
+
+function confirmDelete(f15_id) {
+    const car = allCars.find(c => c.f15_id == f15_id);
+    showModal(
+        "حذف سيارة ⚠️",
+        `هل أنت متأكد من حذف السيارة رقم <b>(${car.f02_plate_no})</b>؟ لا يمكن التراجع عن هذا الإجراء.`,
+        'warning',
+        async () => {
+            const { error } = await _supabase.from('t01_cars').delete().eq('f15_id', f15_id);
+            if (!error) {
+                showToast("تم الحذف بنجاح", "success");
+                fetchCars();
+            } else {
+                showToast("لا يمكن الحذف لارتباط بيانات أخرى بهذه السيارة", "error");
+            }
+        }
+    );
+}
+
+function editRecord(f15_id) {
+    const car = allCars.find(c => c.f15_id == f15_id);
+    if (!car) return;
+
+    document.getElementById('f01_id').value = car.f01_id || '';
+    document.getElementById('f15_id').value = car.f15_id;
+    document.getElementById('f02_plate_no').value = car.f02_plate_no;
+    document.getElementById('f03_car_office').value = car.f03_car_office || '';
+    document.getElementById('f04_brand').value = car.f04_brand || '';
+    document.getElementById('f06_model').value = car.f06_model || '';
+    document.getElementById('f07_license_expiry').value = car.f07_license_expiry || '';
+    document.getElementById('f08_standard_rent').value = car.f08_standard_rent || 0;
+    document.getElementById('f09_management_fee').value = car.f09_management_fee || 50;
+    document.getElementById('f11_owner_id').value = car.f11_owner_id || '';
+    document.getElementById('f12_is_active').value = car.f12_is_active || 'Active';
+    document.getElementById('f13_current_driver_id').value = car.f13_current_driver_id || '';
+    document.getElementById('f14_car_notes').value = car.f14_car_notes || '';
+    document.getElementById('f15_fuel_type').value = car.f15_fuel_type || 'بنزين';
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// --- [5] الميزات الإضافية (البحث والترتيب) ---
+function initTableControls() {
+    const placeholder = document.getElementById('tableControlsPlaceholder');
+    if (placeholder) {
+        placeholder.innerHTML = `
+            <div class="table-header-controls">
+                <div class="record-badge">إجمالي الأسطول: <span id="count">${allCars.length}</span></div>
+                <div class="global-search-wrapper">
+                    <input type="text" id="globalSearch" class="global-search-input" placeholder="بحث باللوحة، الماركة، أو السائق..." onkeyup="filterLocal()">
+                    <span class="search-icon">🔍</span>
+                </div>
+            </div>
+        `;
+    }
+}
+
+function filterLocal() {
+    const term = document.getElementById('globalSearch').value.toLowerCase();
+    filteredCars = allCars.filter(c =>
+        c.f02_plate_no.toLowerCase().includes(term) ||
+        (c.f04_brand && c.f04_brand.toLowerCase().includes(term)) ||
+        Object.values(c).some(v => String(v).toLowerCase().includes(term))
+    );
+    renderTable();
+}
+
+let currentSort = { col: 'f02_plate_no', asc: true };
+function sortData(col) {
+    currentSort.asc = (currentSort.col === col) ? !currentSort.asc : true;
+    currentSort.col = col;
+    filteredCars.sort((a, b) => {
+        let vA = a[col] || '';
+        let vB = b[col] || '';
+        return currentSort.asc ? (vA > vB ? 1 : -1) : (vA < vB ? 1 : -1);
+    });
+    renderTable();
+}
+
+function updateCounter() {
+    const el = document.getElementById('count');
+    if (el) el.innerText = filteredCars.length;
+}
+
+function resetForm() {
+    document.getElementById('carForm').reset();
+    document.getElementById('f01_id').value = '';
+    document.getElementById('f15_id').value = '';
+}
+
+function setupEventListeners() {
+    const form = document.getElementById('carForm');
+    if (form) form.addEventListener('submit', handleFormSubmit);
+}
+
+/* END OF FILE: cars.js */

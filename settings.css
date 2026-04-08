@@ -1,0 +1,99 @@
+/* START OF FILE: settings.css */
+/* 
+File: settings.css
+Version: v1.0.0
+Function: Layout for Global System Configuration
+*/
+
+.settings-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.settings-sidebar {
+    background: white;
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    height: fit-content;
+}
+
+.setting-nav-item {
+    padding: 15px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 700;
+    color: #555;
+    transition: all 0.3s;
+    margin-bottom: 10px;
+}
+
+.setting-nav-item:hover {
+    background: #f8f9fa;
+    color: var(--taxi-gold);
+}
+
+.setting-nav-item.active {
+    background: var(--taxi-dark);
+    color: var(--taxi-gold);
+}
+
+.settings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.setting-row {
+    background: white;
+    padding: 20px 30px;
+    border-radius: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #f0f0f0;
+    transition: 0.3s;
+}
+
+.setting-row:hover {
+    border-color: var(--taxi-gold);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+}
+
+.setting-info h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--taxi-dark);
+    font-family: monospace;
+}
+
+.setting-info p {
+    margin: 5px 0 0;
+    font-size: 0.85rem;
+    color: #777;
+}
+
+.setting-value-box {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.value-badge {
+    background: #f8f9fa;
+    padding: 8px 18px;
+    border-radius: 10px;
+    font-weight: 900;
+    color: var(--taxi-gold);
+    border: 1.5px solid #eee;
+}
+
+.no-border { border: none !important; box-shadow: none !important; background: transparent !important; }
+
+@media (max-width: 900px) {
+    .settings-layout { grid-template-columns: 1fr; }
+    .settings-sidebar { display: none; }
+}
+/* END OF FILE: settings.css */

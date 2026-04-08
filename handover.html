@@ -1,93 +1,128 @@
+<!-- START OF FILE: handover.html -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+    <!-- 
+    File: handover.html
+    Version: v1.3.0
+    Function: تسليم واستلام العهدة المرورية | Handover (OUT/IN) Engine
+    Design: Dual-Language Luxury Format
+    -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسليم واستلام السيارات  | نظام إدارة التاكسي الذكي</title>
+    <title>تسليم واستلام السيارات | Handover</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="global-config.js"></script>
     <link rel="stylesheet" href="handover.css">
+    <link rel="stylesheet" href="revenues.css">
 </head>
-<body>
-    <main class="main-container">
-        <div class="elegant-card">
-            <div class="card-header">
-                <span>🔄 سجل تسليم واستلام السيارات | Handover Log</span>
+<body onload="bootSystem('حركة العهدة | Handover')">
+
+    <div class="main-container">
+        
+        <!-- Header -->
+        <div class="luxury-page-header">
+            <div class="header-info">
+                <h1>🔄 تسليم واستلام العهدة | Handover</h1>
+                <p>إدارة دورة تشغيل السيارات والربط مع السائقين | Fleet Dispatch & Return</p>
             </div>
-            
+        </div>
+
+        <!-- Entry Form -->
+        <div class="elegant-card luxury-card-border">
+            <div class="card-header">
+                <span>📝 نموذج المعاملة | Transaction Form</span>
+            </div>
             <form id="handoverForm" class="taxi-form">
+                <input type="hidden" id="f01_id">
                 <div class="input-grid">
                     <div class="form-group full-width">
                         <label>نوع العملية | Action Type</label>
                         <div class="action-selector">
                             <input type="radio" name="f07_action_type" id="out" value="OUT" checked>
-                            <label for="out" class="action-btn">📤 تسليم للسائق</label>
+                            <label for="out" class="action-btn">📤 تسليم | OUT</label>
                             <input type="radio" name="f07_action_type" id="in" value="IN">
-                            <label for="in" class="action-btn">📥 استلام من السائق</label>
+                            <label for="in" class="action-btn">📥 استلام | IN</label>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label>رقم السيارة</label>
-                        <select id="f04_car_id" required><option value="">جاري التحميل...</option></select>
+                        <label>رقم السيارة | Plate No</label>
+                        <select id="f04_car_id" required title="رقم اللوحة (t04_handover.f04_car_id)">
+                            <option value="">-- اختر السيارة --</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
-                        <label>اسم السائق</label>
-                        <select id="f05_driver_id" required><option value="">جاري التحميل...</option></select>
+                        <label>اسم السائق | Driver Name</label>
+                        <select id="f05_driver_id" required title="السائق المستلم/المسلم (t04_handover.f05_driver_id)">
+                            <option value="">-- اختر السائق --</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
-                        <label>قراءة العداد (KM)</label>
-                        <input type="number" id="f09_km_reading" placeholder="000000" required>
+                        <label>عداد المسافة | Odometer</label>
+                        <input type="number" id="f09_km_reading" placeholder="000000 (t04_handover.f09_km_reading)" required>
                     </div>
 
                     <div class="form-group">
-                        <label>مبلغ الضمان</label>
-                        <input type="number" id="f08_daman" value="0" step="0.5">
+                        <label>مبلغ الضمان | Daily Rent</label>
+                        <input type="number" id="f08_daman" placeholder="القيمة الفعلية (t04_handover.f08_daman)" step="0.5">
                     </div>
 
                     <div class="form-group">
-                        <label>الموظف المسؤول</label>
-                        <select id="f06_staff_id" required></select>
+                        <label>الموظف المسؤول | Staff</label>
+                        <select id="f06_staff_id" required title="الموظف المسؤول (t04_handover.f06_staff_id)">
+                            <option value="">-- اختر الموظف --</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
-                        <label>حالة السيارة</label>
-                        <input type="text" id="f10_car_condition" list="condition-list" placeholder="جيدة جداً">
+                        <label>حالة المركبة | Vehicle Cond.</label>
+                        <input type="text" id="f10_car_condition" list="condition-list" placeholder="جيدة، تحتاج غسيل (t04_handover.f10_car_condition)">
                         <datalist id="condition-list">
                             <option value="جيدة جداً">
                             <option value="تحتاج غسيل">
+                            <option value="صدمة خفيفة">
                         </datalist>
                     </div>
 
                     <div class="form-group full-width">
-                        <label>ملاحظات إضافية</label>
-                        <textarea id="f11_notes" rows="2"></textarea>
+                        <label>ملاحظات إضافية | Notes</label>
+                        <textarea id="f11_notes" rows="2" placeholder="أي تفاصيل أخرى (t04_handover.f11_notes)"></textarea>
                     </div>
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="primary-btn">حفظ وتحديث الحالة ✅</button>
+                    <button type="submit" class="primary-btn">حفظ البيانات | Save ✅</button>
+                    <button type="reset" class="secondary-btn">تفريغ | Reset 🔄</button>
                 </div>
             </form>
         </div>
 
-        <div class="elegant-card">
+        <div id="tableControlsPlaceholder"></div>
+
+        <div class="elegant-card grid-card">
             <div class="card-header">
-                <span>🕒 سجل العمليات الأخير | Recent Logs</span>
+                <span>🕒 سجل العمليات | Activity Log</span>
             </div>
             <div id="handoverList" class="table-responsive">
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>جاري تحميل السجلات... | Loading Logs...</p>
                 </div>
+            </div>
         </div>
-    </main>
+    </div>
 
     <script src="handover.js"></script>
     <script>
-        window.onload = () => {
-            bootSystem("حركة العهدة والسيارات");
-            if(typeof loadFormData === 'function') loadFormData();
+        window.onload = async () => {
+            bootSystem("حركة العهدة | Handover");
+            if(typeof loadFormData === 'function') await loadFormData();
         };
     </script>
 </body>
 </html>
+<!-- END OF FILE: handover.html -->

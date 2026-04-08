@@ -1,210 +1,172 @@
 /* ==================================================================
- [payments.js] - إدارة المدفوعات (v1.1.0)
+ [payments.js] - إدارة المدفوعات وتسوية المصاريف (النسخة الكاملة)
  ================================================================== */
 
- let allPayments = []; 
- let sortDirections = {}; 
- 
- // [1] تعبئة القوائم المنسدلة
- async function fillPaymentDropdowns() {
-     try {
-         const { data } = await _supabase.from('t01_cars').select('f02_plate_no');
-         const carSelect = document.getElementById('f05_car_no');
-         if (data && carSelect) {
-             carSelect.innerHTML = '<option value="">-- اختياري --</option>' + 
-                 data.map(c => `<option value="${c.f02_plate_no}">${c.f02_plate_no}</option>`).join('');
-         }
-     } catch (err) {
-         console.error("Dropdown Fill Error:", err);
-     }
- }
- 
- // [2] جلب البيانات من t07_payments
- async function loadData() {
-     const { data, error } = await _supabase
-         .from('t07_payments')
-         .select('*')
-         .order('f02_date', { ascending: false });
- 
-     if (error) { 
-         console.error('Payments fetch error:', error);
-         window.showToast("تعذر جلب البيانات", "error"); 
-         return; 
-     }
-     allPayments = data || [];
-     renderTable(data || []);
- }
- 
- // [3] بناء الجدول — تصفية فوق العناوين
- function renderTable(list) {
-     const countEl = document.getElementById('pageRecordCount');
-     if (countEl) countEl.innerText = list.length;
- 
-     let html = `<table>
-         <thead>
-             <tr class="column-search-row">
-                 <th><input type="text" class="column-search-input" id="col0Filter" onkeyup="multiColumnSearch()" placeholder="بحث..."></th>
-                 <th><input type="text" class="column-search-input" id="col1Filter" onkeyup="multiColumnSearch()" placeholder="بحث..."></th>
-                 <th><input type="text" class="column-search-input" id="col2Filter" onkeyup="multiColumnSearch()" placeholder="بحث..."></th>
-                 <th><input type="text" class="column-search-input" id="col3Filter" onkeyup="multiColumnSearch()" placeholder="بحث..."></th>
-                 <th><input type="text" class="column-search-input" id="col4Filter" onkeyup="multiColumnSearch()" placeholder="بحث..."></th>
-                 <th></th>
-             </tr>
-             <tr>
-                 <th onclick="sortTable(0)">التاريخ</th>
-                 <th onclick="sortTable(1)">النوع</th>
-                 <th onclick="sortTable(2)">المستلم</th>
-                 <th onclick="sortTable(3)">المبلغ</th>
-                 <th onclick="sortTable(4)">السيارة</th>
-                 <th>إجراءات</th>
-             </tr>
-         </thead>
-         <tbody>`;
- 
-     list.forEach(item => {
-         html += `<tr>
-             <td>${item.f02_date || ''}</td>
-             <td>${item.f03_type || ''}</td>
-             <td><b>${item.f09_recipient || ''}</b></td>
-             <td style="color:var(--taxi-red); font-weight:bold;">${item.f04_amount || ''}</td>
-             <td>${item.f05_car_no || '-'}</td>
-             <td>
-                 <div class="action-btns-group">
-                     <button onclick='viewRecord(${JSON.stringify(item)})' class="btn-action-sm btn-view" title="عرض">👁️</button>
-                     <button onclick='editRecord(${JSON.stringify(item)})' class="btn-action-sm btn-edit" title="تعديل">✍️</button>
-                     <button onclick="deleteRecord('${item.f01_id}')" class="btn-action-sm btn-delete" title="حذف">🗑️</button>
-                 </div>
-             </td>
-         </tr>`;
-     });
-     
-     const container = document.getElementById('tableContainer');
-     if(container) container.innerHTML = html + "</tbody></table>";
- }
- 
- // [4] حفظ البيانات
- async function saveData() {
-     const id = document.getElementById('f01_id').value;
-     const payload = {};
-     ['f02_date','f03_type','f04_amount','f05_car_no','f07_method','f08_payer','f09_recipient','f10_reference','f13_notes']
-     .forEach(fid => {
-         const el = document.getElementById(fid);
-         if (el && el.value.trim() !== '') payload[fid] = el.value.trim();
-     });
- 
-     if (!payload.f02_date || !payload.f04_amount || !payload.f09_recipient) {
-         window.showToast('يرجى إكمال البيانات الأساسية (التاريخ، المبلغ، المستلم)', 'warning');
-         return;
-     }
- 
-     const btn = document.querySelector('.btn-main');
-     const originalText = btn?.innerHTML;
-     if (btn) { btn.innerHTML = '🔄 جاري الحفظ...'; btn.disabled = true; }
- 
-     try {
-         const { error } = id 
-             ? await _supabase.from('t07_payments').update(payload).eq('f01_id', id)
-             : await _supabase.from('t07_payments').insert([payload]);
-             
-         if (error) { 
-             window.showToast(error.message, 'error'); 
-         } else { 
-             window.showToast('تم حفظ العملية بنجاح ✅', 'success');
-             resetFieldsOnly(); loadData();
-         }
-     } finally {
-         if (btn) { btn.innerHTML = originalText; btn.disabled = false; }
-     }
- }
- 
- // [5] البحث المتقدم
- function multiColumnSearch() {
-     const globalVal = (document.getElementById('globalSearch')?.value || '').toLowerCase();
-     const colFilters = [
-         (document.getElementById('col0Filter')?.value || '').toLowerCase(),
-         (document.getElementById('col1Filter')?.value || '').toLowerCase(),
-         (document.getElementById('col2Filter')?.value || '').toLowerCase(),
-         (document.getElementById('col3Filter')?.value || '').toLowerCase(),
-         (document.getElementById('col4Filter')?.value || '').toLowerCase()
-     ];
-     const fields = ['f02_date', 'f03_type', 'f09_recipient', 'f04_amount', 'f05_car_no'];
- 
-     const filtered = allPayments.filter(item => {
-         const matchesGlobal = globalVal === '' || Object.values(item).some(v => String(v).toLowerCase().includes(globalVal));
-         if (!matchesGlobal) return false;
-         return fields.every((f, i) => colFilters[i] === '' || String(item[f] || '').toLowerCase().includes(colFilters[i]));
-     });
- 
-     const activeId = document.activeElement.id;
-     renderTable(filtered);
-     if (activeId) {
-         const input = document.getElementById(activeId);
-         if (input) { input.focus(); const v = input.value; input.value = ''; input.value = v; }
-     }
- }
- 
- // [6] دوال مساعدة
- function resetFieldsOnly() {
-     document.getElementById('f01_id').value = '';
-     document.getElementById('paymentForm').reset();
-     document.getElementById('f02_date').valueAsDate = new Date();
- }
- 
- function confirmReset() {
-     window.showModal('تنبيه', 'هل تريد إفراغ جميع الحقول؟', 'warning', () => { resetFieldsOnly(); });
- }
- 
- function deleteRecord(id) {
-     window.showModal('تأكيد', 'هل أنت متأكد من حذف هذه العملية؟', 'error', async () => {
-         const { error } = await _supabase.from('t07_payments').delete().eq('f01_id', id);
-         if (error) { window.showToast('فشل الحذف', 'error'); }
-         else { window.showToast('تم الحذف بنجاح 🗑️', 'success'); loadData(); }
-     });
- }
- 
- function editRecord(item) {
-     document.getElementById('f01_id').value = item.f01_id;
-     ['f02_date','f03_type','f04_amount','f05_car_no','f07_method','f08_payer','f09_recipient','f10_reference','f13_notes']
-     .forEach(fid => {
-         const el = document.getElementById(fid);
-         if (el) el.value = item[fid] || '';
-     });
-     window.scrollTo({ top: 0, behavior: 'smooth' });
-     window.showToast('تم تحميل البيانات للتعديل', 'info');
- }
- 
- function viewRecord(item) {
-     let msg = `
-         <div style="text-align:right; font-family:inherit;">
-             <p><b>التاريخ:</b> ${item.f02_date || '-'}</p>
-             <p><b>النوع:</b> ${item.f03_type || '-'}</p>
-             <p><b>المبلغ:</b> ${item.f04_amount || '-'}</p>
-             <p><b>السيارة:</b> ${item.f05_car_no || '-'}</p>
-             <p><b>المستلم:</b> ${item.f09_recipient || '-'}</p>
-             <p><b>الدافع:</b> ${item.f08_payer || '-'}</p>
-             <p><b>المرجع:</b> ${item.f10_reference || '-'}</p>
-             <p><b>ملاحظات:</b> ${item.f13_notes || '-'}</p>
-         </div>
-     `;
-     window.showModal('تفاصيل المدفوعات', msg, 'info');
- }
- 
- function sortTable(n) {
-     const tbody = document.querySelector("table tbody");
-     const rows = Array.from(tbody.rows);
-     const isAsc = sortDirections[n] !== true;
-     
-     rows.sort((a, b) => {
-         let x = a.cells[n].innerText.toLowerCase();
-         let y = b.cells[n].innerText.toLowerCase();
-         if (!isNaN(x) && !isNaN(y)) { x = parseFloat(x); y = parseFloat(y); }
-         return isAsc ? (x > y ? 1 : -1) : (x < y ? 1 : -1);
-     });
-     
-     sortDirections[n] = isAsc;
-     rows.forEach(row => tbody.appendChild(row));
-     
-     // تحديث أيقونات الترتيب في global-config.js
-     if (window.updateSortVisuals) window.updateSortVisuals(n, isAsc);
- }
-/* === END OF FILE === */
+let allPayments = [];
+
+// [1] تهيئة الصفحة عند التحميل
+async function initPaymentPage() {
+    await fillCarDropdown();
+    await loadPaymentsData();
+    syncPayerField();
+    
+    // ربط الفورم بعملية الحفظ
+    const form = document.getElementById('paymentForm');
+    if(form) {
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            await savePaymentData();
+        };
+    }
+}
+
+// [2] جلب السيارات لتعبئة القائمة
+async function fillCarDropdown() {
+    const { data } = await _supabase.from('t01_cars').select('f02_plate_no');
+    const carSelect = document.getElementById('f05_car_no');
+    if (data && carSelect) {
+        carSelect.innerHTML = '<option value="">-- اختر السيارة --</option>' + 
+            data.map(c => `<option value="${c.f02_plate_no}">${c.f02_plate_no}</option>`).join('');
+    }
+}
+
+// [3] مطابقة ذكية: جلب مصاريف السيارة المختارة (غير المدفوعة)
+async function loadPendingExpenses(carNo) {
+    if (!carNo) return;
+    const expenseSelect = document.getElementById('f06_expense_link');
+    
+    // جلب المصاريف المرتبطة بالسيارة من جدول t06
+    const { data } = await _supabase.from('t06_expenses')
+        .select('f01_id, f07_expense_type, f08_amount, f02_date')
+        .eq('f03_car_no', carNo);
+
+    if (data && expenseSelect) {
+        expenseSelect.innerHTML = '<option value="">-- اختر مصروف للمطابقة --</option>' + 
+            data.map(e => `<option value="${e.f01_id}">${e.f02_date} | ${e.f07_expense_type} (${e.f08_amount} د.أ)</option>`).join('');
+    }
+}
+
+// [4] جلب وعرض البيانات
+async function loadPaymentsData() {
+    const { data, error } = await _supabase.from('t07_payments').select('*').order('f02_date', { ascending: false });
+    if (data) {
+        allPayments = data;
+        renderTable(data);
+    }
+}
+
+function renderTable(data) {
+    let html = `<table><thead><tr>
+        <th>التاريخ</th><th>النوع</th><th>السيارة</th><th>المبلغ</th><th>المستلم</th><th>مطابقة؟</th><th>إجراءات</th>
+    </tr></thead><tbody>`;
+
+    data.forEach(item => {
+        // تحويل البيانات لنص JSON لإرسالها لدالة التعديل
+        const itemJson = JSON.stringify(item).replace(/'/g, "&apos;");
+        
+        html += `<tr>
+            <td>${item.f02_date}</td>
+            <td>${item.f03_type}</td>
+            <td>${item.f05_car_no || '-'}</td>
+            <td style="font-weight:bold;">${item.f04_amount}</td>
+            <td>${item.f09_recipient || '-'}</td>
+            <td>${item.f06_expense_link ? '✅' : '❌'}</td>
+            <td>
+                <button class="btn-action edit-btn" onclick='editRecord(${itemJson})'>📝</button>
+                <button class="btn-action delete-btn" onclick="deleteRecord('${item.f01_id}')">🗑️</button>
+            </td>
+        </tr>`;
+    });
+    html += `</tbody></table>`;
+    document.getElementById('tableContainer').innerHTML = html;
+}
+
+// [5] دالة التعديل (تعبئة الفورم بالبيانات)
+function editRecord(item) {
+    // تعبئة كل الحقول التي تبدأ بـ f وتطابق أسماء الأعمدة
+    Object.keys(item).forEach(key => {
+        const input = document.getElementById(key);
+        if (input) input.value = item[key];
+    });
+    
+    // إذا كانت السيارة مختارة، يجب تحميل قائمة المصاريف المرتبطة بها
+    if(item.f05_car_no) {
+        loadPendingExpenses(item.f05_car_no).then(() => {
+            document.getElementById('f06_expense_link').value = item.f06_expense_link || "";
+        });
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// [6] دالة الحذف (باستخدام المودال المخصص)
+function deleteRecord(id) {
+    window.showModal("تنبيه الحذف", "هل أنت متأكد من حذف هذه الدفعة؟ لا يمكن التراجع!", "danger", async () => {
+        const { error } = await _supabase.from('t07_payments').delete().eq('f01_id', id);
+        if (!error) {
+            window.showModal("نجاح", "تم الحذف بنجاح", "success");
+            loadPaymentsData();
+        } else {
+            window.showModal("خطأ", "فشل الحذف: " + error.message, "error");
+        }
+    });
+}
+
+// [7] الحفظ والتحديث
+async function savePaymentData() {
+    const id = document.getElementById('f01_id').value;
+    const isReconciled = document.getElementById('f06_expense_link').value !== "";
+    
+    const payload = {
+        f02_date: document.getElementById('f02_date').value,
+        f03_type: document.getElementById('f03_type').value,
+        f04_amount: parseFloat(document.getElementById('f04_amount').value),
+        f05_car_no: document.getElementById('f05_car_no').value,
+        f06_expense_link: document.getElementById('f06_expense_link').value || null,
+        f07_method: document.getElementById('f07_method').value,
+        f08_payer: document.getElementById('f08_payer').value,
+        f09_recipient: document.getElementById('f09_recipient').value,
+        f10_reference: document.getElementById('f10_reference').value,
+        f11_is_reconciled: isReconciled,
+        f13_notes: document.getElementById('f13_notes').value
+    };
+
+    let res;
+    if (id) {
+        res = await _supabase.from('t07_payments').update(payload).eq('f01_id', id);
+    } else {
+        res = await _supabase.from('t07_payments').insert([payload]);
+    }
+
+    if (!res.error) {
+        window.showModal("نجاح", "تمت العملية بنجاح", "success");
+        resetFieldsOnly();
+        loadPaymentsData();
+    }
+}
+
+function syncPayerField() {
+    const user = sessionStorage.getItem('full_name_ar');
+    if(user) document.getElementById('f08_payer').value = user;
+}
+
+function resetFieldsOnly() {
+    document.getElementById('paymentForm').reset();
+    document.getElementById('f01_id').value = "";
+    document.getElementById('f02_date').valueAsDate = new Date();
+    syncPayerField();
+}
+
+function confirmReset() {
+    window.showModal("تنبيه", "تفريغ الحقول؟", "info", () => resetFieldsOnly());
+}
+
+function excelFilter() {
+    const val = document.getElementById('excelSearch').value.toLowerCase();
+    const filtered = allPayments.filter(p => 
+        (p.f03_type && p.f03_type.toLowerCase().includes(val)) || 
+        (p.f05_car_no && p.f05_car_no.toLowerCase().includes(val)) ||
+        (p.f09_recipient && p.f09_recipient.toLowerCase().includes(val))
+    );
+    renderTable(filtered);
+}

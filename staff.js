@@ -1,91 +1,66 @@
-let allStaff = [];
-let sortDirections = {};
+/* ==================================================================
+   [staff.js] - إدارة الموظفين (النسخة النهائية الموحدة)
+   ================================================================== */
 
+let allStaff = [];
+let sortDirections = {}; 
+
+// [1] جلب البيانات من جدول t11_staff
 async function loadData() {
-    const { data, error } = await _supabase.from('t11_staff').select('*').order('f02_full_name');
-    if (error) {
-        window.showModal("خطأ", "تعذر جلب البيانات");
-        return;
+    const { data, error } = await _supabase
+        .from('t11_staff')
+        .select('*')
+        .order('f07_created_at', { ascending: false });
+
+    if (error) { 
+        window.showModal("خطأ", "تعذر جلب بيانات الموظفين", "error");
+        return; 
     }
     allStaff = data;
     renderTable(data);
 }
 
+// [2] بناء الجدول مع دعم الأسهم المركزية (السهم الأصفر)
 function renderTable(list) {
-    if (window.updateRecordCounter) {
-        window.updateRecordCounter(list.length);
-    }
-
-    let html = `<table><thead><tr>
-        <th onclick="sortTable(0)">الاسم</th>
-        <th onclick="sortTable(1)">الوظيفة</th>
-        <th onclick="sortTable(2)">رقم الجوال</th>
-        <th>إجراءات</th>
-    </tr></thead><tbody>`;
+    let html = `<table>
+        <thead>
+            <tr>
+                <th onclick="sortTable(0)" style="cursor:pointer">الاسم الكامل <span id="sortIcon0" class="sort-icon">↕</span></th>
+                <th onclick="sortTable(1)" style="cursor:pointer">المسمى الوظيفي <span id="sortIcon1" class="sort-icon">↕</span></th>
+                <th onclick="sortTable(2)" style="cursor:pointer">رقم الهاتف <span id="sortIcon2" class="sort-icon">↕</span></th>
+                <th onclick="sortTable(3)" style="cursor:pointer">الصلاحية <span id="sortIcon3" class="sort-icon">↕</span></th>
+                <th>إجراءات</th>
+            </tr>
+        </thead>
+        <tbody>`;
 
     list.forEach(item => {
         html += `<tr>
-            <td style="font-weight:bold;">${item.f02_full_name}</td>
-            <td>${item.f06_job_title}</td>
-            <td>${item.f04_mobile_number}</td>
+            <td><b style="color:var(--taxi-dark)">${item.f02_name}</b></td>
+            <td>${item.f05_title || '-'}</td>
+            <td>${item.f04_mobile || '-'}</td>
+            <td><span class="badge-${item.f06_authority}">${item.f06_authority.toUpperCase()}</span></td>
             <td>
                 <button onclick='editRecord(${JSON.stringify(item)})' class="btn-action edit-btn">📝</button>
-                <button onclick="deleteRecord(${item.f01_id})" class="btn-action delete-btn">🗑️</button>
+                <button onclick="deleteRecord('${item.f01_id}')" class="btn-action delete-btn">🗑️</button>
             </td>
         </tr>`;
     });
     document.getElementById('tableContainer').innerHTML = html + "</tbody></table>";
-    updateSortVisuals();
 }
 
-function sortTable(columnIndex) {
-    const sortKey = Object.keys(allStaff[0])[columnIndex + 1]; 
-    sortDirections[sortKey] = sortDirections[sortKey] === 'asc' ? 'desc' : 'asc';
-
-    allStaff.sort((a, b) => {
-        if (a[sortKey] < b[sortKey]) return sortDirections[sortKey] === 'asc' ? -1 : 1;
-        if (a[sortKey] > b[sortKey]) return sortDirections[sortKey] === 'asc' ? 1 : -1;
-        return 0;
-    });
-
-    renderTable(allStaff);
-    updateSortVisuals(columnIndex);
-}
-
-function updateSortVisuals(columnIndex) {
-    document.querySelectorAll('th').forEach((th, i) => {
-        th.classList.remove('sort-asc', 'sort-desc');
-        const sortKey = Object.keys(allStaff[0])[i + 1];
-        if (i === columnIndex) {
-            th.classList.add(sortDirections[sortKey] === 'asc' ? 'sort-asc' : 'sort-desc');
-        }
-    });
-}
-
-function excelFilter() {
-    const val = document.getElementById('excelSearch').value.toLowerCase();
-    const filtered = allStaff.filter(o => 
-        o.f02_full_name.toLowerCase().includes(val) || 
-        o.f03_id_number.includes(val) ||
-        o.f04_mobile_number.includes(val)
-    );
-    renderTable(filtered);
-}
-
+// [3] حفظ البيانات (Insert / Update)
 async function saveData() {
     const id = document.getElementById('f01_id').value;
-    const payload = {
-        f02_full_name: document.getElementById('f02_full_name').value,
-        f03_id_number: document.getElementById('f03_id_number').value,
-        f04_mobile_number: document.getElementById('f04_mobile_number').value,
-        f05_nationality: document.getElementById('f05_nationality').value,
-        f06_job_title: document.getElementById('f06_job_title').value,
-        f07_salary: document.getElementById('f07_salary').value,
-        f08_notes: document.getElementById('f08_notes').value
-    };
+    const payload = {};
+    
+    // جمع الحقول التي تبدأ بـ f حسب الدستور
+    document.querySelectorAll('[id^="f"]').forEach(el => {
+        if(el.value.trim() !== "") payload[el.id] = el.value.trim();
+    });
 
-    if (!payload.f02_full_name || !payload.f04_mobile_number) {
-        window.showModal("تنبيه", "الاسم ورقم الجوال مطلوبان");
+    if (!payload.f02_name || !payload.f03_password) {
+        window.showModal("تنبيه", "يرجى إدخال الاسم وكلمة المرور", "warning");
         return;
     }
 
@@ -93,43 +68,78 @@ async function saveData() {
         ? await _supabase.from('t11_staff').update(payload).eq('f01_id', id)
         : await _supabase.from('t11_staff').insert([payload]);
 
-    if (!error) {
-        window.showModal("تم بنجاح", "تم حفظ البيانات ✅");
-        resetForm();
-        loadData();
+    if (error) {
+        window.showModal("خطأ", "فشل الحفظ: " + error.message, "error");
     } else {
-        window.showModal("خطأ", error.message);
+        window.showModal("نجاح", "تم حفظ بيانات الموظف بنجاح ✅", "success");
+        resetFieldsOnly();
+        loadData();
     }
 }
 
-async function deleteRecord(id) {
-    window.showModal("تأكيد", "هل تريد مسح هذا الموظف؟", true, async () => {
+// [4] الحذف باستخدام المودال العالمي
+function deleteRecord(id) {
+    window.showModal("⚠️ تأكيد الحذف", "هل أنت متأكد من مسح بيانات الموظف نهائياً؟", "error", async () => {
         const { error } = await _supabase.from('t11_staff').delete().eq('f01_id', id);
-        if (!error) loadData();
+        if (error) {
+            window.showModal("خطأ", "فشل الحذف، قد يكون الموظف مرتبط بسجلات أخرى", "error");
+        } else {
+            loadData();
+        }
     });
 }
 
+// [5] محرك الفرز الذكي (مرتبط بالجلوبال)
+function sortTable(n) {
+    const tbody = document.querySelector("table tbody");
+    if (!tbody) return;
+
+    let rows = Array.from(tbody.rows);
+    sortDirections[n] = !sortDirections[n];
+    const direction = sortDirections[n] ? 1 : -1;
+
+    // تحديث الأسهم الصفراء (المخ المركزي)
+    if (window.updateSortVisuals) {
+        window.updateSortVisuals(n, sortDirections[n]);
+    }
+
+    rows.sort((a, b) => {
+        let aT = a.cells[n].innerText.trim();
+        let bT = b.cells[n].innerText.trim();
+        
+        // فرز الأرقام والنصوص
+        if (!isNaN(aT) && !isNaN(bT) && aT !== "" && bT !== "") {
+            return (parseFloat(aT) - parseFloat(bT)) * direction;
+        }
+        return aT.localeCompare(bT, 'ar', { numeric: true }) * direction;
+    });
+
+    tbody.append(...rows);
+}
+
+// [6] دوال مساعدة (تعديل وتفريغ)
 function editRecord(item) {
-    document.getElementById('f01_id').value = item.f01_id;
-    document.getElementById('f02_full_name').value = item.f02_full_name;
-    document.getElementById('f03_id_number').value = item.f03_id_number;
-    document.getElementById('f04_mobile_number').value = item.f04_mobile_number;
-    document.getElementById('f05_nationality').value = item.f05_nationality;
-    document.getElementById('f06_job_title').value = item.f06_job_title;
-    document.getElementById('f07_salary').value = item.f07_salary;
-    document.getElementById('f08_notes').value = item.f08_notes;
+    Object.keys(item).forEach(key => {
+        const el = document.getElementById(key);
+        if(el) el.value = item[key];
+    });
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function confirmReset() {
-    window.showModal("تأكيد", "مسح الحقول؟", true, () => resetForm());
-}
-
-function resetForm() {
-    document.getElementById('staffForm').reset();
+function resetFieldsOnly() {
+    const form = document.getElementById('staffForm');
+    if(form) form.reset();
     document.getElementById('f01_id').value = "";
 }
 
-window.onload = () => {
-    loadData();
-};
+function confirmReset() {
+    window.showModal("تأكيد", "هل تريد مسح جميع الحقول؟", "info", () => resetFieldsOnly());
+}
+
+function excelFilter() {
+    const val = document.getElementById('excelSearch').value.toLowerCase();
+    const filtered = allStaff.filter(item => 
+        Object.values(item).some(v => String(v).toLowerCase().includes(val))
+    );
+    renderTable(filtered);
+}

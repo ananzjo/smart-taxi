@@ -6,8 +6,8 @@
     --taxi-gold: #f1c40f;
     --taxi-dark: #121212;
     --taxi-gray: #f8f9fa;
-    --out-color: #e67e22;
-    --in-color: #27ae60;
+    --out-color: #27ae60; /* أخضر للتسليم */
+    --in-color: #e74c3c;  /* أحمر للاستلام */
     --border-light: #efefef;
 }
 
@@ -95,18 +95,7 @@
     padding: 30px 0 10px 0; 
 }
 
-.primary-btn {
-    background: var(--taxi-dark);
-    color: var(--taxi-gold);
-    width: 300px;
-    padding: 16px;
-    border: none;
-    border-radius: 50px;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 1.1rem;
-    transition: 0.4s ease;
-}
+/* الزر يتبع الآن النمط المجمّع */
 
 .primary-btn:hover {
     transform: scale(1.05);
@@ -144,19 +133,7 @@ td:has(.odometer-red) {
 }
 
 /* الزر التفاعلي المطور */
-.primary-btn {
-    background: var(--taxi-dark);
-    color: var(--taxi-gold);
-    width: 320px;
-    padding: 16px;
-    border: none;
-    border-radius: 50px;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 1.15rem;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* حركة ارتدادية أنيقة */
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
+/* نمط الزر موحد عالمياً */
 
 .primary-btn:hover {
     transform: translateY(-3px) scale(1.02); /* يرتفع قليلاً ويكبر */

@@ -1,58 +1,98 @@
+<!-- START OF FILE: drivers.html -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+    <!-- 
+    File: drivers.html
+    Version: v1.3.0
+    Function: إدارة بيانات السائقين | Driver Management Center
+    Design: Dual-Language Luxury Format
+    -->
     <meta charset="UTF-8">
-    <title>نظام إدارة التاكسي الذكي | السائقين</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة السائقين | Drivers Management</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="global-config.js"></script>
     <link rel="stylesheet" href="drivers.css">
+    <link rel="stylesheet" href="revenues.css">
 </head>
-<body>
-    <main class="main-container">
-        <div class="elegant-card">
-            <div class="card-header header-flex">
-                <span>👤 إدارة بيانات السائقين | Drivers Management</span>
+<body onload="bootSystem('إدارة السائقين | Drivers')">
+
+    <div class="main-container">
+        
+        <!-- Header -->
+        <div class="luxury-page-header">
+            <div class="header-info">
+                <h1>👨‍✈️ السائقين | Drivers</h1>
+                <p>إدارة سجلات السائقين والحالة التشغيلية | Driver Records & Status</p>
             </div>
-            
+        </div>
+
+        <!-- Entry Form -->
+        <div class="elegant-card luxury-card-border">
+            <div class="card-header">
+                <span>📝 نماذج البيانات | Data Entry Form</span>
+            </div>
             <form id="driverForm" class="taxi-form">
                 <input type="hidden" id="f01_id">
+                
                 <div class="input-grid">
-                    <div class="form-group"><label>اسم السائق | Driver Name</label><input type="text" id="f02_name" required></div>
-                    <div class="form-group"><label>الرقم الوطني | National ID</label><input type="text" id="f03_national_no" required></div>
-                    <div class="form-group"><label>رقم الهاتف | Mobile Number</label><input type="text" id="f04_mobile" required></div>
-                    <div class="form-group"><label>الموقع الجغرافي (رابط) | Location URL</label><input type="url" id="f06_location_url" placeholder="https://maps.google.com/..."></div>
-                    <div class="form-group full-width">
-                        <label>العنوان بالتفصيل | Detailed Address</label>
-                        <textarea id="f05_address" rows="2"></textarea>
+                    <div class="form-group">
+                        <label>الاسم الكامل | Driver Name</label>
+                        <input type="text" id="f02_name" placeholder="الاسم الرباعي (t02_drivers.f02_name)" required>
+                    </div>
+                    <div class="form-group">
+                        <label>الرقم الوطني | National ID</label>
+                        <input type="text" id="f03_national_no" placeholder="10 خانات (t02_drivers.f03_national_no)" required>
+                    </div>
+                    <div class="form-group">
+                        <label>رقم الهاتف | Mobile No</label>
+                        <input type="tel" id="f04_mobile" placeholder="07XXXXXXXX (t02_drivers.f04_mobile)" required>
+                    </div>
+                    <div class="form-group">
+                        <label>عنوان السكن | Address</label>
+                        <input type="text" id="f05_address" placeholder="المدينة/المنطقة (t02_drivers.f05_address)">
+                    </div>
+                    <div class="form-group">
+                        <label>رابط الموقع | Maps Location</label>
+                        <input type="url" id="f06_location_url" placeholder="رابط خرائط جوجل (t02_drivers.f06_location_url)">
+                    </div>
+                    <div class="form-group">
+                        <label>الحالة | Status</label>
+                        <input type="text" id="f07_status" readonly style="background:#f9f9f9; cursor:not-allowed;" title="تُحدث تلقائياً من التسليم">
+                    </div>
+                    <div class="form-group">
+                        <label>السيارة الحالية | Current Car</label>
+                        <input type="text" id="f09_car" placeholder="تُحدث تلقائياً من التسليم (t02_drivers.f09_car)" readonly style="background:#f9f9f9; cursor:not-allowed;">
                     </div>
                 </div>
+
                 <div class="form-actions">
-                    <button type="button" onclick="saveData()" class="btn-main">حفظ البيانات | Save</button>
-                    <button type="button" onclick="confirmReset()" class="btn-sub">تفريغ | Clear</button>
+                    <button type="submit" class="primary-btn">حفظ البيانات | Save Data ✅</button>
+                    <button type="reset" class="secondary-btn" onclick="resetForm()">تفريغ | Reset 🔄</button>
                 </div>
             </form>
         </div>
 
-        <div class="elegant-card">
-            <div class="excel-controls" style="display: flex; align-items: center; justify-content: flex-start; gap: 20px; padding: 10px;">
-                <span style="white-space: nowrap; font-weight: bold; color: var(--taxi-dark);">📋 سجل السائقين</span>
-                <input type="text" id="excelSearch" placeholder="بحث سريع..." onkeyup="excelFilter()" 
-                       style="width: 300px; padding: 8px 15px; border-radius: 6px; border: 1px solid #ddd;">
-                <div class="record-badge">
-                    <span id="recordCount" style="margin-left: 5px;">0</span> سجل
+        <!-- Unified Grid Controls -->
+        <div id="tableControlsPlaceholder"></div>
+
+        <!-- Data Grid -->
+        <div class="elegant-card grid-card">
+            <div class="card-header">
+                <span>📋 سجل السائقين | Drivers Ledger</span>
+            </div>
+            <div id="tableContainer" class="table-responsive">
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>جاري تحميل البيانات... | Loading Data...</p>
                 </div>
             </div>
-            <div id="tableContainer" class="table-responsive"></div>
         </div>
-    </main>
+    </div>
 
     <script src="drivers.js"></script>
-    <script>
-        window.onload = () => { 
-            bootSystem("إدارة السائقين"); 
-            loadData(); 
-            startTaxiClock();
-        };
-    </script>
 </body>
 </html>
+<!-- END OF FILE: drivers.html -->

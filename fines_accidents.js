@@ -1,0 +1,203 @@
+/* START OF FILE: fines_accidents.js */
+/**
+ * File: fines_accidents.js
+ * Version: v1.3.0
+ * Function: إدارة المخالفات والحوادث والذمم المالية
+ */
+
+let allRecords = [];
+let filteredRecords = [];
+
+document.addEventListener('DOMContentLoaded', () => {
+    initPage();
+});
+
+async function initPage() {
+    await fillDropdowns();
+    await fetchRecords();
+    initTableControls();
+    setupFormListener();
+}
+
+async function fillDropdowns() {
+    try {
+        const [carsRes, driversRes] = await Promise.all([
+            _supabase.from('t01_cars').select('f02_plate_no'),
+            _supabase.from('t02_drivers').select('f01_id, f02_name')
+        ]);
+
+        const carSel = document.getElementById('f03_car_no');
+        const drvSel = document.getElementById('f04_driver_id');
+
+        if (carsRes.data && carSel) {
+            carSel.innerHTML += carsRes.data.map(c => `<option value="${c.f02_plate_no}">${c.f02_plate_no}</option>`).join('');
+        }
+        if (driversRes.data && drvSel) {
+            drvSel.innerHTML += driversRes.data.map(d => `<option value="${d.f01_id}">${d.f02_name}</option>`).join('');
+        }
+    } catch (err) {
+        console.error("Dropdown Error:", err);
+    }
+}
+
+async function fetchRecords() {
+    try {
+        const { data, error } = await _supabase
+            .from('t09_fines_accidents')
+            .select(`*, t02_drivers(f02_name)`)
+            .order('f02_date', { ascending: false });
+
+        if (error) throw error;
+        allRecords = data || [];
+        filteredRecords = [...allRecords];
+        renderTable();
+    } catch (err) {
+        showToast("فشل تحميل البيانات", "error");
+    }
+}
+
+function renderTable() {
+    const container = document.getElementById('finesTableContainer');
+    if (!container) return;
+
+    if (filteredRecords.length === 0) {
+        container.innerHTML = '<div class="loading-state">⚠️ لا توجد سجلات مطابقة</div>';
+        return;
+    }
+
+    let html = `
+        <table>
+            <thead>
+                <tr>
+                    <th onclick="sortData('f02_date')">التاريخ | Date ↕</th>
+                    <th onclick="sortData('f03_car_no')">السيارة | Plate ↕</th>
+                    <th>السائق | Driver</th>
+                    <th onclick="sortData('f06_type')">النوع | Type ↕</th>
+                    <th onclick="sortData('f05_amount')">المبلغ | Amt ↕</th>
+                    <th onclick="sortData('f07_status')">الحالة | Status ↕</th>
+                    <th>إجراءات | Acts</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${filteredRecords.map(r => {
+                    const statusClass = r.f07_status === 'Paid' ? 'badge-paid' : (r.f07_status === 'Pending' ? 'badge-pending' : 'badge-off');
+                    return `
+                        <tr>
+                            <td>${r.f02_date}</td>
+                            <td style="font-weight:700;">${r.f03_car_no}</td>
+                            <td>${r.t02_drivers ? r.t02_drivers.f02_name : '---'}</td>
+                            <td>${r.f06_type}</td>
+                            <td style="font-weight:900; color:var(--taxi-red)">${r.f05_amount}</td>
+                            <td><span class="badge-status ${statusClass}">${r.f07_status}</span></td>
+                            <td>
+                                <div class="action-btns-group">
+                                    ${r.f09_attachment ? `<a href="${r.f09_attachment}" target="_blank" class="btn-action-sm" title="عرض المرفق">📎</a>` : ''}
+                                    <button class="btn-action-sm btn-edit" onclick="editRecord(${r.f01_id})" title="تعديل">✏️</button>
+                                    <button class="btn-action-sm btn-delete" onclick="confirmDelete(${r.f01_id})" title="حذف">🗑️</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('')}
+            </tbody>
+        </table>
+    `;
+    container.innerHTML = html;
+    updateCounter();
+}
+
+async function handleFormSubmit(e) {
+    e.preventDefault();
+    safeSubmit(async () => {
+        const id = document.getElementById('f01_id').value;
+        const payload = {
+            f02_date: document.getElementById('f02_date').value,
+            f03_car_no: document.getElementById('f03_car_no').value,
+            f04_driver_id: document.getElementById('f04_driver_id').value,
+            f05_amount: document.getElementById('f05_amount').value,
+            f06_type: document.getElementById('f06_type').value,
+            f07_status: document.getElementById('f07_status').value,
+            f08_description: document.getElementById('f08_description').value.trim(),
+            f09_attachment: document.getElementById('f09_attachment').value.trim()
+        };
+
+        try {
+            const res = id 
+                ? await _supabase.from('t09_fines_accidents').update(payload).eq('f01_id', id)
+                : await _supabase.from('t09_fines_accidents').insert([payload]);
+
+            if (res.error) throw res.error;
+
+            showToast("تم حفظ السجل بنجاح ✅", "success");
+            resetForm();
+            fetchRecords();
+        } catch (err) {
+            showToast("خطأ أثناء الحفظ", "error");
+        }
+    });
+}
+
+function editRecord(id) {
+    const r = allRecords.find(x => x.f01_id == id);
+    if (!r) return;
+
+    document.getElementById('f01_id').value = r.f01_id;
+    document.getElementById('f02_date').value = r.f02_date;
+    document.getElementById('f03_car_no').value = r.f03_car_no;
+    document.getElementById('f04_driver_id').value = r.f04_driver_id;
+    document.getElementById('f05_amount').value = r.f05_amount;
+    document.getElementById('f06_type').value = r.f06_type;
+    document.getElementById('f07_status').value = r.f07_status || 'Pending';
+    document.getElementById('f08_description').value = r.f08_description || '';
+    document.getElementById('f09_attachment').value = r.f09_attachment || '';
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function confirmDelete(id) {
+    showModal("حذف سجل التزام ⚠️", "هل أنت متأكد من حذف هذا السجل؟", 'warning', async () => {
+        const { error } = await _supabase.from('t09_fines_accidents').delete().eq('f01_id', id);
+        if (!error) {
+            showToast("تم الحذف بنجاح", "success");
+            fetchRecords();
+        }
+    });
+}
+
+function initTableControls() {
+    const placeholder = document.getElementById('tableControlsPlaceholder');
+    placeholder.innerHTML = `
+        <div class="table-header-controls">
+            <div class="record-badge">إجمالي الحالات: <span id="count">${allRecords.length}</span></div>
+            <div class="global-search-wrapper">
+                <input type="text" id="globalSearch" class="global-search-input" placeholder="بحث بالسيارة، السائق، أو النوع..." onkeyup="filterLocal()">
+                <span class="search-icon">🔍</span>
+            </div>
+        </div>
+    `;
+}
+
+function filterLocal() {
+    const term = document.getElementById('globalSearch').value.toLowerCase();
+    filteredRecords = allRecords.filter(r => 
+        Object.values(r).some(v => String(v).toLowerCase().includes(term)) ||
+        (r.t02_drivers && r.t02_drivers.f02_name.toLowerCase().includes(term))
+    );
+    renderTable();
+}
+
+function updateCounter() {
+    const el = document.getElementById('count');
+    if (el) el.innerText = filteredRecords.length;
+}
+
+function resetForm() {
+    document.getElementById('finesForm').reset();
+    document.getElementById('f01_id').value = '';
+}
+
+function setupFormListener() {
+    document.getElementById('finesForm').addEventListener('submit', handleFormSubmit);
+}
+
+/* END OF FILE: fines_accidents.js */

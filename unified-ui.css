@@ -1,0 +1,133 @@
+/* 
+   File: unified-ui.css
+   Function: توحيد الهوية البصرية للأزرار والنوافذ المنبثقة | Unified UI Component Library
+   Standard: Taxi Luxury Gold/Dark Theme
+*/
+
+:root {
+    --taxi-gold: #f1c40f;
+    --taxi-dark-gold: #d4ac0d;
+    --taxi-black: #1a1c1e;
+    --taxi-dark-grey: #2c3e50;
+    --taxi-green: #27ae60;
+    --taxi-red: #e74c3c;
+    --taxi-blue: #3498db;
+    --luxury-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    --border-radius-sm: 8px;
+    --border-radius-lg: 15px;
+    --transition-fast: 0.2s ease;
+}
+
+/* --- [1] Jordan Car Plate Badge --- */
+.jordan-plate {
+    display: inline-flex; align-items: center; background: #fff; border: 2px solid #333; border-radius: 6px; padding: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    height: 42px; overflow: hidden; vertical-align: middle; flex-direction: row-reverse; 
+}
+.plate-left { background: #fff; color: #333; padding: 2px 10px; font-size: 0.65rem; font-weight: 900; text-align: center; line-height: 1.2; border-right: 2px solid #333; }
+.plate-right { padding: 0 15px; color: #111; font-size: 1.6rem; font-weight: 900; letter-spacing: 2px; display: flex; align-items: center; gap: 12px; direction: ltr; }
+.plate-right .prefix::after { content: '-'; margin: 0 10px; }
+
+.jordan-plate.sm { height: 32px; border-width: 1.5px; }
+.jordan-plate.sm .plate-left { font-size: 0.45rem; padding: 2px 6px; border-right-width: 1.5px; }
+.jordan-plate.sm .plate-right { font-size: 1.15rem; padding: 0 10px; gap: 4px; letter-spacing: 1px; }
+
+/* --- [2] Interactive Tooltips --- */
+.label-help { cursor: help; display: inline-flex; align-items: center; gap: 6px; position: relative; transition: 0.2s; }
+.label-help::after { content: '?'; display: inline-flex; width: 16px; height: 16px; background: var(--taxi-dark-gold); color: white; border-radius: 50%; font-size: 11px; font-weight: 900; justify-content: center; align-items: center; opacity: 0.7; margin-right: 4px; }
+.label-help:hover::after { opacity: 1; transform: scale(1.2); box-shadow: 0 0 5px var(--taxi-gold); }
+.label-help .tooltip-box { visibility: hidden; width: 240px; background: #333; color: #fff; text-align: right; border-radius: 6px; padding: 10px 14px; position: absolute; z-index: 1000; bottom: 150%; left: 50%; margin-left: -120px; opacity: 0; transition: 0.3s; font-size: 0.8rem; line-height: 1.4; box-shadow: 0 5px 15px rgba(0,0,0,0.4); pointer-events: none; transform: translateY(10px); }
+.label-help:hover .tooltip-box { visibility: visible; opacity: 1; transform: translateY(0); }
+.tooltip-box b { color: var(--taxi-gold); display: block; margin-bottom: 4px; border-bottom: 1px solid #444; padding-bottom: 2px; }
+.tooltip-box span { color: #ccc; font-size: 0.75rem; display: block; margin-top: 5px; font-style: italic; }
+
+/* --- [3] Unified Luxury Buttons --- */
+.action-btns-group { 
+    display: flex !important; 
+    flex-direction: row !important; /* Force Horizontal */
+    gap: 8px !important; 
+    justify-content: flex-start; /* Space better in tables */
+    align-items: center; 
+    white-space: nowrap !important;
+    min-width: 120px; /* Ensure enough space for 3 buttons */
+}
+
+/* Fix for table cells containing action buttons */
+td:last-child {
+    min-width: 130px;
+    vertical-align: middle;
+}
+
+.btn-action-sm { 
+    width: 32px; height: 32px; border-radius: 8px; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; font-size: 15px; flex-shrink: 0;
+}
+.btn-view { background: #ebf5fb; color: var(--taxi-blue); border: 1px solid #d4e6f1; } .btn-view:hover { background: var(--taxi-blue); color: white; transform: translateY(-3px); }
+.btn-edit { background: #fef9e7; color: #d4ac0d; border: 1px solid #f9e79f; } .btn-edit:hover { background: var(--taxi-gold); color: white; transform: translateY(-3px); }
+.btn-delete { background: #fdedec; color: var(--taxi-red); border: 1px solid #fadbd8; } .btn-delete:hover { background: var(--taxi-red); color: white; transform: translateY(-3px); }
+
+.primary-btn, .action-btn-primary, .save-btn {
+    background: linear-gradient(135deg, var(--taxi-gold), var(--taxi-dark-gold));
+    color: var(--taxi-black); border: none; 
+    padding: 10px 20px; /* تقليل الحشو ليكون أكثر رشاقة */
+    border-radius: var(--border-radius-sm); font-weight: 700; cursor: pointer; 
+    display: inline-flex; align-items: center; gap: 8px; 
+    transition: all var(--transition-fast); box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    width: fit-content; /* جعل الزر يحتوي النص فقط */
+    font-size: 0.9rem; /* تصغير الخط قليلاً ليناسب الرشاقة الجديدة */
+}
+.primary-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(241, 196, 15, 0.3); filter: brightness(1.1); }
+
+/* --- [4] Premium View Modal --- */
+.view-modal-overlay { position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 9999; opacity: 0; pointer-events: none; transition: 0.3s; }
+.view-modal-overlay.active { opacity: 1; pointer-events: auto; }
+.view-modal-card { background: white; width: 90%; max-width: 600px; border-radius: var(--border-radius-lg); box-shadow: var(--luxury-shadow); transform: translateY(30px); transition: 0.3s; overflow: hidden; border-top: 6px solid var(--taxi-gold); }
+.view-modal-overlay.active .view-modal-card { transform: translateY(0); }
+.view-modal-header { padding: 20px; background: #fcfcfc; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+.view-modal-body { padding: 25px; max-height: 70vh; overflow-y: auto; }
+.view-data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.view-item { border-bottom: 1px solid #f1f1f1; padding-bottom: 8px; }
+.view-item.full-width { grid-column: 1 / span 2; }
+.view-label { display: block; font-size: 0.8rem; color: #888; margin-bottom: 4px; }
+.view-value { display: block; font-weight: 700; color: var(--taxi-dark-grey); font-size: 1rem; }
+.view-modal-footer { padding: 15px 20px; background: #f8f9fa; text-align: left; }
+.close-view-btn { background: var(--taxi-black); color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; }
+
+/* --- [5] Premium Badges System --- */
+.badge-status {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    white-space: nowrap;
+}
+
+.badge-status::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+/* حالة النشط - أخضر فاخر */
+.badge-paid, .badge-active {
+    background: rgba(46, 204, 113, 0.12) !important;
+    color: #27ae60 !important;
+    border: 1px solid rgba(46, 204, 113, 0.2) !important;
+}
+.badge-paid::before, .badge-active::before { background: #2ecc71; box-shadow: 0 0 6px #2ecc71; }
+
+/* حالة غير النشط - برتقالي ملكي */
+.badge-pending, .badge-inactive {
+    background: rgba(230, 126, 34, 0.12) !important;
+    color: #d35400 !important;
+    border: 1px solid rgba(230, 126, 34, 0.2) !important;
+}
+.badge-pending::before, .badge-inactive::before { background: #e67e22; box-shadow: 0 0 6px #e67e22; }
+
+.badge-status:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+

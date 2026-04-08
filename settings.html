@@ -1,0 +1,87 @@
+<!-- START OF FILE: settings.html -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <!-- 
+    File: settings.html
+    Version: v1.3.0
+    Function: إدارة متغيرات النظام | System Settings
+    Design: Unified Dual-Language Format (Form at Top, Grid at Bottom)
+    -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إعدادات النظام | System Settings</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="global-config.js"></script>
+    <link rel="stylesheet" href="settings.css">
+    <link rel="stylesheet" href="revenues.css">
+</head>
+<body onload="bootSystem('إعدادات النظام | Settings')">
+
+    <div class="main-container">
+        
+        <!-- Header -->
+        <div class="luxury-page-header">
+            <div class="header-info">
+                <h1>⚙️ إعدادات النظام | System Settings</h1>
+                <p>ضبط المتغيرات العامة وقيم التحكم التشغيلي | System Config & Constants</p>
+            </div>
+            <div class="header-actions">
+                <button onclick="window.scrollTo({top:0, behavior:'smooth'})" class="action-btn-primary">🔝 إضافة جديد | Add New</button>
+            </div>
+        </div>
+
+        <!-- Section 1: Entry Form (Now visible on page) -->
+        <div class="elegant-card luxury-card-border">
+            <div class="card-header">
+                <span>📝 نماذج الضبط | Configuration Form</span>
+            </div>
+            <form id="settingsForm" class="taxi-form">
+                <input type="hidden" id="f01_id">
+                
+                <div class="input-grid">
+                    <div class="form-group">
+                        <label>مفتاح الإعداد | Setting Key</label>
+                        <input type="text" id="f02_key" placeholder="مثال: system_name (t14_settings.f02_key)" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>القيمة | Value</label>
+                        <input type="text" id="f03_value" placeholder="القيمة المطلوبة (t14_settings.f03_value)" required>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>وصف الإعداد | Description</label>
+                        <textarea id="f04_description" rows="2" placeholder="شرح وظيفة هذا المتغير (t14_settings.f04_description)"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="primary-btn">حفظ الإعداد | Save Setting ✅</button>
+                    <button type="reset" class="secondary-btn">تفريغ | Reset 🔄</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Section 2: Unified Grid Controls -->
+        <div id="tableControlsPlaceholder"></div>
+
+        <!-- Section 3: Data Grid -->
+        <div class="elegant-card grid-card">
+            <div class="card-header">
+                <span>📋 قائمة المتغيرات | Settings Registry</span>
+            </div>
+            <div id="settingsContainer" class="table-responsive">
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>جاري تحميل البيانات... | Loading Data...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="settings.js"></script>
+</body>
+</html>
+<!-- END OF FILE: settings.html -->

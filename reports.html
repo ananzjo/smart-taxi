@@ -1,89 +1,121 @@
+<!-- START OF FILE: reports.html -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+    <!-- 
+    File: reports.html
+    Version: v2.0.0
+    Function: مركز التقارير المركزية والمطابقة المالية الشاملة
+    Design: Luxury Professional Print-Ready Format
+    -->
     <meta charset="UTF-8">
-    <title>نظام إدارة التاكسي | التقارير الذكية</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مركز التقارير الاحترافية | Professional Reports</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="global-config.js"></script>
-    <link rel="stylesheet" href="cars-style.css">
-    <style>
-        .report-controls {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            border: 1px solid #eee;
-        }
-        .summary-banner {
-            background: var(--taxi-dark);
-            color: white;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-around;
-            text-align: center;
-        }
-        .summary-item h4 { color: var(--taxi-gold); margin-bottom: 5px; }
-    </style>
+    <link rel="stylesheet" href="reports.css">
 </head>
-<body>
-    <main class="main-container">
-        <h2>📑 التقارير المالية والتشغيلية</h2>
+<body onload="bootSystem('مركز التقارير المركزية')">
 
-        <div class="report-controls">
-            <div class="form-group">
-                <label>من تاريخ</label>
-                <input type="date" id="dateFrom">
+    <div class="main-container no-print">
+        <!-- Dashboard Header -->
+        <div class="luxury-page-header">
+            <div class="header-info">
+                <h1>📊 مركز التقارير والتدقيق</h1>
+                <p>استخراج كشوفات الحساب، تحليل الأداء، والمطابقة المالية الشاملة</p>
             </div>
-            <div class="form-group">
-                <label>إلى تاريخ</label>
-                <input type="date" id="dateTo">
-            </div>
-            <div class="form-group">
-                <label>نوع التقرير</label>
-                <select id="reportType" onchange="toggleReportFilters()">
-                    <option value="all">إجمالي عام</option>
-                    <option value="car">حسب السيارة</option>
-                    <option value="driver">حسب السائق</option>
-                    <option value="owner">حسب المالك</option>
-                </select>
-            </div>
-            <div id="dynamicFilterContainer" class="form-group" style="display:none;">
-                <label id="dynamicLabel">اختر</label>
-                <select id="dynamicValue"></select>
-            </div>
-            <div class="form-group" style="display: flex; align-items: flex-end;">
-                <button onclick="generateReport()" class="btn-main" style="width: 100%;">توليد التقرير 🚀</button>
+            <div class="header-actions">
+                <button onclick="window.print()" class="action-btn-print">🖨️ طباعة التقرير الحالي</button>
             </div>
         </div>
 
-        <div id="reportSummary" class="summary-banner" style="display: none;">
-            <div class="summary-item">
-                <h4 id="resTitle">إجمالي الدخل</h4>
-                <div id="resTotal" style="font-size: 1.8rem; font-weight: bold;">0.00 JOD</div>
+        <!-- Report Selection Engine -->
+        <div class="elegant-card report-selector-card">
+            <div class="card-header">
+                <span>🔍 محدد التقارير الذكي</span>
             </div>
-            <div class="summary-item">
-                <h4>عدد الدفعات</h4>
-                <div id="resCount" style="font-size: 1.8rem; font-weight: bold;">0</div>
+            <div class="report-controls-grid">
+                <div class="form-group">
+                    <label>نوع التقرير</label>
+                    <select id="report_type" onchange="toggleSecondaryFilter()">
+                        <option value="financial_summary">ملخص مالي عام (أرباح وخسائر)</option>
+                        <option value="driver_soa">كشف حساب سائق (تفصيلي)</option>
+                        <option value="car_performance">تقرير أداء سيارة (تشغيلي)</option>
+                        <option value="broken_days">تقرير الأيام المكسورة (الذمم المعلقة)</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="secondary_filter_wrapper" style="display:none;">
+                    <label id="secondary_label">اختيار المحدد</label>
+                    <select id="secondary_id"></select>
+                </div>
+
+                <div class="form-group">
+                    <label>من تاريخ</label>
+                    <input type="date" id="date_from">
+                </div>
+
+                <div class="form-group">
+                    <label>إلى تاريخ</label>
+                    <input type="date" id="date_to">
+                </div>
+
+                <div class="form-group" style="display:flex; align-items:flex-end;">
+                    <button onclick="generateLuxuryReport()" class="generate-btn">توليد التقرير الاحترافي 🚀</button>
+                </div>
             </div>
         </div>
 
-        <div id="reportResult" class="table-responsive"></div>
-    </main>
+        <!-- Live Preview Area -->
+        <div id="reportPreview" class="report-preview-container">
+            <!-- Reports will be injected here -->
+            <div class="empty-state">
+                <div class="icon">📑</div>
+                <p>قم باختيار نوع التقرير والمحددات للبدء في العرض...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- [PRINT-ONLY SECTION] - High End Office Document Format -->
+    <div class="print-container">
+        <div class="print-header">
+            <div class="print-logo">
+                <span style="font-size: 2.5rem;">🚖</span>
+                <div class="company-name">
+                    <h2>Smart Taxi Systems</h2>
+                    <p>نظام إدارة التاكسي الذكي</p>
+                </div>
+            </div>
+            <div class="print-meta">
+                <p><strong>التاريخ:</strong> <span id="print_date"></span></p>
+                <p><strong>الوقت:</strong> <span id="print_time"></span></p>
+                <p><strong>الموظف المسئول:</strong> <span id="print_staff"></span></p>
+            </div>
+        </div>
+
+        <div class="print-title-box">
+            <h1 id="print_report_title">كشف حساب مالي</h1>
+            <p id="print_date_range"></p>
+        </div>
+
+        <div id="print_content" class="print-content-body">
+            <!-- Dynamic data injected here for print -->
+        </div>
+
+        <div class="print-footer">
+            <div class="signature-box">
+                <p>توقيع المحاسب المسئول</p>
+                <div class="sig-line"></div>
+            </div>
+            <div class="signature-box">
+                <p>ختم المنشأة</p>
+                <div class="sig-line"></div>
+            </div>
+        </div>
+    </div>
 
     <script src="reports.js"></script>
-    <script>
-        window.onload = async () => {
-            bootSystem("مركز التقارير");
-            // تعيين تاريخ الشهر الحالي تلقائياً
-            const now = new Date();
-            document.getElementById('dateFrom').value = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-            document.getElementById('dateTo').value = now.toISOString().split('T')[0];
-        };
-    </script>
 </body>
 </html>
+<!-- END OF FILE: reports.html -->

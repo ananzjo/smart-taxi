@@ -1,40 +1,49 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
-    <title>نظام إدارة التاكسي الذكي | سجل الدخول</title>
+    <title>سجل الأمان | نظام التاكسي الذكي</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="global-config.js"></script>
-    <link rel="stylesheet" href="login_logs.css">
-</head>
+    <script src="login_logs.js"></script>
+    <link rel="stylesheet" href="revenues.css"> </head>
 <body>
     <main class="main-container">
         <div class="elegant-card">
-            <div class="excel-controls" style="display: flex; align-items: center; justify-content: flex-start; gap: 20px; padding: 10px;">
-                
-                <span style="white-space: nowrap; font-weight: bold; color: var(--taxi-dark);">📋 سجل الدخول</span>
-        
-                <input type="text" id="excelSearch" placeholder="بحث سريع..." onkeyup="excelFilter()" 
-                       style="width: 300px; padding: 8px 15px; border-radius: 6px; border: 1px solid #ddd;">
-        
-                <div class="record-badge">
-                    <span id="recordCount" style="margin-left: 5px;">0</span> سجل
-                </div>
+            <div class="card-header">
+                <span>🛡️ مراقبة سجلات الدخول والأمان | Security Audit Logs</span>
             </div>
-        
-            <div id="tableContainer">
-                </div>
-        </div>
-<div id="tableContainer" class="table-responsive"></div>
+            
+            <div class="excel-controls">
+                <span>📋 قائمة محاولات الدخول</span>
+                <input type="text" id="logSearch" placeholder="بحث باسم المستخدم أو الـ IP..." onkeyup="filterLogs()">
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>التاريخ والوقت</th>
+                            <th>المستخدم</th>
+                            <th>الحالة</th>
+                            <th>السبب</th>
+                            <th>عنوان IP</th>
+                            <th>الموقع</th>
+                            <th>الجهاز</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logsBody">
+                        </tbody>
+                </table>
+            </div>
         </div>
     </main>
 
     <script src="login_logs.js"></script>
     <script>
-        window.onload = () => { 
-            bootSystem("سجل الدخول"); 
-            loadData();
+        window.onload = () => {
+            bootSystem("سجل الأمان");
+            loadLoginLogs();
         };
     </script>
 </body>

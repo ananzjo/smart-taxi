@@ -1,97 +1,141 @@
+<!-- START OF FILE: expenses.html -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 
+    File: expenses.html
+    Version: v1.3.0
+    Function: إدارة المصاريف التشغيلية والصيانة | Operations & Maintenance Expenses
+    Design: Dual-Language Luxury Format
+    -->
     <meta charset="UTF-8">
-    <title>نظام إدارة التاكسي الذكي | المصروفات</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة المصاريف | Expenses Management</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="global-config.js"></script>
     <link rel="stylesheet" href="expenses.css">
+    <link rel="stylesheet" href="revenues.css">
 </head>
-<body>
-    <main class="main-container">
-        <div class="elegant-card">
-            <div class="card-header header-flex">
-                <span>💰 إدارة المصروفات | Expenses Management</span>
-                
+<body onload="bootSystem('إدارة المصاريف | Expenses')">
+
+    <div class="main-container">
+        
+        <!-- Header -->
+        <div class="luxury-page-header">
+            <div class="header-info">
+                <h1>🔧 المصاريف والصيانة | Expenses</h1>
+                <p>تتبع تكاليف التشغيل، الإصلاحات، والقطع الاستهلاكية | Maintenance & Parts Tracking</p>
             </div>
-            
+        </div>
+
+        <!-- Entry Form -->
+        <div class="elegant-card luxury-card-border">
+            <div class="card-header">
+                <span>📝 نماذج البيانات | Data Entry Form</span>
+            </div>
             <form id="expenseForm" class="taxi-form">
                 <input type="hidden" id="f01_id">
+                
                 <div class="input-grid">
-                    <div class="form-group"><label>التاريخ | Date</label><input type="date" id="f02_date" required></div>
                     <div class="form-group">
-                        <label>رقم السيارة | Car</label>
-                        <select id="f03_car_no" required>
+                        <label>التاريخ | Expense Date</label>
+                        <input type="date" id="f02_date" required title="تاريخ تسجيل المصروف (t06_expenses.f02_date)">
+                    </div>
+
+                    <div class="form-group">
+                        <label>رقم السيارة | Plate No</label>
+                        <select id="f03_car_no" required title="رقم اللوحة (t06_expenses.f03_car_no)">
                             <option value="">-- اختر السيارة --</option>
                         </select>
                     </div>
+
                     <div class="form-group">
-                        <label>نوع المصروف | Expense Type</label>
+                        <label>اسم السائق | Driver Name</label>
+                        <select id="f04_driver_id" required title="السائق المسؤول (t06_expenses.f04_driver_id)">
+                            <option value="">-- اختر السائق --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>نوع المصروف | Category</label>
                         <select id="f05_expense_type" required>
                             <option value="صيانة">صيانة | Maintenance</option>
+                            <option value="اطارات">اطارات | Tires</option>
+                            <option value="بطاريات">بطاريات | Batteries</option>
+                            <option value="زيوت">زيوت | Oil Change</option>
                             <option value="وقود">وقود | Fuel</option>
-                            <option value="قطع غيار">قطع غيار | Spare Parts</option>
-                            <option value="رسوم">رسوم | Fees</option>
-                            <option value="تأمين">تأمين | Insurance</option>
-                            <option value="أخرى">أخرى | Other</option>
+                            <option value="أخرى">أخرى | Others</option>
                         </select>
                     </div>
-                    <div class="form-group"><label>المبلغ | Amount</label><input type="number" step="0.01" id="f07_amount" required></div>
-                    <div class="form-group"><label>المورد / البائع | Seller</label><input type="text" id="f06_seller" placeholder="اسم المورد..."></div>
-                    <div class="form-group"><label>رقم المرجع | Ref No.</label><input type="text" id="f08_ref_no" placeholder="فاتورة / رقم..."></div>
+
                     <div class="form-group">
-                        <label>المسؤول | Officer</label>
-                        <select id="f09_user_id">
-                            <option value="">-- اختر المسؤول --</option>
+                        <label>المورد/البائع | Vendor</label>
+                        <input type="text" id="f06_seller" placeholder="اسم المحل أو المورد (t06_expenses.f06_seller)">
+                    </div>
+
+                    <div class="form-group">
+                        <label>المبلغ | Amount</label>
+                        <input type="number" step="0.5" id="f07_amount" placeholder="0.00 (t06_expenses.f07_amount)" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>رقم الفاتورة | Ref No</label>
+                        <input type="text" id="f08_ref_no" placeholder="رقم المرجع (t06_expenses.f08_ref_no)">
+                    </div>
+
+                    <div class="form-group">
+                        <label>الموظف | Staff</label>
+                        <select id="f09_user_id" required title="الموظف المسجل (t06_expenses.f09_user_id)"></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>حالة السداد | Status</label>
+                        <select id="f10_status" required>
+                            <option value="Paid|مدفوع">تم السداد | Paid</option>
+                            <option value="Unpaid|غير مدفوع">غير مسدد | Unpaid</option>
+                            <option value="Pending">معلق | Pending</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label>الحالة | Status</label>
-                        <select id="f10_status">
-                            <option value="Pending">Pending</option>
-                            <option value="Approved">Approved</option>
-                            <option value="Rejected">Rejected</option>
-                        </select>
+
+                    <div class="form-group full-width">
+                        <label>ملاحظات إضافية | Notes</label>
+                        <textarea id="f11_notes" rows="2" placeholder="أي تفاصيل عن المصروف (t06_expenses.f11_notes)"></textarea>
                     </div>
                 </div>
-                <div class="form-group full-width">
-                    <label>ملاحظات | Notes</label>
-                    <textarea id="f11_notes" rows="2"></textarea>
-                </div>
-            
+
                 <div class="form-actions">
-                    <button type="button" onclick="saveData()" class="btn-main">حفظ البيانات | Save</button>
-                    <button type="button" onclick="confirmReset()" class="btn-sub">تفريغ | Clear</button>
+                    <button type="submit" class="primary-btn">حفظ المصروف | Save Data ✅</button>
+                    <button type="reset" class="secondary-btn">تفريغ | Reset 🔄</button>
                 </div>
             </form>
         </div>
 
-        <div class="elegant-card" style="padding: 0;">
-            <div class="table-header-controls">
-                <div class="record-badge">
-                    <span id="pageRecordCount">0</span> مصروف
-                </div>
-                <div class="global-search-wrapper">
-                    <input type="text" id="globalSearch" class="global-search-input" placeholder="بحث شامل..." onkeyup="multiColumnSearch()">
-                    <span class="search-icon">🔍</span>
+        <!-- Unified Grid Controls -->
+        <div id="tableControlsPlaceholder"></div>
+
+        <!-- Data Grid -->
+        <div class="elegant-card grid-card">
+            <div class="card-header">
+                <span>📋 سجل المصاريف | Expenses Ledger</span>
+            </div>
+            <div id="expensesTableContainer" class="table-responsive">
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>جاري تحميل البيانات... | Loading Data...</p>
                 </div>
             </div>
-            <div id="tableContainer" class="table-responsive" style="padding: 0 20px 20px 20px;"></div>
         </div>
-    </main>
+    </div>
 
     <script src="expenses.js"></script>
     <script>
         window.onload = async () => { 
-            bootSystem("إدارة المصروفات"); 
-            await fillExpenseDropdowns();
-            await loadData(); 
-            if(!document.getElementById('f01_id').value) {
-                document.getElementById('f02_date').valueAsDate = new Date();
-            }
+            bootSystem("إدارة المصاريف | Expenses"); 
+            if(typeof loadFormData === 'function') await loadFormData(); 
+            document.getElementById('f02_date').valueAsDate = new Date(); 
         };
     </script>
-
 </body>
 </html>
+<!-- END OF FILE: expenses.html -->

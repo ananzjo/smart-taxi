@@ -1,84 +1,212 @@
-/* ==================================================================
- [reports.js] - محرك التقارير الذكية
- ================================================================== */
+/* START OF FILE: reports.js */
+/**
+ * File: reports.js
+ * Version: v2.0.0
+ * Function: المحرك التحليلي لإصدار التقارير المالية وكشوفات الحساب
+ */
 
-// تبديل الفلاتر حسب نوع التقرير المختار
-async function toggleReportFilters() {
-    const type = document.getElementById('reportType').value;
-    const container = document.getElementById('dynamicFilterContainer');
-    const label = document.getElementById('dynamicLabel');
-    const select = document.getElementById('dynamicValue');
+let cars = [];
+let drivers = [];
 
-    if (type === 'all') {
-        container.style.display = 'none';
+document.addEventListener('DOMContentLoaded', () => {
+    initReports();
+});
+
+async function initReports() {
+    // تعيين التواريخ الافتراضية (بداية ونهاية الشهر الحالي)
+    const now = new Date();
+    document.getElementById('date_from').value = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    document.getElementById('date_to').value = now.toISOString().split('T')[0];
+
+    await Promise.all([fetchCars(), fetchDrivers()]);
+}
+
+async function fetchCars() {
+    const { data } = await _supabase.from('t01_cars').select('f02_plate_no');
+    cars = data || [];
+}
+
+async function fetchDrivers() {
+    const { data } = await _supabase.from('t02_drivers').select('f01_id, f02_name');
+    drivers = data || [];
+}
+
+function toggleSecondaryFilter() {
+    const type = document.getElementById('report_type').value;
+    const wrapper = document.getElementById('secondary_filter_wrapper');
+    const label = document.getElementById('secondary_label');
+    const select = document.getElementById('secondary_id');
+
+    if (type === 'driver_soa') {
+        wrapper.style.display = 'block';
+        label.innerText = 'اختر السائق';
+        select.innerHTML = drivers.map(d => `<option value="${d.f01_id}">${d.f02_name}</option>`).join('');
+    } else if (type === 'car_performance') {
+        wrapper.style.display = 'block';
+        label.innerText = 'اختر السيارة';
+        select.innerHTML = cars.map(c => `<option value="${c.f02_plate_no}">${c.f02_plate_no}</option>`).join('');
+    } else {
+        wrapper.style.display = 'none';
+    }
+}
+
+async function generateLuxuryReport() {
+    const type = document.getElementById('report_type').value;
+    const dateFrom = document.getElementById('date_from').value;
+    const dateTo = document.getElementById('date_to').value;
+    const secondaryId = document.getElementById('secondary_id').value;
+
+    if (!dateFrom || !dateTo) {
+        showToast("يرجى تحديد النطاق الزمني", "warning");
         return;
     }
 
-    container.style.display = 'block';
-    select.innerHTML = '<option>جاري التحميل...</option>';
+    document.getElementById('reportPreview').innerHTML = '<div class="loading-state"><div class="spinner"></div><p>جاري توليد التقرير والتحقق من البيانات...</p></div>';
 
-    if (type === 'car') {
-        label.innerText = 'رقم السيارة';
-        const { data } = await _supabase.from('t01_cars').select('f02_plate_no');
-        select.innerHTML = data.map(c => `<option value="${c.f02_plate_no}">${c.f02_plate_no}</option>`).join('');
-    } else if (type === 'driver') {
-        label.innerText = 'اسم السائق';
-        const { data } = await _supabase.from('t02_drivers').select('f02_name');
-        select.innerHTML = data.map(d => `<option value="${d.f02_name}">${d.f02_name}</option>`).join('');
-    } else if (type === 'owner') {
-        label.innerText = 'المالك';
-        const { data } = await _supabase.from('t10_owners').select('f01_id, f02_owner_name');
-        select.innerHTML = data.map(o => `<option value="${o.f01_id}">${o.f02_owner_name}</option>`).join('');
+    try {
+        switch (type) {
+            case 'driver_soa':
+                await buildDriverSOA(secondaryId, dateFrom, dateTo);
+                break;
+            case 'financial_summary':
+                await buildFinancialSummary(dateFrom, dateTo);
+                break;
+            case 'broken_days':
+                await buildBrokenDaysReport(dateFrom, dateTo);
+                break;
+            default:
+                showToast("التقرير قيد التطوير", "info");
+        }
+    } catch (err) {
+        console.error(err);
+        showToast("فشل توليد التقرير", "error");
     }
 }
 
-async function generateReport() {
-    const from = document.getElementById('dateFrom').value;
-    const to = document.getElementById('dateTo').value;
-    const type = document.getElementById('reportType').value;
-    const val = document.getElementById('dynamicValue').value;
-
-    let query = _supabase.from('t05_revenues').select('*').gte('f02_date', from).lte('f02_date', to);
-
-    // تطبيق الفلترة حسب النوع
-    if (type === 'car') query = query.eq('f03_car_no', val);
-    if (type === 'driver') query = query.eq('f04_driver_name', val);
+// --- [1] كشف حساب سائق (Statement of Account) ---
+async function buildDriverSOA(driverId, from, to) {
+    const driver = drivers.find(d => d.f01_id == driverId);
     
-    // فلترة المالك تحتاج حركة ذكية (جلب سيارات المالك أولاً)
-    if (type === 'owner') {
-        const { data: ownerCars } = await _supabase.from('t01_cars').select('f02_plate_no').eq('f11_owner_id', val);
-        const plates = ownerCars.map(c => c.f02_plate_no);
-        query = query.in('f03_car_no', plates);
-    }
+    // جلب كل البيانات المتعلقة بالسائق
+    const [workRes, revRes, fineRes] = await Promise.all([
+        _supabase.from('t08_work_days').select('*').eq('f04_driver_id', driverId).gte('f02_date', from).lte('f02_date', to),
+        _supabase.from('t05_revenues').select('*').eq('f04_driver_name', driver.f02_name).gte('f02_date', from).lte('f02_date', to),
+        _supabase.from('t09_fines_accidents').select('*').eq('f04_driver_id', driverId).gte('f02_date', from).lte('f02_date', to)
+    ]);
 
-    const { data, error } = await query.order('f02_date', { ascending: false });
+    const workDays = workRes.data || [];
+    const revenues = revRes.data || [];
+    const fines = fineRes.data || [];
 
-    if (data) {
-        renderReportTable(data);
-        updateSummary(data);
-    }
+    const totalWorkDebt = workDays.reduce((sum, d) => sum + parseFloat(d.f05_daily_amount), 0);
+    const totalPayments = revenues.reduce((sum, r) => sum + parseFloat(r.f06_amount), 0);
+    const totalFines = fines.reduce((sum, f) => sum + parseFloat(f.f05_amount), 0);
+    const balance = (totalWorkDebt + totalFines) - totalPayments;
+
+    const reportTitle = `كشف حساب السائق: ${driver.f02_name}`;
+    const dateRange = `الفترة من ${from} إلى ${to}`;
+
+    let tableHtml = `
+        <div class="report-stats-banner">
+            <div class="stat-box"><h4>إجمالي مديونية الضمان</h4><div class="val">${totalWorkDebt.toLocaleString()}</div></div>
+            <div class="stat-box"><h4>إجمالي المخالفات</h4><div class="val" style="color:var(--taxi-red)">${totalFines.toLocaleString()}</div></div>
+            <div class="stat-box"><h4>إجمالي المدفوعات</h4><div class="val" style="color:var(--taxi-green)">${totalPayments.toLocaleString()}</div></div>
+            <div class="stat-box"><h4>الرصيد النهائي (الذمة)</h4><div class="val" style="color:${balance > 0 ? 'var(--taxi-red)' : 'var(--taxi-green)'}">${balance.toLocaleString()}</div></div>
+        </div>
+        <table class="report-table">
+            <thead>
+                <tr><th>التاريخ</th><th>البيان / النوع</th><th>السيارة</th><th>مدين (+)</th><th>دائن (-)</th><th>الحالة</th></tr>
+            </thead>
+            <tbody>
+                ${workDays.map(d => `<tr><td>${d.f02_date}</td><td>ضمان يومي</td><td>${d.f03_car_no}</td><td class="amount-cell">${d.f05_daily_amount}</td><td>0</td><td>${d.f06_is_off_day ? 'توقف' : 'مستحق'}</td></tr>`).join('')}
+                ${fines.map(f => `<tr><td>${f.f02_date}</td><td>⚠️ ${f.f06_type}</td><td>${f.f03_car_no}</td><td class="amount-cell">${f.f05_amount}</td><td>0</td><td>${f.f07_status}</td></tr>`).join('')}
+                ${revenues.map(r => `<tr><td>${r.f02_date}</td><td>💰 دفعة نقدية (${r.f07_method})</td><td>${r.f03_car_no}</td><td>0</td><td class="amount-cell">${r.f06_amount}</td><td>محصل</td></tr>`).join('')}
+            </tbody>
+        </table>
+    `;
+
+    updateUIAndPrint(reportTitle, dateRange, tableHtml);
 }
 
-function updateSummary(data) {
-    const total = data.reduce((sum, r) => sum + parseFloat(r.f06_amount || 0), 0);
-    document.getElementById('reportSummary').style.display = 'flex';
-    document.getElementById('resTotal').innerText = total.toLocaleString() + " JOD";
-    document.getElementById('resCount').innerText = data.length;
+// --- [2] مخلص مالي عام (Financial Summary) ---
+async function buildFinancialSummary(from, to) {
+    const [revRes, expRes, fineRes] = await Promise.all([
+        _supabase.from('t05_revenues').select('f06_amount').gte('f02_date', from).lte('f02_date', to),
+        _supabase.from('t06_expenses').select('f07_amount').gte('f02_date', from).lte('f02_date', to),
+        _supabase.from('t09_fines_accidents').select('f05_amount').gte('f02_date', from).lte('f02_date', to)
+    ]);
+
+    const totalRev = revRes.data.reduce((sum, r) => sum + parseFloat(r.f06_amount), 0);
+    const totalExp = expRes.data.reduce((sum, e) => sum + parseFloat(e.f07_amount), 0);
+    const totalFines = fineRes.data.reduce((sum, f) => sum + parseFloat(f.f05_amount), 0);
+    const netProfit = totalRev - totalExp;
+
+    const html = `
+        <div class="report-stats-banner">
+            <div class="stat-box"><h4>إجمالي الإيرادات</h4><div class="val">${totalRev.toLocaleString()}</div></div>
+            <div class="stat-box"><h4>إجمالي المصاريف</h4><div class="val" style="color:var(--taxi-red)">${totalExp.toLocaleString()}</div></div>
+            <div class="stat-box"><h4>صافي الربح التشغيلي</h4><div class="val" style="color:var(--taxi-green)">${netProfit.toLocaleString()}</div></div>
+            <div class="stat-box"><h4>ذمم مخالفات معلقة</h4><div class="val">${totalFines.toLocaleString()}</div></div>
+        </div>
+        <p style="text-align:center; margin-top:40px; color:#666;">* تم احتساب صافي الربح بناءً على (الإيراد المحصل - المصاريف المسجلة) خلال الفترة المحددة.</p>
+    `;
+
+    updateUIAndPrint("ملخص الأداء المالي العام", `الفترة من ${from} إلى ${to}`, html);
 }
 
-function renderReportTable(list) {
-    let html = `<table><thead><tr>
-        <th>التاريخ</th><th>السيارة</th><th>السائق</th><th>المبلغ</th><th>المحصل</th>
-    </tr></thead><tbody>`;
-    
-    list.forEach(r => {
-        html += `<tr>
-            <td>${r.f02_date}</td>
-            <td><b>${r.f03_car_no}</b></td>
-            <td>${r.f04_driver_name}</td>
-            <td style="font-weight:bold;">${r.f06_amount}</td>
-            <td>${r.f08_collector || '-'}</td>
-        </tr>`;
+// --- [3] تقرير الأيام المكسورة (Broken Days) ---
+async function buildBrokenDaysReport(from, to) {
+     const { data: workDays } = await _supabase
+            .from('t08_work_days')
+            .select('*')
+            .gte('f02_date', from)
+            .lte('f02_date', to)
+            .eq('f06_is_off_day', false);
+
+    const { data: revenues } = await _supabase
+            .from('t05_revenues')
+            .select('*')
+            .gte('f02_date', from)
+            .lte('f02_date', to);
+
+    const brokenRecords = workDays.filter(day => {
+        const dayRev = revenues.filter(r => r.f03_car_no === day.f03_car_no && r.f02_date === day.f02_date)
+                               .reduce((sum, r) => sum + parseFloat(r.f06_amount), 0);
+        return dayRev < day.f05_daily_amount;
     });
-    document.getElementById('reportResult').innerHTML = html + "</tbody></table>";
+
+    const html = `
+        <table class="report-table">
+            <thead><tr><th>التاريخ</th><th>السيارة</th><th>السائق</th><th>المبلغ المطلوب</th><th>المبلغ المسدد</th><th>النقص (الكسر)</th></tr></thead>
+            <tbody>
+                ${brokenRecords.map(d => {
+                    const rev = revenues.filter(r => r.f03_car_no === d.f03_car_no && r.f02_date === d.f02_date).reduce((sum, r) => sum + parseFloat(r.f06_amount), 0);
+                    const driver = drivers.find(dr => dr.f01_id == d.f04_driver_id);
+                    return `<tr><td>${d.f02_date}</td><td><b>${d.f03_car_no}</b></td><td>${driver?driver.f02_name:'---'}</td><td class="amount-cell">${d.f05_daily_amount}</td><td class="amount-cell">${rev}</td><td class="amount-cell" style="color:var(--taxi-red)">${d.f05_daily_amount - rev}</td></tr>`;
+                }).join('')}
+            </tbody>
+        </table>
+    `;
+
+    updateUIAndPrint("تقرير الأيام المكسورة والذمم المعلقة", `الفترة من ${from} إلى ${to}`, html);
 }
+
+// --- [Utility] تحديث الواجهة والطباعة ---
+function updateUIAndPrint(title, range, html) {
+    // تحديث العرض في الصفحة
+    document.getElementById('reportPreview').innerHTML = `
+        <h2 style="text-align:center; color:var(--taxi-dark); margin-bottom:10px;">${title}</h2>
+        <p style="text-align:center; color:#777; margin-bottom:30px; font-weight:bold;">${range}</p>
+        ${html}
+    `;
+
+    // تحديث بيانات الطباعة
+    document.getElementById('print_report_title').innerText = title;
+    document.getElementById('print_date_range').innerText = range;
+    document.getElementById('print_content').innerHTML = html;
+    document.getElementById('print_date').innerText = new Date().toLocaleDateString('ar-EG');
+    document.getElementById('print_time').innerText = new Date().toLocaleTimeString('ar-EG');
+    document.getElementById('print_staff').innerText = sessionStorage.getItem('full_name_ar') || "مدير النظام";
+}
+
+/* END OF FILE: reports.js */

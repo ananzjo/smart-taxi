@@ -1,128 +1,231 @@
+/* START OF FILE: drivers.js */
+/**
+ * File: drivers.js
+ * Version: v1.2.0
+ * Function: إدارة بيانات السائقين وتتبع الحالة الوظيفية
+ * Components: Supabase Client, Identity Validation, Status Tracker
+ * Inputs: t02_drivers
+ */
+
 let allDrivers = [];
+let filteredDrivers = [];
 
-// [1] ساعة ونبض
-function startTaxiClock() {
-    setInterval(() => {
-        const el = document.getElementById('live-clock');
-        if(el) el.innerText = new Date().toLocaleTimeString('ar-EG');
-    }, 1000);
+document.addEventListener('DOMContentLoaded', () => {
+    initPage();
+});
+
+async function initPage() {
+    await fetchDrivers();
+    initTableControls();
+    setupFormListener();
 }
 
-// [2] نظام المودال
-function showModal(title, message, isConfirm = false, onConfirm = null) {
-    const modal = document.getElementById('customModal');
-    document.getElementById('modalTitle').innerText = title;
-    document.getElementById('modalMessage').innerText = message;
-    const confirmBtn = document.getElementById('modalConfirmBtn');
-    const cancelBtn = document.getElementById('modalCancelBtn');
+// --- [1] جلب البيانات ---
+async function fetchDrivers() {
+    try {
+        const [drvRes, carRes] = await Promise.all([
+            _supabase.from('t02_drivers').select('*').order('f02_name', { ascending: true }),
+            _supabase.from('t01_cars').select('f02_plate_no').eq('f12_is_active', 'Active')
+        ]);
 
-    modal.style.display = 'flex';
-    cancelBtn.style.display = isConfirm ? 'inline-block' : 'none';
+        if (drvRes.error) throw drvRes.error;
+        allDrivers = drvRes.data || [];
+        filteredDrivers = [...allDrivers];
 
-    confirmBtn.onclick = () => {
-        modal.style.display = 'none';
-        if (onConfirm) onConfirm();
-    };
-    cancelBtn.onclick = () => modal.style.display = 'none';
-}
-
-// [3] جلب البيانات
-async function loadData() {
-    const { data, error } = await _supabase.from('t02_drivers').select('*').order('created_at', { ascending: false });
-    if (error) { showModal("خطأ | Error", "تعذر جلب بيانات السائقين"); return; }
-    allDrivers = data;
-    renderTable(data);
-}
-
-function renderTable(list) {
-    document.getElementById('recordCount').innerText = list.length;
-    let html = `<table><thead><tr>
-        <th onclick="sortTable(0)">الاسم ↕</th>
-        <th onclick="sortTable(1)">رقم الهاتف ↕</th>
-        <th onclick="sortTable(2)">الموقع ↕</th>
-        <th>إجراءات</th>
-    </tr></thead><tbody>`;
-    list.forEach(driver => {
-        const locationLink = driver.f06_location_url ? `<a href="${driver.f06_location_url}" target="_blank">📍 عرض</a>` : '-';
-        html += `<tr>
-            <td style="font-weight:bold;">${driver.f02_name}</td>
-            <td>${driver.f04_mobile}</td>
-            <td>${locationLink}</td>
-            <td>
-                <button onclick='editRecord(${JSON.stringify(driver)})' style="cursor:pointer; border:none; background:none;">📝</button>
-                <button onclick="deleteRecord('${driver.f01_id}')" style="cursor:pointer; border:none; background:none; margin-right:8px;">🗑️</button>
-            </td>
-        </tr>`;
-    });
-    document.getElementById('tableContainer').innerHTML = html + "</tbody></table>";
-}
-
-// [4] الحفظ مع التحقق
-async function saveData() {
-    const id = document.getElementById('f01_id').value;
-    
-    const payload = {
-        f02_name: document.getElementById('f02_name').value,
-        f03_national_no: document.getElementById('f03_national_no').value,
-        f04_mobile: document.getElementById('f04_mobile').value,
-        f05_address: document.getElementById('f05_address').value,
-        f06_location_url: document.getElementById('f06_location_url').value
-    };
-
-    // رسائل تحقق معبرة
-    if (!payload.f02_name || !payload.f03_national_no || !payload.f04_mobile) {
-        showModal("بيانات ناقصة | Missing Data", "يرجى تعبئة الاسم والرقم الوطني ورقم الهاتف لإتمام عملية الحفظ.");
-        return;
-    }
-
-    const { error } = id 
-        ? await _supabase.from('t02_drivers').update(payload).eq('f01_id', id)
-        : await _supabase.from('t02_drivers').insert([payload]);
-
-    if (error) {
-        if (error.code === '23505') {
-            showModal("تنبيه تكرار | Duplicate Error", "رقم الهاتف أو الرقم الوطني مسجل مسبقاً لسائق آخر.");
-        } else {
-            showModal("خطأ في النظام | System Error", error.message);
+        // تعبئة قائمة السيارات في الفورم
+        const carSel = document.getElementById('f09_car');
+        if (carSel) {
+            carSel.innerHTML = '<option value="">-- بلا سيارة --</option>' + 
+                (carRes.data || []).map(c => `<option value="${c.f02_plate_no}">${c.f02_plate_no}</option>`).join('');
         }
-    } else { 
-        showModal("تم بنجاح | Success", "تم حفظ بيانات السائق بنجاح ✅");
-        resetFieldsOnly();
-        loadData();
+
+        renderTable();
+    } catch (err) {
+        showToast("فشل في تحميل البيانات", "error");
     }
 }
 
-function confirmReset() {
-    showModal("تأكيد | Confirm", "هل تريد تفريغ جميع الحقول؟", true, () => {
-        resetFieldsOnly();
+// --- [2] العرض الفاخر ---
+function renderTable() {
+    const container = document.getElementById('tableContainer');
+    if (!container) return;
+
+    if (filteredDrivers.length === 0) {
+        container.innerHTML = '<div class="loading-state">👨‍✈️ لا يوجد سائقون مطابقون للبحث</div>';
+        return; 
+    }
+
+    let html = `
+        <table>
+            <thead>
+                <tr>
+                    <th onclick="sortData('f02_name')">الاسم | Name ↕</th>
+                    <th onclick="sortData('f03_national_no')">الهوية | ID ↕</th>
+                    <th onclick="sortData('f04_mobile')">الهاتف | Phone ↕</th>
+                    <th>السيارة | Car</th>
+                    <th onclick="sortData('f07_status')">الحالة | Status ↕</th>
+                    <th>إجراءات | Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${filteredDrivers.map(d => {
+                    const s = (d.f07_status || '').trim();
+                    const hasCar = (d.f09_car && d.f09_car.trim() !== '');
+                    const isActive = (s === 'نشط' || s === 'Active' || s === 'فعال | Active' || hasCar);
+                    
+                    const statusClass = isActive ? 'badge-active' : 'badge-inactive';
+                    const statusText = isActive ? 'نشط | Active' : 'غير نشط | InActive';
+                    return `
+                        <tr>
+                            <td style="font-weight:900; color:var(--taxi-dark)">${d.f02_name}</td>
+                            <td>${d.f03_national_no}</td>
+                            <td dir="ltr">${d.f04_mobile}</td>
+                             <td>${d.f09_car ? window.formatJordanPlate(d.f09_car, true) : '<span style="color:#ccc">---</span>'}</td>
+                            <td><span class="badge-status ${statusClass}">${statusText}</span></td>
+                            <td>
+                                <div class="action-btns-group">
+                                    <button class="btn-action-sm btn-view" onclick='showViewModal(${JSON.stringify(d)}, "بيانات السائق | Driver Info")' title="عرض">👁️</button>
+                                    <button class="btn-action-sm btn-edit" onclick="editRecord(${d.f01_id})" title="تعديل">✏️</button>
+                                    <button class="btn-action-sm btn-delete" onclick="confirmDelete(${d.f01_id})" title="حذف">🗑️</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('')}
+            </tbody>
+        </table>
+    `;
+    container.innerHTML = html;
+    updateCounter();
+}
+
+// --- [3] العمليات (CRUD) ---
+async function handleFormSubmit(e) {
+    e.preventDefault();
+    safeSubmit(async () => {
+        const id = document.getElementById('f01_id').value;
+        const payload = {
+            f02_name: document.getElementById('f02_name').value.trim(),
+            f03_national_no: document.getElementById('f03_national_no').value.trim(),
+            f04_mobile: document.getElementById('f04_mobile').value.trim(),
+            f05_address: document.getElementById('f05_address').value.trim(),
+            f06_location_url: document.getElementById('f06_location_url').value.trim(),
+            f07_status: document.getElementById('f07_status').value,
+            f09_car: document.getElementById('f09_car').value || null,
+            f08_status_date: new Date()
+        };
+
+        if (payload.f03_national_no.length < 5) {
+            showToast("الرقم الوطني غير صحيح", "warning");
+            return;
+        }
+
+        try {
+            let res;
+            if (id) {
+                res = await _supabase.from('t02_drivers').update(payload).eq('f01_id', id);
+            } else {
+                res = await _supabase.from('t02_drivers').insert([payload]);
+            }
+
+            if (res.error) throw res.error;
+
+            showToast("تم حفظ بيانات السائق بنجاح ✅", "success");
+            resetForm();
+            fetchDrivers();
+        } catch (err) {
+            if (err.code === '23505') {
+                showToast("الرقم الوطني أو الهاتف مسجل مسبقاً", "error");
+            } else {
+                showToast("خطأ أثناء الحفظ: " + err.message, "error");
+            }
+        }
     });
 }
 
-function resetFieldsOnly() {
-    document.getElementById('driverForm').reset();
-    document.getElementById('f01_id').value = "";
+function confirmDelete(id) {
+    const driver = allDrivers.find(x => x.f01_id == id);
+    showModal(
+        "حذف سائق ⚠️",
+        `هل تريد حذف السائق <b>(${driver.f02_name})</b>؟ تأكد من عدم وجود سيارات في عهدته حالياً.`,
+        'warning',
+        async () => {
+            const { error } = await _supabase.from('t02_drivers').delete().eq('f01_id', id);
+            if (!error) {
+                showToast("تم الحذف بنجاح", "success");
+                fetchDrivers();
+            } else {
+                showToast("لا يمكن حذف السائق لارتباطه بسجلات أخرى في النظام", "error");
+            }
+        }
+    );
 }
 
-function deleteRecord(id) {
-    showModal("تأكيد الحذف", "هل أنت متأكد من حذف هذا السائق نهائياً؟", true, async () => {
-        const { error } = await _supabase.from('t02_drivers').delete().eq('f01_id', id);
-        if (!error) loadData();
-    });
-}
+function editRecord(id) {
+    const d = allDrivers.find(x => x.f01_id == id);
+    if (!d) return;
 
-function editRecord(driver) {
-    Object.keys(driver).forEach(key => { if(document.getElementById(key)) document.getElementById(key).value = driver[key]; });
+    document.getElementById('f01_id').value = d.f01_id;
+    document.getElementById('f02_name').value = d.f02_name;
+    document.getElementById('f03_national_no').value = d.f03_national_no;
+    document.getElementById('f04_mobile').value = d.f04_mobile;
+    document.getElementById('f05_address').value = d.f05_address || '';
+    document.getElementById('f06_location_url').value = d.f06_location_url || '';
+    document.getElementById('f07_status').value = d.f07_status || 'غير نشط';
+    document.getElementById('f09_car').value = d.f09_car || '';
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function excelFilter() {
-    const val = document.getElementById('excelSearch').value.toLowerCase();
-    renderTable(allDrivers.filter(d => Object.values(d).some(v => String(v).toLowerCase().includes(val))));
+// --- [4] التحكم والبحث ---
+function initTableControls() {
+    const placeholder = document.getElementById('tableControlsPlaceholder');
+    if (placeholder) {
+        placeholder.innerHTML = `
+            <div class="table-header-controls">
+                <div class="record-badge">إجمالي السائقين: <span id="count">${allDrivers.length}</span></div>
+                <div class="global-search-wrapper">
+                    <input type="text" id="globalSearch" class="global-search-input" placeholder="بحث بالاسم، الهاتف، أو الرقم الوطني..." onkeyup="filterLocal()">
+                    <span class="search-icon">🔍</span>
+                </div>
+            </div>
+        `;
+    }
 }
 
-function sortTable(n) {
-    const table = document.querySelector("table");
-    let rows = Array.from(table.rows).slice(1);
-    let sorted = rows.sort((a, b) => a.cells[n].innerText.localeCompare(b.cells[n].innerText));
-    table.tBodies[0].append(...sorted);
+function filterLocal() {
+    const term = document.getElementById('globalSearch').value.toLowerCase();
+    filteredDrivers = allDrivers.filter(d => 
+        Object.values(d).some(v => String(v).toLowerCase().includes(term))
+    );
+    renderTable();
 }
+
+let currentSort = { col: 'f02_name', asc: true };
+function sortData(col) {
+    currentSort.asc = (currentSort.col === col) ? !currentSort.asc : true;
+    currentSort.col = col;
+    filteredDrivers.sort((a,b) => {
+        let vA = a[col] || '';
+        let vB = b[col] || '';
+        return currentSort.asc ? (vA > vB ? 1 : -1) : (vA < vB ? 1 : -1);
+    });
+    renderTable();
+}
+
+function updateCounter() {
+    const el = document.getElementById('count');
+    if (el) el.innerText = filteredDrivers.length;
+}
+
+function resetForm() {
+    document.getElementById('driverForm').reset();
+    document.getElementById('f01_id').value = '';
+}
+
+function setupFormListener() {
+    const form = document.getElementById('driverForm');
+    if (form) form.addEventListener('submit', handleFormSubmit);
+}
+
+/* END OF FILE: drivers.js */

@@ -1,90 +1,137 @@
+<!-- START OF FILE: cars.html -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 
+    File: cars.html
+    Version: v1.3.1
+    Function: واجهة إدارة أسطول السيارات | Fleet Management
+    Design: Dual-Language Luxury Format
+    -->
     <meta charset="UTF-8">
-    <title>إدارة أسطول السيارات</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة السيارات | Cars Management</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="global-config.js"></script>
     <link rel="stylesheet" href="cars.css">
+    <link rel="stylesheet" href="revenues.css">
 </head>
-<body>
-    <main class="main-container">
-        <div class="elegant-card">
-            <div class="card-header header-flex">
-                <span>🚖 إدارة بيانات السيارات</span>
+<body onload="bootSystem('إدارة السيارات | Cars')">
+
+    <div class="main-container">
+        
+        <!-- Header -->
+        <div class="luxury-page-header">
+            <div class="header-info">
+                <h1>🚖 أسطول السيارات | Taxi Fleet</h1>
+                <p>إدارة بيانات المركبات والملكية | Vehicle Assets & Ownership</p>
             </div>
-            
+        </div>
+
+        <!-- Entry Form -->
+        <div class="elegant-card luxury-card-border">
+            <div class="card-header">
+                <span>📝 نماذج البيانات | Data Entry Form</span>
+            </div>
             <form id="carForm" class="taxi-form">
                 <input type="hidden" id="f01_id">
+                <input type="hidden" id="f15_id"> 
+                
                 <div class="input-grid">
-                    <div class="form-group"><label>رقم اللوحة</label><input type="text" id="f02_plate_no" required></div>
-                    <div class="form-group"><label>مكتب التاكسي</label><input type="text" id="f03_car_office"></div>
-                    <div class="form-group"><label>الماركة</label><input type="text" id="f04_brand"></div>
-                    <div class="form-group"><label>سنة الصنع</label><input type="number" id="f06_model"></div>
-                    <div class="form-group"><label>انتهاء الترخيص</label><input type="date" id="f07_license_expiry"></div>
-                    <div class="form-group"><label>الضمان اليومي</label><input type="number" step="0.01" id="f08_standard_rent"></div>
-                    
-                    <div class="form-group"><label>المالك</label><select id="f11_owner_id"></select></div>
-                    <div class="form-group"><label>السائق الحالي</label><select id="f13_current_driver_id"></select></div>
-                    
                     <div class="form-group">
-                        <label>نوع الوقود</label>
+                        <label>رقم اللوحة | Plate No</label>
+                        <input type="text" id="f02_plate_no" placeholder="مثال: 10-12345 (t01_cars.f02_plate_no)" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>مكتب التاكسي | Taxi Office</label>
+                        <select id="f03_car_office" title="المكتب التابع له (t01_cars.f03_car_office)">
+                            <option value="الأمانة">مكتب الأمانة</option>
+                            <option value="التميز">مكتب التميز</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>الماركة | Brand</label>
+                        <input type="text" id="f04_brand" placeholder="تويوتا، هيونداي (t01_cars.f04_brand)">
+                    </div>
+
+                    <div class="form-group">
+                        <label>سنة الصنع | Model Year</label>
+                        <input type="number" id="f06_model" placeholder="2024 (t01_cars.f06_model)">
+                    </div>
+
+                    <div class="form-group">
+                        <label>انتهاء الترخيص | License Expiry</label>
+                        <input type="date" id="f07_license_expiry" title="تاريخ انتهاء الترخيص (t01_cars.f07_license_expiry)">
+                    </div>
+
+                    <div class="form-group">
+                        <label>الضمان | Standard Rent</label>
+                        <input type="number" step="0.5" id="f08_standard_rent" placeholder="المبلغ اليومي (t01_cars.f08_standard_rent)">
+                    </div>
+
+                    <div class="form-group">
+                        <label>عمولة الإدارة | Management Fee</label>
+                        <input type="number" step="0.5" id="f09_management_fee" placeholder="مبلغ العمولة (t01_cars.f09_management_fee)" value="50">
+                    </div>
+
+                    <div class="form-group">
+                        <label>نوع الوقود | Fuel Type</label>
                         <select id="f15_fuel_type">
-                            <option value="بنزين">بنزين</option>
-                            <option value="هجين">هجين</option>
-                            <option value="كهرباء">كهرباء</option>
+                            <option value="بنزين">بنزين | Petrol</option>
+                            <option value="هجين">هجين | Hybrid</option>
+                            <option value="كهرباء">كهرباء | Electric</option>
                         </select>
                     </div>
+
                     <div class="form-group">
-                        <label>حالة التشغيل</label>
-                        <select id="f12_is_active">
-                            <option value="نشط">نشط</option>
-                            <option value="متوقف">متوقف</option>
+                        <label>المالك | Owner</label>
+                        <select id="f11_owner_id" title="اختر مالك السيارة (t01_cars.f11_owner_id)"></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>حالة التشغيل | Status</label>
+                        <input type="text" id="f12_is_active" readonly style="background:#f9f9f9; cursor:not-allowed;" title="تُحدث تلقائياً من التسليم">
+                    </div>
+
+                    <div class="form-group">
+                        <label>السائق الحالي | Current Driver</label>
+                        <select id="f13_current_driver_id" title="يحدث آلياً من التسليم (t01_cars.f13_current_driver_id)" disabled>
+                            <option value="">-- بلا سائق حالياً --</option>
                         </select>
                     </div>
-                    <div class="form-group" style="grid-column: span 2;">
-                        <label>ملاحظات</label><textarea id="f14_car_notes" rows="2"></textarea>
+
+                    <div class="form-group full-width">
+                        <label>ملاحظات إضافية | Notes</label>
+                        <textarea id="f14_car_notes" rows="2" placeholder="أي تفاصيل أخرى عن السيارة (t01_cars.f14_car_notes)"></textarea>
                     </div>
                 </div>
+
                 <div class="form-actions">
-                    <button type="button" onclick="saveData()" class="btn-main">حفظ البيانات</button>
-                    <button type="button" onclick="confirmReset()" class="btn-sub">تفريغ</button>
+                    <button type="submit" class="primary-btn">حفظ البيانات | Save Data ✅</button>
+                    <button type="reset" class="secondary-btn" onclick="resetForm()">تفريغ | Reset 🔄</button>
                 </div>
             </form>
         </div>
 
+        <div id="tableControlsPlaceholder"></div>
 
-        <div class="elegant-card">
-            <div class="excel-controls" style="display: flex; align-items: center; justify-content: flex-start; gap: 20px; padding: 10px;">
-                
-                <span style="white-space: nowrap; font-weight: bold; color: var(--taxi-dark);">📋 سجل الأسطول</span>
-        
-                <input type="text" id="excelSearch" placeholder="بحث سريع..." onkeyup="excelFilter()" 
-                       style="width: 300px; padding: 8px 15px; border-radius: 6px; border: 1px solid #ddd;">
-        
-                <div class="record-badge">
-                    <span id="recordCount" style="margin-left: 5px;">0</span> سجل
+        <div class="elegant-card grid-card">
+            <div class="card-header">
+                <span>📋 سجل الأسطول | Fleet Ledger</span>
+            </div>
+            <div id="tableContainer" class="table-responsive">
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>جاري تحميل البيانات... | Loading Data...</p>
                 </div>
             </div>
-        
-            <div id="tableContainer">
-                </div>
         </div>
-
-  
-<div id="tableContainer" class="table-responsive"></div>
-        </div>
-    </main>
+    </div>
 
     <script src="cars.js"></script>
-    <script>
-        // تشغيل موحد وآمن
-        window.onload = async () => { 
-            bootSystem("إدارة السيارات"); 
-            await fillDropdowns(); 
-            await loadData(); 
-        };
-    </script>
 </body>
 </html>
+<!-- END OF FILE: cars.html -->
