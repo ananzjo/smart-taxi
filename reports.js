@@ -43,16 +43,16 @@ function toggleSecondaryFilter() {
     const select = document.getElementById('secondary_id');
 
     if (type === 'driver_soa') {
-        wrapper.style.display = 'block';
+        wrapper.style.display = 'flex';
         label.innerText = 'اختر السائق';
         select.innerHTML = drivers.map(d => `<option value="${d.f01_id}">${d.f02_name}</option>`).join('');
     } else if (type === 'car_performance') {
-        wrapper.style.display = 'block';
+        wrapper.style.display = 'flex';
         label.innerText = 'اختر السيارة';
         select.innerHTML = cars.map(c => `<option value="${c.f02_plate_no}">${c.f02_plate_no}</option>`).join('');
     } else if (type === 'investor_monthly') {
-        wrapper.style.display = 'block';
-        label.innerText = 'اختر المستثمر / المالك';
+        wrapper.style.display = 'flex';
+        label.innerText = 'اختر المالك';
         select.innerHTML = owners.map(o => `<option value="${o.f01_id}">${o.f02_owner_name}</option>`).join('');
     } else {
         wrapper.style.display = 'none';
@@ -274,39 +274,136 @@ async function buildFinancialSummary(from, to) {
 
 // --- [3] تقرير الأيام المكسورة (Broken Days) ---
 async function buildBrokenDaysReport(from, to) {
-     const { data: workDays } = await _supabase
+    const { data: workDays } = await _supabase
             .from('t08_work_days')
             .select('*')
             .gte('f02_date', from)
             .lte('f02_date', to)
             .eq('f06_is_off_day', false);
 
+    // Fetch all revenues to catch late payments regardless of date
     const { data: revenues } = await _supabase
             .from('t05_revenues')
-            .select('*')
-            .gte('f02_date', from)
-            .lte('f02_date', to);
+            .select('f01_id, f02_date, f03_car_no, f06_amount, f10_work_day_link');
 
-    const brokenRecords = workDays.filter(day => {
-        const dayRev = revenues.filter(r => r.f03_car_no === day.f03_car_no && r.f02_date === day.f02_date)
-                               .reduce((sum, r) => sum + parseFloat(r.f06_amount), 0);
-        return dayRev < day.f05_daily_amount;
+    const allRevs = revenues || [];
+
+    // Grouping by driver
+    const driverGroups = {};
+
+    workDays.forEach(day => {
+        // Calculate same-day payments
+        const sameDayRev = allRevs
+            .filter(r => r.f03_car_no === day.f03_car_no && r.f02_date === day.f02_date && !r.f10_work_day_link)
+            .reduce((sum, r) => sum + parseFloat(r.f06_amount), 0);
+
+        // Calculate mapped late payments
+        const lateRev = allRevs
+            .filter(r => r.f10_work_day_link == day.f01_id)
+            .reduce((sum, r) => sum + parseFloat(r.f06_amount), 0);
+
+        const dailyDue = parseFloat(day.f05_daily_amount);
+        const initialBroken = dailyDue - sameDayRev;
+
+        // Push EVERY day to the driver's log, whether broken or fully paid
+        const driverId = day.f04_driver_id || 'unknown';
+        if (!driverGroups[driverId]) driverGroups[driverId] = [];
+
+        driverGroups[driverId].push({
+            date: day.f02_date,
+            car: day.f03_car_no,
+            due: dailyDue,
+            sameDayPaid: sameDayRev,
+            brokenAmount: initialBroken < 0 ? 0 : initialBroken, 
+            latePaid: lateRev,
+            netMissing: (initialBroken - lateRev) < 0 ? 0 : (initialBroken - lateRev)
+        });
     });
 
-    const html = `
-        <table class="report-table">
-            <thead><tr><th>التاريخ</th><th>السيارة</th><th>السائق</th><th>المبلغ المطلوب</th><th>المبلغ المسدد</th><th>النقص (الكسر)</th></tr></thead>
-            <tbody>
-                ${brokenRecords.map(d => {
-                    const rev = revenues.filter(r => r.f03_car_no === d.f03_car_no && r.f02_date === d.f02_date).reduce((sum, r) => sum + parseFloat(r.f06_amount), 0);
-                    const driver = drivers.find(dr => dr.f01_id == d.f04_driver_id);
-                    return `<tr><td>${d.f02_date}</td><td><b>${d.f03_car_no}</b></td><td>${driver?driver.f02_name:'---'}</td><td class="amount-cell">${d.f05_daily_amount}</td><td class="amount-cell">${rev}</td><td class="amount-cell" style="color:var(--taxi-red)">${d.f05_daily_amount - rev}</td></tr>`;
-                }).join('')}
-            </tbody>
-        </table>
-    `;
+    let html = '';
+    let globalBroken = 0, globalLatePaid = 0, globalNetMissing = 0;
 
-    updateUIAndPrint("تقرير الأيام المكسورة والذمم المعلقة", `الفترة من ${from} إلى ${to}`, html);
+    if (Object.keys(driverGroups).length === 0) {
+        html = '<div class="empty-state">لا يوجد أيام مكسورة في هذه الفترة</div>';
+    } else {
+        html += `<div class="investor-report-container">`;
+        
+        for (const drvId of Object.keys(driverGroups)) {
+            const drvObj = drivers.find(dr => dr.f01_id == drvId);
+            const drvName = drvObj ? drvObj.f02_name : 'سائق غير محدد';
+            const days = driverGroups[drvId];
+
+            let sumBroken = 0, sumLate = 0, sumMissing = 0;
+
+            html += `
+                <h3 style="background:var(--taxi-dark); color:var(--taxi-gold); padding:10px; margin-top:30px; border-radius:8px;">
+                    👨‍✈️ السائق: ${drvName}
+                </h3>
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>السيارة</th>
+                            <th>المطلوب</th>
+                            <th>مدفوع (نفس اليوم)</th>
+                            <th>تأخير / مكسور</th>
+                            <th>تم السداد لاحقاً</th>
+                            <th>المتبقي بالذمة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            days.forEach(d => {
+                sumBroken += d.brokenAmount;
+                sumLate += d.latePaid;
+                sumMissing += d.netMissing;
+
+                const isFullyPaid = d.netMissing <= 0;
+
+                html += `
+                    <tr style="${isFullyPaid ? 'opacity:0.6; background:#f9fff9;' : ''}">
+                        <td>${d.date}</td>
+                        <td><b>${d.car}</b></td>
+                        <td>${d.due}</td>
+                        <td>${d.sameDayPaid}</td>
+                        <td style="color:#c0392b; font-weight:bold;">${d.brokenAmount}</td>
+                        <td style="color:#27ae60; font-weight:bold;">${d.latePaid > 0 ? d.latePaid : '-'}</td>
+                        <td style="${isFullyPaid ? 'color:#27ae60;' : 'color:#e74c3c; font-weight:bold;'}">
+                            ${isFullyPaid ? '0 (تم السداد ✅)' : d.netMissing}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            globalBroken += sumBroken;
+            globalLatePaid += sumLate;
+            globalNetMissing += sumMissing;
+
+            html += `
+                    </tbody>
+                    <tfoot>
+                        <tr style="background:#f1f3f5; font-weight:900;">
+                            <td colspan="4" style="text-align:left;">إجمالي ذمم السائق:</td>
+                            <td style="color:#c0392b;">${sumBroken}</td>
+                            <td style="color:#27ae60;">${sumLate}</td>
+                            <td style="color:#e74c3c; font-size:1.1rem;">${sumMissing}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            `;
+        }
+
+        html += `
+            <table class="summary-table-luxury" style="margin-top:40px; border-top:4px solid var(--taxi-dark);">
+                <tr><td class="lbl" style="color:#c0392b">إجمالي الكسر العام | Total Initial Broken</td><td class="val" style="color:#c0392b;">${globalBroken.toLocaleString()}</td></tr>
+                <tr><td class="lbl" style="color:#27ae60">إجمالي السداد اللاحق | Total Late Payments</td><td class="val" style="color:#27ae60;">${globalLatePaid.toLocaleString()}</td></tr>
+                <tr class="net-row"><td class="lbl">إجمالي الذمم المعلقة النهائي | Net Total Missing</td><td class="val" style="color:#e74c3c; font-size:1.8rem;">${globalNetMissing.toLocaleString()}</td></tr>
+            </table>
+        </div>`;
+    }
+
+    updateUIAndPrint("تقرير الأيام المكسورة والذمم (تفصيلي حسب السائق)", `الفترة من ${from} إلى ${to}`, html);
 }
 
 // --- [Utility] تحديث الواجهة والطباعة ---

@@ -14,6 +14,7 @@
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="global-config.js"></script>
+    <link rel="stylesheet" href="cars.css">
     <link rel="stylesheet" href="reports.css">
 </head>
 <body onload="bootSystem('مركز التقارير المركزية')">
@@ -26,44 +27,49 @@
                 <p>استخراج كشوفات الحساب، تحليل الأداء، والمطابقة المالية الشاملة</p>
             </div>
             <div class="header-actions">
-                <button onclick="window.print()" class="action-btn-print">🖨️ طباعة التقرير الحالي</button>
+                <!-- Buttons moved below -->
             </div>
         </div>
 
         <!-- Report Selection Engine -->
-        <div class="elegant-card report-selector-card">
+        <div class="elegant-card luxury-card-border">
             <div class="card-header">
                 <span>🔍 محدد التقارير الذكي</span>
             </div>
-            <div class="report-controls-grid">
-                <div class="form-group">
-                    <label>نوع التقرير</label>
-                    <select id="report_type" onchange="toggleSecondaryFilter()">
-                        <option value="financial_summary">ملخص مالي عام (أرباح وخسائر)</option>
-                        <option value="investor_monthly">تقرير المستثمر الشهري (كشف المجموعات)</option>
-                        <option value="driver_soa">كشف حساب سائق (تفصيلي)</option>
-                        <option value="car_performance">تقرير أداء سيارة (تشغيلي)</option>
-                        <option value="broken_days">تقرير الأيام المكسورة (الذمم المعلقة)</option>
-                    </select>
-                </div>
+            <div class="taxi-form">
+                <div class="input-grid">
+                    <div class="form-group">
+                        <label>نوع التقرير</label>
+                        <select id="report_type" onchange="toggleSecondaryFilter()">
+                            <option value="financial_summary">ملخص مالي عام (أرباح وخسائر)</option>
+                            <option value="investor_monthly">الملخص الشهري</option>
+                            <option value="driver_soa">كشف حساب سائق (تفصيلي)</option>
+                            <option value="car_performance">تقرير أداء سيارة (تشغيلي)</option>
+                            <option value="broken_days">تقرير الأيام المكسورة (الذمم المعلقة)</option>
+                        </select>
+                    </div>
 
-                <div class="form-group" id="secondary_filter_wrapper" style="display:none;">
-                    <label id="secondary_label">اختيار المحدد</label>
-                    <select id="secondary_id"></select>
-                </div>
+                    <div class="form-group" id="secondary_filter_wrapper" style="display:none;">
+                        <label id="secondary_label">اختيار المحدد</label>
+                        <select id="secondary_id"></select>
+                    </div>
 
-                <div class="form-group">
-                    <label>من تاريخ</label>
-                    <input type="date" id="date_from">
-                </div>
+                    <div class="form-group">
+                        <label>من تاريخ</label>
+                        <input type="date" id="date_from">
+                    </div>
 
-                <div class="form-group">
-                    <label>إلى تاريخ</label>
-                    <input type="date" id="date_to">
-                </div>
+                    <div class="form-group">
+                        <label>إلى تاريخ</label>
+                        <input type="date" id="date_to">
+                    </div>
 
-                <div class="form-group" style="display:flex; align-items:flex-end;">
-                    <button onclick="generateLuxuryReport()" class="generate-btn">توليد التقرير الاحترافي 🚀</button>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="form-actions">
+                    <button onclick="generateLuxuryReport()" class="btn-main">عرض التقرير | View 👁️</button>
+                    <button onclick="window.print()" class="btn-sub">طباعة التقرير | Print 🖨️</button>
                 </div>
             </div>
         </div>
