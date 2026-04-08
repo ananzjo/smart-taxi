@@ -51,12 +51,23 @@ function startBootSequence(pageTitle) {
         document.head.appendChild(link);
     }
     injectGlobalStyles();  
+    injectFavicon();
     renderGlobalLayout(pageTitle); 
     startPulseEngine(); 
     initGlobalModalStructure(); 
     initGlobalToastStructure();
     initViewModalStructure();
     applyAdvancedTooltips(); // تشغيل نظام التلميحات الذكي
+}
+
+function injectFavicon() {
+    if (!document.querySelector('link[rel="icon"]')) {
+        const link = document.createElement('link');
+        link.rel = 'icon';
+        link.type = 'image/png';
+        link.href = 'favicon.png';
+        document.head.appendChild(link);
+    }
 }
 
 // --- [3] التنسيقات والواجهة العامة ---
@@ -67,6 +78,7 @@ function injectGlobalStyles() {
         @import url('https://fonts.cdnfonts.com/css/digital-numbers');
         @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap');
         :root { --taxi-gold: #d4af37; --taxi-dark: #0b0c10; --status-green: #39ff14; --status-red: #ff3131; }
+        * { box-sizing: border-box; }
         body { margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; direction: rtl; background: #f4f7f6; padding-top: 85px; }
         .global-header { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(180deg, #1a1c1e 0%, #0b0c10 100%); color: white; height: 75px; padding: 0 30px; position: fixed; top: 0; width: 100%; z-index: 2000; border-bottom: 3px solid var(--taxi-gold); box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
         .header-left { display: flex; align-items: center; gap: 20px; }
@@ -86,6 +98,45 @@ function injectGlobalStyles() {
         .global-search-wrapper { position: relative; width: 320px; order: 1; }
         .global-search-input { width: 100%; padding: 10px 15px 10px 40px; border-radius: 8px; border: 1px solid #ddd; font-family: inherit; }
         .record-badge { background: #fcfcfc; color: #666; padding: 8px 18px; border-radius: 8px; font-weight: 700; border: 1px solid #eee; order: 2; }
+
+        /* --- [Mobile Optimization] --- */
+        @media screen and (max-width: 600px) {
+            body { padding-top: 140px; }
+            .global-header { height: auto; padding: 10px 15px; flex-direction: column; gap: 8px; align-items: stretch; }
+            .header-left { justify-content: flex-start; width: 100%; border-bottom: 1px solid #333; padding-bottom: 8px; }
+            .header-right { justify-content: space-between; width: 100%; gap: 10px; padding-top: 5px; }
+            .header-page-name { font-size: 1rem; border: none; padding: 0; margin: 0 10px; }
+            .taxi-meter-clock { font-size: 1.2rem; padding: 2px 8px; letter-spacing: 1.5px; flex-grow: 1; text-align: center; }
+            .header-right div:first-child { font-size: 0.85rem !important; border-left: none !important; padding-left: 0 !important; }
+            .logout-btn-text { display: none; }
+            .logout-btn::after { content: '🚪'; }
+
+            .sidebar { width: 240px; right: -260px; }
+            .sidebar.open { transform: translateX(-260px); }
+            
+            .table-header-controls { flex-direction: column; gap: 12px; align-items: stretch; padding: 15px; margin-top: 10px; }
+            .global-search-wrapper { width: 100% !important; order: 1; }
+            .record-badge { width: 100% !important; text-align: center; order: 2; margin: 0; box-sizing: border-box; }
+            
+            .main-container { padding: 15px !important; }
+            .input-grid { grid-template-columns: 1fr !important; }
+            .form-actions { flex-direction: column; }
+            .form-actions button { width: 100%; }
+            
+            .luxury-page-header { flex-direction: column !important; align-items: stretch !important; padding: 20px !important; gap: 15px; }
+            .luxury-page-header .header-info { text-align: center; }
+            .luxury-page-header h1 { font-size: 1.4rem !important; }
+
+            /* Table mobile fixes */
+            .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; box-shadow: inset 0 0 10px rgba(0,0,0,0.05); }
+            table { min-width: 600px; } /* Ensure table doesn't squash too much */
+            th, td { padding: 8px 10px !important; font-size: 0.8rem !important; }
+        }
+
+        .table-responsive { width: 100%; overflow-x: auto; margin-bottom: 20px; }
+
+        /* Narrow Search Icon Fix */
+        .global-search-wrapper .search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #888; pointer-events: none; }
     `;
     document.head.appendChild(style);
 }
@@ -97,14 +148,14 @@ function renderGlobalLayout(title) {
             <div class="header-left">
                 <button onclick="toggleNav(true)" style="background:rgba(212,175,55,0.1); border:1px solid rgba(212,175,55,0.3); color:var(--taxi-gold); font-size:1.6rem; cursor:pointer; width:45px; height:45px; border-radius:12px;">☰</button>
                 <div style="display:flex; align-items:center; gap:10px;">
-                    <span style="font-size:2rem;">🚖</span>
+                    <span style="font-size:1.8rem;">🚖</span>
                     <span class="header-page-name">${title}</span>
                 </div>
             </div>
             <div class="header-right">
                 <div style="color:var(--taxi-gold); font-weight:900; font-size:1rem; border-left:1px solid #333; padding-left:20px;">${fullNameAr}</div>
                 <div id="meterClock" class="taxi-meter-clock status-online">00:00:00</div>
-                <button onclick="handleLogout()" style="background:#e74c3c; border:none; color:white; padding:8px 15px; border-radius:8px; cursor:pointer;">خروج</button>
+                <button onclick="handleLogout()" class="logout-btn" style="background:#e74c3c; border:none; color:white; padding:8px 15px; border-radius:8px; cursor:pointer; min-width:45px;"><span class="logout-btn-text">خروج</span></button>
             </div>
         </header>
         <div id="navOverlay" class="overlay" onclick="toggleNav(false)"></div>
