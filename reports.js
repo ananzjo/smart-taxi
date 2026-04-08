@@ -109,28 +109,35 @@ async function buildInvestorMonthlyReport(ownerId, from, to) {
     const carPlates = investorCars.map(c => c.f02_plate_no);
 
     // Fetch necessary data
-    const [revRes, expRes, workRes] = await Promise.all([
+    const [revRes, expRes, workRes, payRes] = await Promise.all([
         _supabase.from('t05_revenues').select('*').in('f03_car_no', carPlates).gte('f02_date', from).lte('f02_date', to),
         _supabase.from('t06_expenses').select('*').in('f03_car_no', carPlates).gte('f02_date', from).lte('f02_date', to),
-        _supabase.from('t08_work_days').select('*').in('f03_car_no', carPlates).gte('f02_date', from).lte('f02_date', to)
+        _supabase.from('t08_work_days').select('*').in('f03_car_no', carPlates).gte('f02_date', from).lte('f02_date', to),
+        _supabase.from('t07_payments').select('*').in('f05_car_no', carPlates).gte('f02_date', from).lte('f02_date', to)
     ]);
 
     const allRevenues = revRes.data || [];
     const allExpenses = expRes.data || [];
     const allWorkDays = workRes.data || [];
+    const allPayments = payRes.data || [];
 
     // Calculate Totals
-    const totalCollectedDailyRent = allRevenues.filter(r => r.f05_category === 'ضمان يومي' || !r.f05_category).reduce((s, r) => s + parseFloat(r.f06_amount), 0);
-    const totalOtherIncome = allRevenues.filter(r => r.f05_category && r.f05_category !== 'ضمان يومي').reduce((s, r) => s + parseFloat(r.f06_amount), 0);
-    const totalCollected = totalCollectedDailyRent + totalOtherIncome;
+    const totalAmountCollected = allRevenues.filter(r => r.f05_category === 'ضمان يومي' || !r.f05_category).reduce((s, r) => s + parseFloat(r.f06_amount), 0);
+    const otherRevenues = allRevenues.filter(r => r.f05_category && r.f05_category !== 'ضمان يومي').reduce((s, r) => s + parseFloat(r.f06_amount), 0);
 
-    const totalOils = allExpenses.filter(e => e.f05_expense_type.includes('زيوت')).reduce((s, e) => s + parseFloat(e.f07_amount), 0);
+    const totalOil = allExpenses.filter(e => e.f05_expense_type.includes('زيوت')).reduce((s, e) => s + parseFloat(e.f07_amount), 0);
     const totalMaintenance = allExpenses.filter(e => e.f05_expense_type.includes('صيانة')).reduce((s, e) => s + parseFloat(e.f07_amount), 0);
-    const totalSalaries = allExpenses.filter(e => e.f05_expense_type.includes('رواتب')).reduce((s, e) => s + parseFloat(e.f07_amount), 0);
-    const totalAllExpenses = allExpenses.reduce((s, e) => s + parseFloat(e.f07_amount), 0);
-    const totalOtherExpenses = totalAllExpenses - (totalOils + totalMaintenance + totalSalaries);
+    const totalSalaries = allExpenses.filter(e => e.f05_expense_type.includes('رواتب') || e.f05_expense_type.includes('راتب')).reduce((s, e) => s + parseFloat(e.f07_amount), 0);
+    const totalAllExpensesDue = allExpenses.reduce((s, e) => s + parseFloat(e.f07_amount), 0);
+    const otherExpenses = totalAllExpensesDue - (totalOil + totalMaintenance + totalSalaries);
 
-    const netRemaining = totalCollected - totalAllExpenses;
+    const ownerWithdrawals = allPayments.filter(p => p.f03_type === 'نسبة صاحب سيارة').reduce((s, p) => s + parseFloat(p.f04_amount), 0);
+    const totalPaymentsToSuppliers = allPayments.filter(p => p.f03_type !== 'نسبة صاحب سيارة').reduce((s, p) => s + parseFloat(p.f04_amount), 0);
+    
+    // Expenses Due but NOT PAID
+    const totalDueNotPaid = totalAllExpensesDue - totalPaymentsToSuppliers;
+
+    const netRemaining = (totalAmountCollected + otherRevenues) - (totalPaymentsToSuppliers + ownerWithdrawals);
 
     const dateObj = new Date(from);
     const reportTitle = `خلاصة شهر ${dateObj.getMonth() + 1} لعام ${dateObj.getFullYear()} - (${owner.f02_owner_name})`;
@@ -139,13 +146,16 @@ async function buildInvestorMonthlyReport(ownerId, from, to) {
     let html = `
         <div class="investor-report-container">
             <table class="summary-table-luxury">
-                <tr><td class="lbl" style="color:#3498db">مجموع الضمان المحصل</td><td class="val" style="color:#3498db; font-size:1.8rem;">${totalCollectedDailyRent.toLocaleString()}</td></tr>
-                <tr><td class="lbl" style="color:#2ecc71">إيرادات أخرى</td><td class="val" style="color:#2ecc71;">${totalOtherIncome.toLocaleString()}</td></tr>
-                <tr><td class="lbl">زيوت</td><td class="val">${totalOils.toLocaleString()}</td></tr>
-                <tr><td class="lbl">صيانة</td><td class="val">${totalMaintenance.toLocaleString()}</td></tr>
-                <tr><td class="lbl">رواتب</td><td class="val">${totalSalaries.toLocaleString()}</td></tr>
-                <tr><td class="lbl">مصاريف أخرى</td><td class="val">${totalOtherExpenses.toLocaleString()}</td></tr>
-                <tr class="net-row"><td class="lbl">المبلغ الصافي المتبقي</td><td class="val" style="color:#e74c3c; font-size:1.8rem;">${netRemaining.toLocaleString()}</td></tr>
+                ${totalAmountCollected ? `<tr><td class="lbl" style="color:#3498db">إجمالي الضمان المحصل | Total Amount Collected</td><td class="val" style="color:#3498db; font-size:1.8rem;">${totalAmountCollected.toLocaleString()}</td></tr>` : ''}
+                ${totalPaymentsToSuppliers ? `<tr><td class="lbl" style="color:#e67e22">إجمالي المدفوعات | Total Payments</td><td class="val" style="color:#e67e22;">${totalPaymentsToSuppliers.toLocaleString()}</td></tr>` : ''}
+                ${totalDueNotPaid ? `<tr><td class="lbl" style="color:#c0392b">مصاريف مستحقة غير مدفوعة | Total Due Not Paid</td><td class="val" style="color:#c0392b;">${totalDueNotPaid.toLocaleString()}</td></tr>` : ''}
+                ${totalSalaries ? `<tr><td class="lbl">رواتب | Total Salaries</td><td class="val">${totalSalaries.toLocaleString()}</td></tr>` : ''}
+                ${totalMaintenance ? `<tr><td class="lbl">صيانة | Total Maintenance</td><td class="val">${totalMaintenance.toLocaleString()}</td></tr>` : ''}
+                ${totalOil ? `<tr><td class="lbl">زيوت | Total Oil</td><td class="val">${totalOil.toLocaleString()}</td></tr>` : ''}
+                ${otherRevenues ? `<tr><td class="lbl" style="color:#2ecc71">إيرادات أخرى | Other Revenues</td><td class="val" style="color:#2ecc71;">${otherRevenues.toLocaleString()}</td></tr>` : ''}
+                ${otherExpenses ? `<tr><td class="lbl">مصاريف أخرى | Other Expenses</td><td class="val">${otherExpenses.toLocaleString()}</td></tr>` : ''}
+                ${ownerWithdrawals ? `<tr><td class="lbl" style="color:#8e44ad">مسحوبات المالك | Owner Withdrawals</td><td class="val" style="color:#8e44ad;">${ownerWithdrawals.toLocaleString()}</td></tr>` : ''}
+                <tr class="net-row"><td class="lbl">رصيد الصندوق المتاح | Net Amount Available</td><td class="val" style="color:#e74c3c; font-size:1.8rem;">${netRemaining.toLocaleString()}</td></tr>
             </table>
 
             <table class="report-table" style="margin-top:30px;">
@@ -154,10 +164,11 @@ async function buildInvestorMonthlyReport(ownerId, from, to) {
                         <th>#</th>
                         <th>السيارة</th>
                         <th>قيمة الضمان</th>
-                        <th>الايراد المتوقع (شامل)</th>
-                        <th>الايراد الفعلي (شامل)</th>
-                        <th>عدد ايام التوقف</th>
-                        <th>مصاريف اصلاح و أخرى</th>
+                        <th>الايراد المتوقع</th>
+                        <th>الايراد الفعلي</th>
+                        <th>عدد التوقف</th>
+                        <th>مصاريف (مطلوبة)</th>
+                        <th>مدفوع للموردين</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -165,7 +176,8 @@ async function buildInvestorMonthlyReport(ownerId, from, to) {
 
     investorCars.forEach((car, index) => {
         const carRev = allRevenues.filter(r => r.f03_car_no === car.f02_plate_no).reduce((s, r) => s + parseFloat(r.f06_amount), 0);
-        const carExp = allExpenses.filter(e => e.f03_car_no === car.f02_plate_no).reduce((s, r) => s + parseFloat(r.f07_amount), 0);
+        const carExpDue = allExpenses.filter(e => e.f03_car_no === car.f02_plate_no).reduce((s, e) => s + parseFloat(e.f07_amount), 0);
+        const carPayMade = allPayments.filter(p => p.f05_car_no === car.f02_plate_no).reduce((s, p) => s + parseFloat(p.f04_amount), 0);
         const stopDays = allWorkDays.filter(w => w.f03_car_no === car.f02_plate_no && w.f06_is_off_day && new Date(w.f02_date).getDay() !== 5).length;
         const totalDays = getWorkingDaysCount(from, to);
         const carOtherRev = allRevenues.filter(r => r.f03_car_no === car.f02_plate_no && r.f05_category && r.f05_category !== 'ضمان يومي').reduce((s, r) => s + parseFloat(r.f06_amount), 0);
@@ -179,7 +191,8 @@ async function buildInvestorMonthlyReport(ownerId, from, to) {
                 <td>${expectedRev.toLocaleString()}</td>
                 <td>${carRev.toLocaleString()}</td>
                 <td style="${stopDays > 0 ? 'background:#fce4e4; color:#c0392b; font-weight:bold;' : ''}">${stopDays}</td>
-                <td>${carExp.toLocaleString()}</td>
+                <td style="color:#c0392b;">${carExpDue.toLocaleString()}</td>
+                <td style="color:#e67e22; font-weight:bold;">${carPayMade.toLocaleString()}</td>
             </tr>
         `;
     });
