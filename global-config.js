@@ -165,6 +165,7 @@ function renderGlobalLayout(title) {
             <a href="work_days.html">📅 أيام العمل والضمان</a>
             <a href="cars.html">🚗 أسطول السيارات</a>
             <a href="drivers.html">👨‍✈️ السائقين</a>
+            <a href="owners.html">👥 الملاك والمستثمرين</a>
             <a href="revenues.html">💰 الإيرادات والتحصيل</a>
             <a href="fines_accidents.html">⚠️ المخالفات والحوادث</a>
             <a href="expenses.html">🔧 المصاريف والصيانة</a>
@@ -172,6 +173,11 @@ function renderGlobalLayout(title) {
             <a href="handover.html">📦 تسليم واستلام السيارات</a>
             <a href="payments.html">💳 المدفوعات والتسوية</a>
             <a href="reports.html" style="color:var(--taxi-gold); font-weight:bold;">📊 التقارير المركزية</a>
+            
+            <div style="padding:15px 25px; color:#555; font-size:0.8rem; font-weight:bold; border-top:1px solid #222; margin-top:10px;">إدارة النظام | ADMIN</div>
+            <a href="staff.html">👔 إدارة الموظفين</a>
+            <a href="login_logs.html">📜 سجلات الدخول</a>
+            <a href="settings.html">⚙️ إعدادات النظام</a>
         </nav>
     `;
     document.body.insertAdjacentHTML('afterbegin', layout);
