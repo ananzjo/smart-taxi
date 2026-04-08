@@ -1,34 +1,39 @@
 /* START OF FILE: reports.js */
 /**
  * File: reports.js
- * Version: v2.0.0
+ * Version: v2.1.0
  * Function: المحرك التحليلي لإصدار التقارير المالية وكشوفات الحساب
  */
 
 let cars = [];
 let drivers = [];
+let owners = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     initReports();
 });
 
 async function initReports() {
-    // تعيين التواريخ الافتراضية (بداية ونهاية الشهر الحالي)
     const now = new Date();
     document.getElementById('date_from').value = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
     document.getElementById('date_to').value = now.toISOString().split('T')[0];
 
-    await Promise.all([fetchCars(), fetchDrivers()]);
+    await Promise.all([fetchCars(), fetchDrivers(), fetchOwners()]);
 }
 
 async function fetchCars() {
-    const { data } = await _supabase.from('t01_cars').select('f02_plate_no');
+    const { data } = await _supabase.from('t01_cars').select('*');
     cars = data || [];
 }
 
 async function fetchDrivers() {
     const { data } = await _supabase.from('t02_drivers').select('f01_id, f02_name');
     drivers = data || [];
+}
+
+async function fetchOwners() {
+    const { data } = await _supabase.from('t10_owners').select('*');
+    owners = data || [];
 }
 
 function toggleSecondaryFilter() {
@@ -45,6 +50,10 @@ function toggleSecondaryFilter() {
         wrapper.style.display = 'block';
         label.innerText = 'اختر السيارة';
         select.innerHTML = cars.map(c => `<option value="${c.f02_plate_no}">${c.f02_plate_no}</option>`).join('');
+    } else if (type === 'investor_monthly') {
+        wrapper.style.display = 'block';
+        label.innerText = 'اختر المستثمر / المالك';
+        select.innerHTML = owners.map(o => `<option value="${o.f01_id}">${o.f02_owner_name}</option>`).join('');
     } else {
         wrapper.style.display = 'none';
     }
@@ -65,17 +74,11 @@ async function generateLuxuryReport() {
 
     try {
         switch (type) {
-            case 'driver_soa':
-                await buildDriverSOA(secondaryId, dateFrom, dateTo);
-                break;
-            case 'financial_summary':
-                await buildFinancialSummary(dateFrom, dateTo);
-                break;
-            case 'broken_days':
-                await buildBrokenDaysReport(dateFrom, dateTo);
-                break;
-            default:
-                showToast("التقرير قيد التطوير", "info");
+            case 'financial_summary': await buildFinancialSummary(dateFrom, dateTo); break;
+            case 'investor_monthly': await buildInvestorMonthlyReport(secondaryId, dateFrom, dateTo); break;
+            case 'driver_soa': await buildDriverSOA(secondaryId, dateFrom, dateTo); break;
+            case 'broken_days': await buildBrokenDaysReport(dateFrom, dateTo); break;
+            default: showToast("التقرير قيد التطوير", "info");
         }
     } catch (err) {
         console.error(err);
@@ -83,11 +86,113 @@ async function generateLuxuryReport() {
     }
 }
 
+function getWorkingDaysCount(from, to) {
+    let count = 0;
+    let curr = new Date(from);
+    let end = new Date(to);
+    while (curr <= end) {
+        if (curr.getDay() !== 5) { count++; } // 5 is Friday
+        curr.setDate(curr.getDate() + 1);
+    }
+    return count;
+}
+
+// --- [Investor Monthly Report] ---
+async function buildInvestorMonthlyReport(ownerId, from, to) {
+    const owner = owners.find(o => o.f01_id == ownerId);
+    const investorCars = cars.filter(c => c.f11_owner_id == ownerId);
+    if (investorCars.length === 0) {
+        document.getElementById('reportPreview').innerHTML = "❌ لا توجد سيارات مرتبطة بهذا المستثمر";
+        return;
+    }
+
+    const carPlates = investorCars.map(c => c.f02_plate_no);
+
+    // Fetch necessary data
+    const [revRes, expRes, workRes] = await Promise.all([
+        _supabase.from('t05_revenues').select('*').in('f03_car_no', carPlates).gte('f02_date', from).lte('f02_date', to),
+        _supabase.from('t06_expenses').select('*').in('f03_car_no', carPlates).gte('f02_date', from).lte('f02_date', to),
+        _supabase.from('t08_work_days').select('*').in('f03_car_no', carPlates).gte('f02_date', from).lte('f02_date', to)
+    ]);
+
+    const allRevenues = revRes.data || [];
+    const allExpenses = expRes.data || [];
+    const allWorkDays = workRes.data || [];
+
+    // Calculate Totals
+    const totalCollectedDailyRent = allRevenues.filter(r => r.f05_category === 'ضمان يومي' || !r.f05_category).reduce((s, r) => s + parseFloat(r.f06_amount), 0);
+    const totalOtherIncome = allRevenues.filter(r => r.f05_category && r.f05_category !== 'ضمان يومي').reduce((s, r) => s + parseFloat(r.f06_amount), 0);
+    const totalCollected = totalCollectedDailyRent + totalOtherIncome;
+
+    const totalOils = allExpenses.filter(e => e.f05_expense_type.includes('زيوت')).reduce((s, e) => s + parseFloat(e.f07_amount), 0);
+    const totalMaintenance = allExpenses.filter(e => e.f05_expense_type.includes('صيانة')).reduce((s, e) => s + parseFloat(e.f07_amount), 0);
+    const totalSalaries = allExpenses.filter(e => e.f05_expense_type.includes('رواتب')).reduce((s, e) => s + parseFloat(e.f07_amount), 0);
+    const totalAllExpenses = allExpenses.reduce((s, e) => s + parseFloat(e.f07_amount), 0);
+    const totalOtherExpenses = totalAllExpenses - (totalOils + totalMaintenance + totalSalaries);
+
+    const netRemaining = totalCollected - totalAllExpenses;
+
+    const dateObj = new Date(from);
+    const reportTitle = `خلاصة شهر ${dateObj.getMonth() + 1} لعام ${dateObj.getFullYear()} - (${owner.f02_owner_name})`;
+    const dateRange = `الفترة من ${from} إلى ${to}`;
+
+    let html = `
+        <div class="investor-report-container">
+            <table class="summary-table-luxury">
+                <tr><td class="lbl" style="color:#3498db">مجموع الضمان المحصل</td><td class="val" style="color:#3498db; font-size:1.8rem;">${totalCollectedDailyRent.toLocaleString()}</td></tr>
+                <tr><td class="lbl" style="color:#2ecc71">إيرادات أخرى</td><td class="val" style="color:#2ecc71;">${totalOtherIncome.toLocaleString()}</td></tr>
+                <tr><td class="lbl">زيوت</td><td class="val">${totalOils.toLocaleString()}</td></tr>
+                <tr><td class="lbl">صيانة</td><td class="val">${totalMaintenance.toLocaleString()}</td></tr>
+                <tr><td class="lbl">رواتب</td><td class="val">${totalSalaries.toLocaleString()}</td></tr>
+                <tr><td class="lbl">مصاريف أخرى</td><td class="val">${totalOtherExpenses.toLocaleString()}</td></tr>
+                <tr class="net-row"><td class="lbl">المبلغ الصافي المتبقي</td><td class="val" style="color:#e74c3c; font-size:1.8rem;">${netRemaining.toLocaleString()}</td></tr>
+            </table>
+
+            <table class="report-table" style="margin-top:30px;">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>السيارة</th>
+                        <th>قيمة الضمان</th>
+                        <th>الايراد المتوقع (شامل)</th>
+                        <th>الايراد الفعلي (شامل)</th>
+                        <th>عدد ايام التوقف</th>
+                        <th>مصاريف اصلاح و أخرى</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    investorCars.forEach((car, index) => {
+        const carRev = allRevenues.filter(r => r.f03_car_no === car.f02_plate_no).reduce((s, r) => s + parseFloat(r.f06_amount), 0);
+        const carExp = allExpenses.filter(e => e.f03_car_no === car.f02_plate_no).reduce((s, r) => s + parseFloat(r.f07_amount), 0);
+        const stopDays = allWorkDays.filter(w => w.f03_car_no === car.f02_plate_no && w.f06_is_off_day && new Date(w.f02_date).getDay() !== 5).length;
+        const totalDays = getWorkingDaysCount(from, to);
+        const carOtherRev = allRevenues.filter(r => r.f03_car_no === car.f02_plate_no && r.f05_category && r.f05_category !== 'ضمان يومي').reduce((s, r) => s + parseFloat(r.f06_amount), 0);
+        const expectedRev = ((totalDays - stopDays) * (car.f08_standard_rent || 0)) + carOtherRev;
+
+        html += `
+            <tr>
+                <td>${index + 1}</td>
+                <td><b>${car.f02_plate_no}</b></td>
+                <td>${car.f08_standard_rent || 0}</td>
+                <td>${expectedRev.toLocaleString()}</td>
+                <td>${carRev.toLocaleString()}</td>
+                <td style="${stopDays > 0 ? 'background:#fce4e4; color:#c0392b; font-weight:bold;' : ''}">${stopDays}</td>
+                <td>${carExp.toLocaleString()}</td>
+            </tr>
+        `;
+    });
+
+    html += `</tbody></table></div>`;
+
+    updateUIAndPrint(reportTitle, dateRange, html);
+}
+
 // --- [1] كشف حساب سائق (Statement of Account) ---
 async function buildDriverSOA(driverId, from, to) {
     const driver = drivers.find(d => d.f01_id == driverId);
     
-    // جلب كل البيانات المتعلقة بالسائق
     const [workRes, revRes, fineRes] = await Promise.all([
         _supabase.from('t08_work_days').select('*').eq('f04_driver_id', driverId).gte('f02_date', from).lte('f02_date', to),
         _supabase.from('t05_revenues').select('*').eq('f04_driver_name', driver.f02_name).gte('f02_date', from).lte('f02_date', to),
@@ -193,14 +298,12 @@ async function buildBrokenDaysReport(from, to) {
 
 // --- [Utility] تحديث الواجهة والطباعة ---
 function updateUIAndPrint(title, range, html) {
-    // تحديث العرض في الصفحة
     document.getElementById('reportPreview').innerHTML = `
         <h2 style="text-align:center; color:var(--taxi-dark); margin-bottom:10px;">${title}</h2>
         <p style="text-align:center; color:#777; margin-bottom:30px; font-weight:bold;">${range}</p>
         ${html}
     `;
 
-    // تحديث بيانات الطباعة
     document.getElementById('print_report_title').innerText = title;
     document.getElementById('print_date_range').innerText = range;
     document.getElementById('print_content').innerHTML = html;

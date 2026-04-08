@@ -77,4 +77,60 @@ body { background: #f5f6f8; }
     .badge-status { border: 1px solid #000 !important; color: #000 !important; background: transparent !important; }
 }
 
+/* Investor Monthly Report Specialized Styles */
+.investor-report-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.summary-table-luxury {
+    width: 100%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background: #fff;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    border: 2px solid #555;
+}
+
+.summary-table-luxury td {
+    border: 1px solid #555;
+    padding: 10px 20px;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.summary-table-luxury .lbl {
+    text-align: right;
+    color: #333;
+    width: 60%;
+}
+
+.summary-table-luxury .val {
+    text-align: center;
+    font-family: 'Digital Numbers', monospace;
+    width: 40%;
+}
+
+.summary-table-luxury tr:first-child .lbl {
+    font-weight: bold;
+}
+
+.summary-table-luxury .net-row {
+    background: #fffbfb;
+}
+
+.summary-table-luxury .net-row td {
+    padding: 15px 20px;
+}
+
+/* Redirection of amount colors if needed in reports.js */
+.text-blue { color: #3498db; }
+.text-red { color: #e74c3c; }
+
+/* Print adjustments for the summary table */
+@media print {
+    .summary-table-luxury { border-width: 3px !important; }
+    .summary-table-luxury td { border-color: #000 !important; }
+}
+
 /* END OF FILE: reports.css */

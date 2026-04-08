@@ -110,7 +110,14 @@
                     </div>
                     <div class="form-group" id="reasonGroup" style="display:none;">
                         <label>السبب | Reason</label>
-                        <input type="text" id="f07_reason" placeholder="صيانة، ترخيص (t08_work_days.f07_reason_if_off)">
+                        <input type="text" id="f07_reason" list="off_day_reasons" placeholder="عطلة رسمية، صيانة، ترخيص (t08_work_days.f07_reason_if_off)">
+                        <datalist id="off_day_reasons">
+                            <option value="عطلة رسمية | Public Holiday">
+                            <option value="صيانة دورية | Maintenance">
+                            <option value="إجازة مرضية | Sick Leave">
+                            <option value="ظرف طارئ | Emergency">
+                            <option value="ترخيص وتأمين | Licensing">
+                        </datalist>
                     </div>
                     <div class="form-group full-width">
                         <label>القيمة | Amount</label>
