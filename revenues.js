@@ -1,13 +1,12 @@
 /* START OF FILE: revenues.js */
 /**
  * File: revenues.js
- * Version: v1.3.1
- * Function: إدارة الإيرادات والتحصيلات (تم إصلاح الفرز والحفظ فقط)
+ * Version: v1.3.0
+ * Function: إدارة الإيرادات والتحصيلات
  */
 
 let allRevenues = [];
 let filteredRevenues = [];
-let sortOrder = true; // متغير للتحكم في اتجاه الفرز
 
 document.addEventListener('DOMContentLoaded', () => {
     initPage();
@@ -20,26 +19,11 @@ async function initPage() {
     setupFormListener();
 }
 
-// [إصلاح 1] إضافة دالة الفرز المفقودة
-function sortData(fieldName) {
-    sortOrder = !sortOrder;
-    filteredRevenues.sort((a, b) => {
-        let v1 = a[fieldName];
-        let v2 = b[fieldName];
-        if (fieldName === 'f06_amount') { // فرز الأرقام
-            return sortOrder ? v1 - v2 : v2 - v1;
-        }
-        // فرز النصوص والتاريخ
-        return sortOrder ? String(v1).localeCompare(String(v2)) : String(v2).localeCompare(String(v1));
-    });
-    renderTable();
-}
-
 async function fillRevenueDropdowns() {
     try {
         const [carsRes, driversRes, staffRes] = await Promise.all([
-            _supabase.from('t01_cars').select('f02_plate_no').eq('f12_is_active', 'نشط'), // تم تعديل القيمة لتطابق المخطط
-            _supabase.from('t02_drivers').select('f02_name'),
+            _supabase.from('t01_cars').select('f02_plate_no').eq('f12_is_active', 'نشط'),
+            _supabase.from('t02_drivers').select('f02_name').eq('f07_status', 'فعال | Active'),
             _supabase.from('t11_staff').select('f02_name')
         ]);
 
@@ -81,6 +65,18 @@ async function loadData() {
     }
 }
 
+// Fixed sortData function
+function sortData(fieldName) {
+    const isNumeric = fieldName === 'f06_amount';
+    filteredRevenues.sort((a, b) => {
+        let valA = a[fieldName];
+        let valB = b[fieldName];
+        if (isNumeric) return parseFloat(valA) - parseFloat(valB);
+        return String(valA).localeCompare(String(valB));
+    });
+    renderTable();
+}
+
 function renderTable() {
     const container = document.getElementById('tableContainer');
     if (!container) return;
@@ -107,7 +103,7 @@ function renderTable() {
                 ${filteredRevenues.map(rev => `
                     <tr>
                         <td>${rev.f02_date}</td>
-                        <td>${rev.f03_car_no}</td>
+                        <td>${window.formatJordanPlate ? window.formatJordanPlate(rev.f03_car_no, true) : rev.f03_car_no}</td>
                         <td>${rev.f04_driver_name}</td>
                         <td><span class="category-tag">${rev.f05_category}</span></td>
                         <td style="font-weight:900; color:var(--taxi-green)">${parseFloat(rev.f06_amount).toLocaleString()}</td>
@@ -128,7 +124,6 @@ function renderTable() {
     updateCounter();
 }
 
-// [إصلاح 2] تصحيح دالة الحفظ لتطابق المخطط (Schema)
 async function saveData(e) {
     if (e) e.preventDefault();
     safeSubmit(async () => {
@@ -138,11 +133,11 @@ async function saveData(e) {
             f03_car_no: document.getElementById('f03_car_no').value,
             f04_driver_name: document.getElementById('f04_driver_name').value,
             f05_category: document.getElementById('f05_category').value,
-            f06_amount: parseFloat(document.getElementById('f06_amount').value),
+            f06_amount: document.getElementById('f06_amount').value,
             f07_method: document.getElementById('f07_method').value,
             f08_collector: document.getElementById('f08_collector').value,
             f09_notes: document.getElementById('f09_notes').value.trim()
-            // تم حذف f10_work_day_link لأنه غير موجود في المخطط الخاص بجدول t05
+            // Removed f10_work_day_link to match database schema t05_revenues
         };
 
         try {
@@ -164,7 +159,11 @@ async function saveData(e) {
 async function loadPendingWorkDays(carNo) {
     const wdSelect = document.getElementById('f10_work_day_link');
     const group = document.getElementById('workDayGroup');
-    if (!carNo || !wdSelect) return;
+    
+    if (!carNo) {
+        if (group) group.style.display = 'none';
+        return;
+    }
 
     const { data } = await _supabase.from('t08_work_days')
         .select('f01_id, f02_date, f05_daily_amount')
@@ -172,12 +171,13 @@ async function loadPendingWorkDays(carNo) {
         .eq('f06_is_off_day', false)
         .order('f02_date', { ascending: false });
 
-    if (data && data.length > 0) {
-        group.style.display = 'block';
+    if (data && data.length > 0 && wdSelect) {
+        if (group) group.style.display = 'block';
         wdSelect.innerHTML = '<option value="">-- اختر ضمان للمطابقة --</option>' + 
             data.map(d => `<option value="${d.f01_id}">${d.f02_date} | ${d.f05_daily_amount} د.أ</option>`).join('');
     } else {
-        group.style.display = 'none';
+        if (group) group.style.display = 'none';
+        if (wdSelect) wdSelect.innerHTML = '<option value="">-- اختر ضمان للمطابقة --</option>';
     }
 }
 
@@ -194,6 +194,13 @@ function editRecord(id) {
     document.getElementById('f07_method').value = rev.f07_method;
     document.getElementById('f08_collector').value = rev.f08_collector;
     document.getElementById('f09_notes').value = rev.f09_notes || '';
+
+    if (rev.f03_car_no) {
+        loadPendingWorkDays(rev.f03_car_no).then(() => {
+            const link = document.getElementById('f10_work_day_link');
+            if (link) link.value = rev.f10_work_day_link || '';
+        });
+    }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -234,14 +241,17 @@ function updateCounter() {
 }
 
 function resetForm() {
-    document.getElementById('revenueForm').reset();
+    const form = document.getElementById('revenueForm');
+    if (form) form.reset();
     document.getElementById('f01_id').value = '';
     document.getElementById('f02_date').valueAsDate = new Date();
 }
 
 function setupFormListener() {
-    document.getElementById('revenueForm').addEventListener('submit', saveData);
-    document.getElementById('f03_car_no').addEventListener('change', (e) => loadPendingWorkDays(e.target.value));
+    const form = document.getElementById('revenueForm');
+    if (form) form.addEventListener('submit', saveData);
+    const carNo = document.getElementById('f03_car_no');
+    if (carNo) carNo.addEventListener('change', (e) => loadPendingWorkDays(e.target.value));
 }
 
 /* END OF FILE: revenues.js */
