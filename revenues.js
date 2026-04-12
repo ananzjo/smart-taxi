@@ -1,42 +1,58 @@
 /* === START OF FILE: revenues.js === */
 /**
  * File: revenues.js
- * Version: v1.4.0
- * Function: إدارة الإيرادات مع البحث المتقدم ومطابقة أيام العمل
+ * Version: v1.5.0
+ * Function: إدارة الإيرادات مع دعم Jordan Plate UI والعداد المطور
  */
 
-let allRevenues = []; 
-let sortDirections = {}; 
+let allRevenues = [];
+let sortDirections = {};
 
-// [1] تشغيل النظام عند التحميل
 document.addEventListener('DOMContentLoaded', async () => {
-    if (typeof bootSystem === 'function') bootSystem("إدارة الإيرادات | Revenues");
     await initPage();
 });
 
 async function initPage() {
-    initTableControls(); // حقن صندوق البحث والعداد
+    renderTableControls(); // بناء صندوق البحث والعداد
     await fillRevenueDropdowns();
     await loadData();
-    setupEventListeners();
 }
 
-// [2] حقن أدوات التحكم (صندوق البحث والعداد) في الـ HTML
-function initTableControls() {
+// [1] بناء صندوق البحث والعداد الأزرق
+function renderTableControls() {
     const placeholder = document.getElementById('tableControlsPlaceholder');
     if (placeholder) {
         placeholder.innerHTML = `
-            <div class="table-header-controls" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
-                <div class="search-box">
-                    <input type="text" id="excelSearch" onkeyup="excelFilter()" placeholder="🔍 بحث سريع (سيارة، سائق، محصل)..." 
-                           style="padding: 8px 15px; width: 300px; border-radius: 20px; border: 1px solid #ccc; outline: none;">
+            <div class="table-header-controls" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; gap:15px;">
+                <div class="global-search-wrapper" style="flex:1;">
+                    <input type="text" id="excelSearch" onkeyup="excelFilter()" placeholder="🔍 بحث في السجلات..." 
+                           style="width:100%; padding:10px 15px; border-radius:var(--border-radius-sm); border:1px solid #ddd;">
                 </div>
-                <div class="record-counter" style="background: #007bff; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 14px;">
-                    إجمالي السجلات: <span id="countDisplay">0</span>
+                <div class="badge-status badge-active" style="padding:10px 20px;">
+                    إجمالي السجلات: <span id="countDisplay" style="margin-right:5px;">0</span>
                 </div>
             </div>
         `;
     }
+}
+
+// [2] توليد لوحة السيارة بتنسيق Jordan Plate
+function createJordanPlate(plateNo, size = 'sm') {
+    if (!plateNo) return '-';
+    // نفترض أن التنسيق "10-12345" أو "12345"
+    const parts = plateNo.split('-');
+    const prefix = parts.length > 1 ? parts[0] : '..';
+    const number = parts.length > 1 ? parts[1] : parts[0];
+
+    return `
+        <div class="jordan-plate ${size}">
+            <div class="plate-left">الأردن<br>JORDAN</div>
+            <div class="plate-right">
+                <span class="prefix">${prefix}</span>
+                <span class="number">${number}</span>
+            </div>
+        </div>
+    `;
 }
 
 // [3] تعبئة القوائم المنسدلة
@@ -52,73 +68,70 @@ async function fillRevenueDropdowns() {
         const driverSelect = document.getElementById('f04_driver_name');
         const staffSelect = document.getElementById('f08_collector');
 
-        if (carsRes.data && carSelect) {
+        if (carSelect && carsRes.data) {
             carSelect.innerHTML = '<option value="">-- اختر السيارة --</option>' + 
                 carsRes.data.map(c => `<option value="${c.f02_plate_no}">${c.f02_plate_no}</option>`).join('');
         }
-        if (driversRes.data && driverSelect) {
+        if (driverSelect && driversRes.data) {
             driverSelect.innerHTML = '<option value="">-- اختر السائق --</option>' + 
                 driversRes.data.map(d => `<option value="${d.f02_name}">${d.f02_name}</option>`).join('');
         }
-        if (staffRes.data && staffSelect) {
+        if (staffSelect && staffRes.data) {
             staffSelect.innerHTML = '<option value="">-- اختر المحصل --</option>' + 
                 staffRes.data.map(s => `<option value="${s.f02_name}">${s.f02_name}</option>`).join('');
         }
-    } catch (err) {
-        console.error("Dropdown Fill Error:", err);
-    }
+    } catch (err) { console.error("Dropdown Error:", err); }
 }
 
-// [4] جلب البيانات
+// [4] جلب البيانات ورسم الجدول
 async function loadData() {
-    const { data, error } = await _supabase
-        .from('t05_revenues')
-        .select('*')
-        .order('f02_date', { ascending: false });
-
-    if (error) { 
-        window.showModal("خطأ", "تعذر جلب البيانات", "error"); 
-        return; 
-    }
-    allRevenues = data;
-    renderTable(data);
+    const { data, error } = await _supabase.from('t05_revenues').select('*').order('f02_date', { ascending: false });
+    if (error) return window.showModal("خطأ", "فشل جلب البيانات", "error");
+    allRevenues = data || [];
+    renderTable(allRevenues);
 }
 
-// [5] بناء الجدول وتحديث العداد
 function renderTable(list) {
+    const container = document.getElementById('tableContainer');
     const countDisplay = document.getElementById('countDisplay');
     if (countDisplay) countDisplay.innerText = list.length;
-    
-    if (window.updateRecordCounter) window.updateRecordCounter(list.length);
 
-    let html = `<table><thead><tr>
-        <th onclick="sortTable(0)" style="cursor:pointer">التاريخ ↕</th>
-        <th onclick="sortTable(1)" style="cursor:pointer">السيارة ↕</th>
-        <th onclick="sortTable(2)" style="cursor:pointer">السائق ↕</th>
-        <th onclick="sortTable(3)" style="cursor:pointer">المبلغ ↕</th>
-        <th onclick="sortTable(4)" style="cursor:pointer">المحصل ↕</th>
-        <th>إجراءات</th>
-    </tr></thead><tbody>`;
-
-    list.forEach(rev => {
-        html += `<tr>
-            <td>${rev.f02_date}</td>
-            <td><b>${rev.f03_car_no}</b></td>
-            <td>${rev.f04_driver_name}</td>
-            <td style="color:var(--taxi-green); font-weight:bold;">${parseFloat(rev.f06_amount).toLocaleString()}</td>
-            <td>${rev.f08_collector || '-'}</td>
-            <td>
-                <button onclick='editRecord(${JSON.stringify(rev)})' class="btn-action edit-btn" title="تعديل">📝</button>
-                <button onclick="deleteRecord('${rev.f01_id}')" class="btn-action delete-btn" title="حذف">🗑️</button>
-            </td>
-        </tr>`;
-    });
-    
-    const container = document.getElementById('tableContainer');
-    if(container) container.innerHTML = list.length > 0 ? html + "</tbody></table>" : '<p style="padding:20px; text-align:center;">لا توجد بيانات للعرض</p>';
+    let html = `
+        <table>
+            <thead>
+                <tr>
+                    <th onclick="sortTable('f02_date')">التاريخ ↕</th>
+                    <th onclick="sortTable('f03_car_no')">السيارة ↕</th>
+                    <th>السائق</th>
+                    <th onclick="sortTable('f06_amount')">المبلغ ↕</th>
+                    <th>المحصل</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${list.map(rev => `
+                    <tr>
+                        <td>${rev.f02_date}</td>
+                        <td>${createJordanPlate(rev.f03_car_no)}</td>
+                        <td>${rev.f04_driver_name}</td>
+                        <td style="color:var(--taxi-green); font-weight:bold;">${parseFloat(rev.f06_amount).toFixed(2)}</td>
+                        <td>${rev.f08_collector || '-'}</td>
+                        <td>
+                            <div class="action-btns-group">
+                                <button class="btn-action-sm btn-view" onclick='viewDetails(${JSON.stringify(rev)})'>👁️</button>
+                                <button class="btn-action-sm btn-edit" onclick='editRecord(${JSON.stringify(rev)})'>✏️</button>
+                                <button class="btn-action-sm btn-delete" onclick="deleteRecord('${rev.f01_id}')">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+    container.innerHTML = list.length > 0 ? html : '<div style="padding:40px; text-align:center;">لا توجد بيانات</div>';
 }
 
-// [6] الحفظ مع معالجة الأرقام والتحقق
+// [5] الحفظ المطور
 async function saveData(e) {
     if (e) e.preventDefault();
     const id = document.getElementById('f01_id').value;
@@ -131,99 +144,86 @@ async function saveData(e) {
     });
 
     if (!payload.f03_car_no || !payload.f06_amount) {
-        window.showModal("نواقص", "يرجى اختيار السيارة والمبلغ", "warning");
-        return;
+        return window.showModal("نواقص", "يرجى تعبئة الحقول الأساسية", "warning");
     }
 
-    const { error } = id 
+    const res = id 
         ? await _supabase.from('t05_revenues').update(payload).eq('f01_id', id)
         : await _supabase.from('t05_revenues').insert([payload]);
 
-    if (error) { 
-        window.showModal("فشل", "حدث خطأ أثناء الحفظ: " + error.message, "error"); 
-    } else { 
-        window.showModal("نجاح", "تم حفظ السجل بنجاح ✅", "success");
-        resetFieldsOnly(); 
+    if (res.error) {
+        window.showModal("فشل", "حدث خطأ: " + res.error.message, "error");
+    } else {
+        window.showModal("نجاح", "تم الحفظ بنجاح ✅", "success");
+        resetFieldsOnly();
         loadData();
     }
 }
 
-// [7] نظام مطابقة أيام العمل (Work Days Logic)
-async function loadPendingWorkDays(carNo) {
-    const group = document.getElementById('workDayGroup');
-    const wdSelect = document.getElementById('f10_work_day_link');
-    if (!carNo || !wdSelect) return;
+// [6] وظائف إضافية (فرز، بحث، معاينة)
+function excelFilter() {
+    const val = document.getElementById('excelSearch').value.toLowerCase();
+    const filtered = allRevenues.filter(r => 
+        String(r.f03_car_no).toLowerCase().includes(val) || 
+        String(r.f04_driver_name).toLowerCase().includes(val)
+    );
+    renderTable(filtered);
+}
 
-    const { data, error } = await _supabase.from('t08_work_days')
+function sortTable(key) {
+    sortDirections[key] = !sortDirections[key];
+    allRevenues.sort((a, b) => {
+        let valA = a[key], valB = b[key];
+        if (key === 'f06_amount') return (valA - valB) * (sortDirections[key] ? 1 : -1);
+        return String(valA).localeCompare(String(valB), 'ar') * (sortDirections[key] ? 1 : -1);
+    });
+    renderTable(allRevenues);
+}
+
+function viewDetails(rev) {
+    const body = document.getElementById('modalBody');
+    body.innerHTML = `
+        <div class="view-data-grid">
+            <div class="view-item"> <span class="view-label">التاريخ</span> <span class="view-value">${rev.f02_date}</span> </div>
+            <div class="view-item"> <span class="view-label">رقم السيارة</span> ${createJordanPlate(rev.f03_car_no)} </div>
+            <div class="view-item"> <span class="view-label">السائق</span> <span class="view-value">${rev.f04_driver_name}</span> </div>
+            <div class="view-item"> <span class="view-label">المبلغ</span> <span class="view-value">${rev.f06_amount} د.أ</span> </div>
+            <div class="view-item full-width"> <span class="view-label">ملاحظات</span> <span class="view-value">${rev.f09_notes || 'لا يوجد'}</span> </div>
+        </div>
+    `;
+    document.getElementById('viewModal').classList.add('active');
+}
+
+function closeViewModal() { document.getElementById('viewModal').classList.remove('active'); }
+
+function editRecord(rev) {
+    Object.keys(rev).forEach(key => {
+        const el = document.getElementById(key);
+        if (el) el.value = rev[key];
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function resetFieldsOnly() {
+    document.getElementById('revenueForm').reset();
+    document.getElementById('f01_id').value = "";
+    document.getElementById('f02_date').valueAsDate = new Date();
+}
+
+async function loadPendingWorkDays(carNo) {
+    const wdSelect = document.getElementById('f10_work_day_link');
+    const group = document.getElementById('workDayGroup');
+    if (!carNo) { group.style.display = 'none'; return; }
+
+    const { data } = await _supabase.from('t08_work_days')
         .select('f01_id, f02_date, f05_daily_amount')
-        .eq('f03_car_no', carNo)
-        .eq('f06_is_off_day', false)
-        .order('f02_date', { ascending: false });
+        .eq('f03_car_no', carNo).eq('f06_is_off_day', false);
 
     if (data && data.length > 0) {
         group.style.display = 'block';
         wdSelect.innerHTML = '<option value="">-- اختر ضمان للمطابقة --</option>' + 
             data.map(d => `<option value="${d.f01_id}">${d.f02_date} | ${d.f05_daily_amount} د.أ</option>`).join('');
-    } else {
-        group.style.display = 'none';
-    }
-}
-
-function excelFilter() {
-    const val = document.getElementById('excelSearch').value.toLowerCase();
-    const filtered = allRevenues.filter(item => {
-        return (
-            String(item.f03_car_no || "").toLowerCase().includes(val) ||
-            String(item.f04_driver_name || "").toLowerCase().includes(val) ||
-            String(item.f08_collector || "").toLowerCase().includes(val) ||
-            String(item.f02_date || "").includes(val)
-        );
-    });
-    renderTable(filtered);
-}
-
-function sortTable(n) {
-    sortDirections[n] = !sortDirections[n];
-    const direction = sortDirections[n] ? 1 : -1;
-    
-    allRevenues.sort((a, b) => {
-        const keys = ['f02_date', 'f03_car_no', 'f04_driver_name', 'f06_amount', 'f08_collector'];
-        let aV = a[keys[n]], bV = b[keys[n]];
-        if (n === 3) return (parseFloat(aV) - parseFloat(bV)) * direction;
-        return String(aV).localeCompare(String(bV), 'ar') * direction;
-    });
-    renderTable(allRevenues);
-}
-
-function editRecord(rev) {
-    Object.keys(rev).forEach(key => { 
-        const el = document.getElementById(key);
-        if(el) el.value = rev[key]; 
-    });
-    if (rev.f03_car_no) loadPendingWorkDays(rev.f03_car_no);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function deleteRecord(id) {
-    window.showModal("تأكيد", "هل أنت متأكد من حذف السجل نهائياً؟", "error", async () => {
-        const { error } = await _supabase.from('t05_revenues').delete().eq('f01_id', id);
-        if (error) window.showModal("خطأ", "فشل الحذف", "error"); else loadData();
-    });
-}
-
-function setupEventListeners() {
-    const carNoSelect = document.getElementById('f03_car_no');
-    if (carNoSelect) {
-        carNoSelect.addEventListener('change', (e) => loadPendingWorkDays(e.target.value));
-    }
-}
-
-function resetFieldsOnly() {
-    const form = document.getElementById('revenueForm');
-    if(form) form.reset();
-    document.getElementById('f01_id').value = "";
-    document.getElementById('f02_date').valueAsDate = new Date();
-    document.getElementById('workDayGroup').style.display = 'none';
+    } else { group.style.display = 'none'; }
 }
 
 /* === END OF FILE: revenues.js === */
