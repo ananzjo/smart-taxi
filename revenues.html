@@ -7,14 +7,15 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="global-config.js"></script>
     <link rel="stylesheet" href="revenues.css">
+    <link rel="stylesheet" href="unified-ui.css">
 </head>
-<body>
+<body onload="bootSystem('إدارة الإيرادات | Revenues')">
 
     <div class="main-container">
         <div class="luxury-page-header">
             <div class="header-info">
                 <h1>💰 الإيرادات والتحصيل | Revenues</h1>
-                <p>تسجيل المقبوضات اليومية والتسويات المالية | Daily Cash Receipts & Settlements</p>
+                <p>تسجيل المقبوضات اليومية والتسويات المالية</p>
             </div>
         </div>
 
@@ -24,17 +25,24 @@
                 <input type="hidden" id="f01_id">
                 <div class="input-grid">
                     <div class="form-group">
-                        <label>التاريخ | Collection Date</label>
+                        <label class="label-help">التاريخ | Collection Date
+                            <span class="tooltip-box"><b>تاريخ العملية</b>تاريخ استلام المبلغ الفعلي من السائق.</span>
+                        </label>
                         <input type="date" id="f02_date" required>
                     </div>
+
                     <div class="form-group">
-                        <label>رقم السيارة | Plate No</label>
-                        <select id="f03_car_no" required></select>
+                        <label class="label-help">رقم السيارة | Plate No
+                            <span class="tooltip-box"><b>اختيار السيارة</b>يتم عرض السيارات النشطة فقط في النظام.</span>
+                        </label>
+                        <select id="f03_car_no" required onchange="loadPendingWorkDays(this.value)"></select>
                     </div>
+
                     <div class="form-group">
                         <label>اسم السائق | Driver Name</label>
                         <select id="f04_driver_name" required></select>
                     </div>
+
                     <div class="form-group">
                         <label>الفئة | Category</label>
                         <select id="f05_category" required>
@@ -44,14 +52,19 @@
                             <option value="أخرى">أخرى | Other</option>
                         </select>
                     </div>
+
                     <div class="form-group" id="workDayGroup" style="display:none;">
-                        <label style="color: #d9534f; font-weight: bold;">⚠️ مطابقة مع ضمان مستحق</label>
+                        <label class="label-help" style="color: var(--taxi-red); font-weight: bold;">⚠️ مطابقة الضمان
+                             <span class="tooltip-box"><b>المطابقة المالية</b>ربط هذا المبلغ بيوم عمل محدد في السجل.</span>
+                        </label>
                         <select id="f10_work_day_link"></select>
                     </div>
+
                     <div class="form-group">
                         <label>المبلغ | Amount</label>
                         <input type="number" step="0.5" id="f06_amount" required>
                     </div>
+
                     <div class="form-group">
                         <label>طريقة الدفع | Method</label>
                         <select id="f07_method" required>
@@ -60,18 +73,20 @@
                             <option value="محفظة">محفظة | Cliq</option>
                         </select>
                     </div>
+
                     <div class="form-group">
                         <label>المحصل | Collector</label>
                         <select id="f08_collector" required></select>
                     </div>
+
                     <div class="form-group full-width">
-                        <label>ملاحظات | Notes</label>
+                        <label>ملاحظات إضافية | Notes</label>
                         <textarea id="f09_notes" rows="2"></textarea>
                     </div>
                 </div>
                 <div class="form-actions">
-                    <button type="submit" onclick="saveData(event)" class="primary-btn">حفظ | Save ✅</button>
-                    <button type="button" onclick="resetFieldsOnly()" class="secondary-btn">تفريغ | Reset 🔄</button>
+                    <button type="submit" onclick="saveData(event)" class="primary-btn">حفظ البيانات | Save Data ✅</button>
+                    <button type="button" onclick="resetFieldsOnly()" class="secondary-btn">تفريغ الحقول | Reset 🔄</button>
                 </div>
             </form>
         </div>
@@ -80,7 +95,21 @@
 
         <div class="elegant-card grid-card">
             <div class="card-header"><span>📋 سجل التحصيلات | Revenues Ledger</span></div>
-            <div id="tableContainer" class="table-responsive"></div>
+            <div id="tableContainer" class="table-responsive">
+                </div>
+        </div>
+    </div>
+
+    <div id="viewModal" class="view-modal-overlay">
+        <div class="view-modal-card">
+            <div class="view-modal-header">
+                <h3 id="modalTitle">تفاصيل الإيراد</h3>
+                <button onclick="closeViewModal()" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
+            </div>
+            <div class="view-modal-body" id="modalBody"></div>
+            <div class="view-modal-footer">
+                <button class="close-view-btn" onclick="closeViewModal()">إغلاق | Close</button>
+            </div>
         </div>
     </div>
 
