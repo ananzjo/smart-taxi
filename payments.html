@@ -6,6 +6,7 @@
     <title>نظام إدارة التاكسي الذكي | المدفوعات والتسوية</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="global-config.js"></script>
+    <script src="droplistsdata.js"></script>
     <link rel="stylesheet" href="payments.css">
 </head>
 <body>
@@ -54,11 +55,8 @@
 
                     <div class="form-group">
                         <label>طريقة الدفع | Method</label>
-                        <select id="f07_method">
-                            <option value="Cash|نقدي">نقدي | Cash</option>
-                            <option value="Bank|بنك">بنك | Bank</option>
-                            <option value="Cliq|محفظة">محفظة | E-Wallet</option>
-                            <option value="Credit Card|بطاقة ائتمان">بطاقة ائتمان | Credit Card</option>
+                        <select id="f07_method" required>
+                            <option value="">-- اختر الطريقة --</option>
                         </select>
                     </div>
 

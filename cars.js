@@ -1,38 +1,44 @@
-/* === START OF FILE === */
+/* START OF FILE: cars.js */
 /**
- * File: cars-logic.js
- * Version: v1.2.1
- * Function: إدارة أسطول السيارات مع تصحيح الربط بين الـ UI والـ Database
- * Components: Supabase Client, Table Renderer, CRUD Operations
- * Input/Output: التعامل مع جدول t01_cars باستخدام f01_id (UUID)
+ * File: cars.js
+ * Version: v1.3.0
+ * Function: إدارة أسطول السيارات مع تتبع الحالة والسائق الحالي
+ * Components: Supabase Client, Luxury Grid, Status Controller
+ * Inputs: t01_cars, t10_owners, t02_drivers
  */
 
+// --- [1] إعدادات الصفحة والحالة ---
 let allCars = [];
 let filteredCars = [];
 let ownersList = [];
 let driversList = [];
+let staffList = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     initPage();
 });
 
 async function initPage() {
-    // التأكد من تحميل الملحقات قبل البيانات الأساسية
+    if (typeof LookupEngine !== 'undefined') {
+        await Promise.all([
+            LookupEngine.fillSelect('fuel_type', 'f13_fuel_type', { placeholder: '-- فئة الوقود --' })
+        ]);
+    }
     await Promise.all([
         fetchOwners(),
-        fetchDrivers()
+        fetchDrivers(),
+        fetchStaff(),
+        fetchCars()
     ]);
-    await fetchCars();
     initTableControls();
     setupEventListeners();
 }
 
 // --- [2] جلب البيانات ---
 async function fetchOwners() {
-    // الحقل في ت01 هو f10_owner_id يربط بـ f01_id في t10
     const { data } = await _supabase.from('t10_owners').select('f01_id, f02_owner_name');
     ownersList = data || [];
-    const sel = document.getElementById('f10_owner_id'); // تصحيح المعرف من f11 إلى f10
+    const sel = document.getElementById('f10_owner_id');
     if (sel) {
         sel.innerHTML = '<option value="">-- اختر المالك --</option>' +
             ownersList.map(o => `<option value="${o.f01_id}">${o.f02_owner_name}</option>`).join('');
@@ -40,12 +46,17 @@ async function fetchOwners() {
 }
 
 async function fetchDrivers() {
-    const { data } = await _supabase.from('t02_drivers').select('f01_id, f02_name');
+    const { data } = await _supabase.from('t02_drivers').select('f01_id, f02_name, f08_car_no');
     driversList = data || [];
-    const sel = document.getElementById('f13_current_driver_id');
+}
+
+async function fetchStaff() {
+    const { data } = await _supabase.from('t11_staff').select('f01_id, f02_name');
+    staffList = data || [];
+    const sel = document.getElementById('f14_staff_id');
     if (sel) {
-        sel.innerHTML = '<option value="">-- اختر السائق الحالي --</option>' +
-            driversList.map(d => `<option value="${d.f01_id}">${d.f02_name}</option>`).join('');
+        sel.innerHTML = '<option value="">-- المحصل / المسؤول --</option>' +
+            staffList.map(s => `<option value="${s.f01_id}">${s.f02_name}</option>`).join('');
     }
 }
 
@@ -59,14 +70,14 @@ async function fetchCars() {
         if (error) throw error;
         allCars = data || [];
         filteredCars = [...allCars];
+
         renderTable();
     } catch (err) {
-        console.error("Fetch Error:", err);
-        if(typeof showToast === 'function') showToast("فشل في تحميل بيانات السيارات", "error");
+        showToast("فشل في تحميل بيانات السيارات", "error");
     }
 }
 
-// --- [3] بناء الجدول ---
+// --- [3] بناء الجدول الفاخر ---
 function renderTable() {
     const container = document.getElementById('tableContainer');
     if (!container) return;
@@ -81,7 +92,7 @@ function renderTable() {
             <thead>
                 <tr>
                     <th onclick="sortData('f02_plate_no')">اللوحة | Plate ↕</th>
-                    <th onclick="sortData('f04_brand')">الماركة | Brand ↕</th>
+                    <th onclick="sortData('f03_car_office')">المكتب | Office ↕</th>
                     <th onclick="sortData('f06_model')">الموديل | Model ↕</th>
                     <th onclick="sortData('f08_standard_rent')">الضمان | Rent ↕</th>
                     <th>المالك | Owner</th>
@@ -92,32 +103,33 @@ function renderTable() {
             </thead>
             <tbody>
                 ${filteredCars.map(car => {
-                    // الربط باستخدام الحقول الصحيحة من الـ Schema
                     let owner = ownersList.find(o => String(o.f01_id) === String(car.f10_owner_id));
-                    let driver = driversList.find(d => String(d.f01_id) === String(car.f13_current_driver_id));
+                    // Derive current driver from t02_drivers where f08_car_no matches this car's plate
+                    const driver = driversList.find(d => d.f08_car_no === car.f02_plate_no);
                     
-                    const isA = (car.f11_is_active === 'Active' || car.f11_is_active === 'نشط' || car.f11_is_active === 'نشطة');
+                    const isA = (car.f11_is_active === 'نشطة | Active' || car.f11_is_active === 'Active' || car.f11_is_active === 'نشطة' || car.f11_is_active === 'نشط' || car.f11_is_active === 'مشغول');
                     const statusClass = isA ? 'badge-active' : 'badge-inactive';
                     const statusText = isA ? 'نشطة | Active' : 'غير نشطة | InActive';
 
                     return `
                         <tr>
-                            <td>${car.f02_plate_no}</td>
-                            <td>${car.f04_brand || '---'}</td>
+                            <td>${window.formatJordanPlate(car.f02_plate_no, true)}</td>
+                            <td>${car.f03_car_office || '---'}</td>
                             <td>${car.f06_model || '---'}</td>
-                            <td style="font-weight:bold; color:green">${car.f08_standard_rent}</td>
-                            <td>${owner ? owner.f02_owner_name : '<span style="color:#999;">(غير محدد)</span>'}</td>
-                            <td>${driver ? driver.f02_name : '---'}</td>
+                            <td style="font-weight:bold; color:var(--taxi-green)">${car.f08_standard_rent}</td>
+                            <td style="font-weight:600;">${owner ? owner.f02_owner_name : '<span style="color:#95a5a6; font-size:0.8rem;">(غير محدد)</span>'}</td>
+                            <td style="font-weight:600;">${driver ? driver.f02_name : '<span style="color:#95a5a6; font-size:0.8rem;">---</span>'}</td>
                             <td><span class="badge-status ${statusClass}">${statusText}</span></td>
                             <td>
                                 <div class="action-btns-group">
-                                    <button class="btn-edit" onclick="editRecord('${car.f01_id}')">✏️</button>
-                                    <button class="btn-delete" onclick="confirmDelete('${car.f01_id}')">🗑️</button>
+                                    <button class="btn-action-sm btn-view" onclick='showViewModal(${JSON.stringify(car)}, "تفاصيل السيارة | Car Details")' title="عرض">👁️</button>
+                                    <button class="btn-action-sm btn-edit" onclick="editRecord('${car.f01_id}')" title="تعديل">✏️</button>
+                                    <button class="btn-action-sm btn-delete" onclick="confirmDelete('${car.f01_id}')" title="حذف">🗑️</button>
                                 </div>
                             </td>
                         </tr>
                     `;
-                }).join('')}
+    }).join('')}
             </tbody>
         </table>
     `;
@@ -128,81 +140,127 @@ function renderTable() {
 // --- [4] العمليات (CRUD) ---
 async function handleFormSubmit(e) {
     e.preventDefault();
-    
-    const uuid = document.getElementById('f01_id').value; // المعرف الأساسي UUID
+    safeSubmit(async () => {
+        const id = document.getElementById('f01_id').value;
 
-    const payload = {
-        f02_plate_no: document.getElementById('f02_plate_no').value.trim(),
-        f03_car_office: document.getElementById('f03_car_office').value,
-        f04_brand: document.getElementById('f04_brand').value,
-        f06_model: parseInt(document.getElementById('f06_model').value) || null,
-        f07_license_expiry: document.getElementById('f07_license_expiry').value || null,
-        f08_standard_rent: parseFloat(document.getElementById('f08_standard_rent').value) || 0,
-        f09_management_fee: parseFloat(document.getElementById('f09_management_fee').value) || 50,
-        f10_owner_id: document.getElementById('f10_owner_id').value || null, // UUID string
-        f11_is_active: document.getElementById('f11_is_active').value,
-        f13_current_driver_id: document.getElementById('f13_current_driver_id').value ? parseInt(document.getElementById('f13_current_driver_id').value) : null,
-        f13_fuel_type: document.getElementById('f13_fuel_type').value
-    };
+        const payload = {
+            f02_plate_no: document.getElementById('f02_plate_no').value.trim(),
+            f03_car_office: document.getElementById('f03_car_office').value,
+            f04_brand: document.getElementById('f04_brand').value,
+            f05_brand_type: document.getElementById('f05_brand_type').value.trim(),
+            f06_model: parseInt(document.getElementById('f06_model').value),
+            f07_license_expiry: document.getElementById('f07_license_expiry').value,
+            f08_standard_rent: parseFloat(document.getElementById('f08_standard_rent').value),
+            f09_management_fee: parseFloat(document.getElementById('f09_management_fee').value),
+            f10_owner_id: document.getElementById('f10_owner_id').value || null,
+            f14_staff_id: document.getElementById('f14_staff_id').value || null,
+            f11_is_active: document.getElementById('f11_is_active').value,
+            f13_fuel_type: document.getElementById('f13_fuel_type').value
+        };
 
-    try {
-        let res;
-        if (uuid) {
-            // تحديث باستخدام UUID
-            res = await _supabase.from('t01_cars').update(payload).eq('f01_id', uuid);
-        } else {
-            // إضافة سجل جديد
-            res = await _supabase.from('t01_cars').insert([payload]);
+        try {
+            let res;
+            if (id) {
+                res = await _supabase.from('t01_cars').update(payload).eq('f01_id', id);
+            } else {
+                res = await _supabase.from('t01_cars').insert([payload]);
+            }
+
+            if (res.error) throw res.error;
+
+            showToast("تم حفظ بيانات السيارة بنجاح", "success");
+            resetForm();
+            fetchCars();
+        } catch (err) {
+            showToast("حدث خطأ أثناء الحفظ: " + err.message, "error");
         }
-
-        if (res.error) throw res.error;
-
-        showToast("تم حفظ بيانات السيارة بنجاح", "success");
-        resetForm();
-        fetchCars();
-    } catch (err) {
-        showToast("خطأ في الحفظ: " + err.message, "error");
-    }
+    });
 }
 
-function editRecord(uuid) {
-    const car = allCars.find(c => c.f01_id === uuid);
+function confirmDelete(id) {
+    const car = allCars.find(c => c.f01_id == id);
+    showModal(
+        "حذف سيارة ⚠️",
+        `هل أنت متأكد من حذف السيارة رقم <b>(${car.f02_plate_no})</b>؟ لا يمكن التراجع عن هذا الإجراء.`,
+        'warning',
+        async () => {
+            const { error } = await _supabase.from('t01_cars').delete().eq('f01_id', id);
+            if (!error) {
+                showToast("تم الحذف بنجاح", "success");
+                fetchCars();
+            } else {
+                showToast("لا يمكن الحذف لارتباط بيانات أخرى بهذه السيارة", "error");
+            }
+        }
+    );
+}
+
+function editRecord(id) {
+    const car = allCars.find(c => c.f01_id == id);
     if (!car) return;
 
-    document.getElementById('f01_id').value = car.f01_id;
+    document.getElementById('f01_id').value = car.f01_id || '';
     document.getElementById('f02_plate_no').value = car.f02_plate_no;
+    document.getElementById('f03_car_office').value = car.f03_car_office || '';
+    document.getElementById('f04_brand').value = car.f04_brand || '';
+    document.getElementById('f05_brand_type').value = car.f05_brand_type || '';
+    document.getElementById('f06_model').value = car.f06_model || '';
+    document.getElementById('f07_license_expiry').value = car.f07_license_expiry || '';
+    document.getElementById('f08_standard_rent').value = car.f08_standard_rent || 0;
+    document.getElementById('f09_management_fee').value = car.f09_management_fee || 50;
     document.getElementById('f10_owner_id').value = car.f10_owner_id || '';
-    document.getElementById('f11_is_active').value = car.f11_is_active || 'Active';
-    // ... باقي الحقول تملأ بنفس الطريقة ...
+    document.getElementById('f14_staff_id').value = car.f14_staff_id || '';
+    document.getElementById('f11_is_active').value = car.f11_is_active || 'نشطة | Active';
+    document.getElementById('f13_fuel_type').value = car.f13_fuel_type || 'بنزين';
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function confirmDelete(uuid) {
-    const car = allCars.find(c => c.f01_id === uuid);
-    if(confirm(`هل تريد حذف السيارة ${car.f02_plate_no}؟`)) {
-        executeDelete(uuid);
+// --- [5] الميزات الإضافية (البحث والترتيب) ---
+function initTableControls() {
+    const placeholder = document.getElementById('tableControlsPlaceholder');
+    if (placeholder) {
+        placeholder.innerHTML = `
+            <div class="table-header-controls">
+                <div class="record-badge">إجمالي الأسطول: <span id="count">${allCars.length}</span></div>
+                <div class="global-search-wrapper">
+                    <input type="text" id="globalSearch" class="global-search-input" placeholder="بحث باللوحة، الماركة، أو السائق..." onkeyup="filterLocal()">
+                    <span class="search-icon">🔍</span>
+                </div>
+            </div>
+        `;
     }
 }
 
-async function executeDelete(uuid) {
-    const { error } = await _supabase.from('t01_cars').delete().eq('f01_id', uuid);
-    if (!error) {
-        showToast("تم الحذف", "success");
-        fetchCars();
-    } else {
-        showToast("خطأ في الحذف: " + error.message, "error");
-    }
+function filterLocal() {
+    const term = document.getElementById('globalSearch').value.toLowerCase();
+    filteredCars = allCars.filter(c =>
+        c.f02_plate_no.toLowerCase().includes(term) ||
+        (c.f04_brand && c.f04_brand.toLowerCase().includes(term)) ||
+        Object.values(c).some(v => String(v).toLowerCase().includes(term))
+    );
+    renderTable();
 }
 
-// دالات مساعدة
+let currentSort = { col: 'f02_plate_no', asc: true };
+function sortData(col) {
+    currentSort.asc = (currentSort.col === col) ? !currentSort.asc : true;
+    currentSort.col = col;
+    filteredCars.sort((a, b) => {
+        let vA = a[col] || '';
+        let vB = b[col] || '';
+        return currentSort.asc ? (vA > vB ? 1 : -1) : (vA < vB ? 1 : -1);
+    });
+    renderTable();
+}
+
 function updateCounter() {
     const el = document.getElementById('count');
     if (el) el.innerText = filteredCars.length;
 }
 
 function resetForm() {
-    const form = document.getElementById('carForm');
-    if(form) form.reset();
+    document.getElementById('carForm').reset();
     document.getElementById('f01_id').value = '';
 }
 
@@ -211,8 +269,4 @@ function setupEventListeners() {
     if (form) form.addEventListener('submit', handleFormSubmit);
 }
 
-function initTableControls() {
-    // كود البحث المحلي
-}
-
-/* === END OF FILE === */
+/* END OF FILE: cars.js */

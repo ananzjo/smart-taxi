@@ -28,7 +28,6 @@ function renderLogsTable(data) {
                 <td style="${statusStyle}">${log.f04_status === 'Success' ? '✅ ناجح' : '❌ فاشل'}</td>
                 <td>${log.f05_failure_reason || '-'}</td>
                 <td>${log.f06_ip_address || 'Unknown'}</td>
-                <td>${log.f07_location || '-'}</td>
                 <td style="font-size: 0.75rem; color: #777;">${log.f08_device_info || '-'}</td>
             </tr>
         `;
@@ -66,7 +65,7 @@ async function loginProcess() {
     }
 
     // 3. التحقق من كلمة المرور (بافتراض أنك تشفرها أو تقارنها)
-    if (data.f09_password !== pass) {
+    if (data.f03_password !== pass) {
         await recordLoginEvent(user, 'Failure', 'كلمة مرور خاطئة');
         window.showModal("خطأ", "كلمة المرور غير صحيحة", "error");
         return;

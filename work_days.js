@@ -1,7 +1,7 @@
 /* START OF FILE: work_days.js */
 /**
  * File: work_days.js
- * Version: v1.3.1
+ * Version: v1.3.2
  * Function: المحرك المالي لتوليد المديونية اليومية ومطابقتها (الأيام المكسورة)
  */
 
@@ -28,6 +28,7 @@ async function initSystem() {
     ]);
     populateFilters();
     initTableControls();
+    setupFormListener();
 }
 
 async function fetchCars() {
@@ -103,7 +104,7 @@ function renderTable() {
                     const dayRev = revenuesList.filter(r => 
                         r.f03_car_no === day.f03_car_no && 
                         r.f02_date === day.f02_date
-                    ).reduce((sum, r) => sum + parseFloat(r.f07_amount || 0), 0);
+                    ).reduce((sum, r) => sum + parseFloat(r.f06_amount || 0), 0);
 
                     const isPaid = day.f06_is_off_day || (dayRev >= day.f05_daily_amount);
                     const statusClass = day.f06_is_off_day ? 'badge-off' : (isPaid ? 'badge-paid' : 'badge-broken');
@@ -141,7 +142,7 @@ function calculateStats() {
     allWorkDays.forEach(day => {
         if (!day.f06_is_off_day) {
             const dayRev = revenuesList.filter(r => r.f03_car_no === day.f03_car_no && r.f02_date === day.f02_date)
-                                      .reduce((sum, r) => sum + parseFloat(r.f07_amount || 0), 0);
+                                      .reduce((sum, r) => sum + parseFloat(r.f06_amount || 0), 0);
             if (dayRev < day.f05_daily_amount) brokenCount++;
         }
     });
@@ -154,19 +155,72 @@ function calculateStats() {
     if(s3) s3.innerText = totalDaman.toLocaleString();
 }
 
+async function triggerAutoGeneration() {
+    const today = new Date();
+    if (today.getDay() === 5) { // Friday
+        showToast("اليوم هو الجمعة، لا يتم توليد مديونية تلقائياً ✅", "info");
+        return;
+    }
+
+    const todayStr = today.toISOString().split('T')[0];
+    const btn = document.getElementById('generateBtn');
+    if(btn) btn.disabled = true;
+
+    try {
+        const { data: allCars } = await _supabase.from('t01_cars').select('*');
+        const cars = (allCars || []).filter(c => 
+            !c.f11_is_active || c.f11_is_active.includes('نشط') || c.f11_is_active.toLowerCase().includes('active')
+        );
+        if (!cars || cars.length === 0) {
+            showToast("لا يوجد سيارات فعالة حالياً", "warning");
+            return;
+        }
+
+        const { data: existing } = await _supabase.from('t08_work_days').select('f03_car_no').eq('f02_date', todayStr);
+        const existingPlates = (existing || []).map(e => e.f03_car_no);
+
+        const toInsert = [];
+        for (const car of cars) {
+            if (!existingPlates.includes(car.f02_plate_no)) {
+                // Find driver assigned to this car
+                const { data: drv } = await _supabase.from('t02_drivers').select('f01_id').eq('f08_car_no', car.f02_plate_no).maybeSingle();
+                
+                if (drv) {
+                    toInsert.push({
+                        f02_date: todayStr,
+                        f03_car_no: car.f02_plate_no,
+                        f04_driver_id: drv.f01_id,
+                        f05_daily_amount: car.f08_standard_rent || 0,
+                        f06_is_off_day: false
+                    });
+                }
+            }
+        }
+
+        if (toInsert.length > 0) {
+            const { error } = await _supabase.from('t08_work_days').insert(toInsert);
+            if (error) throw error;
+            showToast(`تم توليد (${toInsert.length}) سجلاً بنجاح ✅`, "success");
+            fetchWorkDays();
+        } else {
+            showToast("تم توليد جميع سجلات اليوم مسبقاً ✨", "info");
+        }
+    } catch (err) {
+        console.error(err);
+        showToast("فشل في توليد السجلات", "error");
+    } finally {
+        if(btn) btn.disabled = false;
+    }
+}
+
 function openAdjustmentModal(id) {
     const day = allWorkDays.find(d => d.f01_id === id);
     if (!day) return;
 
-    const fId = document.getElementById('f01_id');
-    const adjType = document.getElementById('adj_type');
-    const fAmt = document.getElementById('f05_amount');
-    const fReason = document.getElementById('f07_reason');
-
-    if(fId) fId.value = day.f01_id;
-    if(adjType) adjType.value = day.f06_is_off_day ? 'off' : 'active';
-    if(fAmt) fAmt.value = day.f05_daily_amount;
-    if(fReason) fReason.value = day.f07_reason_if_off || '';
+    document.getElementById('f01_id').value = day.f01_id;
+    document.getElementById('adj_type').value = day.f06_is_off_day ? 'off' : 'active';
+    document.getElementById('f05_amount').value = day.f05_daily_amount;
+    document.getElementById('f07_reason').value = day.f07_reason_if_off || '';
     
     toggleOffDayReason();
     const modal = document.getElementById('adjustmentModal');
@@ -174,14 +228,17 @@ function openAdjustmentModal(id) {
 }
 
 function toggleOffDayReason() {
-    const adjType = document.getElementById('adj_type');
+    const isOff = document.getElementById('adj_type').value === 'off';
     const reasonGrp = document.getElementById('reasonGroup');
     const fAmt = document.getElementById('f05_amount');
-    if(!adjType || !reasonGrp) return;
+    
+    if(reasonGrp) reasonGrp.style.display = isOff ? 'block' : 'none';
+    if(isOff && fAmt) fAmt.value = 0;
+}
 
-    const isOff = adjType.value === 'off';
-    reasonGrp.style.display = isOff ? 'block' : 'none';
-    if (isOff && fAmt) fAmt.value = 0;
+function closeModal() {
+    const modal = document.getElementById('adjustmentModal');
+    if(modal) modal.classList.remove('open');
 }
 
 function setupFormListener() {
@@ -200,17 +257,12 @@ function setupFormListener() {
                 const { error } = await _supabase.from('t08_work_days').update(payload).eq('f01_id', id);
                 if (!error) {
                     showToast("تم تحديث السجل بنجاح", "success");
-                    closeAdjustmentModal();
+                    closeModal();
                     fetchWorkDays();
                 }
             });
         });
     }
-}
-
-function closeAdjustmentModal() {
-    const modal = document.getElementById('adjustmentModal');
-    if(modal) modal.classList.remove('open');
 }
 
 function initTableControls() {
@@ -231,22 +283,39 @@ function initTableControls() {
 function filterLocal() {
     const term = document.getElementById('globalSearch').value.toLowerCase();
     filteredWorkDays = allWorkDays.filter(d => 
-        d.f02_date.toLowerCase().includes(term) || 
-        d.f03_car_no.toLowerCase().includes(term)
+        (d.f02_date && d.f02_date.toLowerCase().includes(term)) || 
+        (d.f03_car_no && d.f03_car_no.toLowerCase().includes(term))
     );
+    renderTable();
+}
+
+function populateFilters() {
+    const carSel = document.getElementById('carFilter');
+    const driverSel = document.getElementById('driverFilter');
+    if(carSel && carsList.length > 0) {
+        carSel.innerHTML = '<option value="all">كل السيارات | All Cars</option>' + 
+            carsList.map(c => `<option value="${c.f02_plate_no}">${c.f02_plate_no}</option>`).join('');
+    }
+    if(driverSel && driversList.length > 0) {
+        driverSel.innerHTML = '<option value="all">كل السائقين | All Drivers</option>' + 
+            driversList.map(d => `<option value="${d.f01_id}">${d.f02_name}</option>`).join('');
+    }
+}
+
+function filterLocalData() {
+    const car = document.getElementById('carFilter').value;
+    const driver = document.getElementById('driverFilter').value;
+    filteredWorkDays = allWorkDays.filter(d => {
+        const carMatch = car === 'all' || d.f03_car_no === car;
+        const driverMatch = driver === 'all' || String(d.f04_driver_id) === driver;
+        return carMatch && driverMatch;
+    });
     renderTable();
 }
 
 function updateCounter() {
     const el = document.getElementById('count');
     if (el) el.innerText = filteredWorkDays.length;
-}
-
-function populateFilters() {
-    const carSel = document.getElementById('carFilter');
-    const driverSel = document.getElementById('driverFilter');
-    if(carSel) carsList.forEach(c => carSel.innerHTML += `<option value="${c.f02_plate_no}">${c.f02_plate_no}</option>`);
-    if(driverSel) driversList.forEach(d => driverSel.innerHTML += `<option value="${d.f01_id}">${d.f02_name}</option>`);
 }
 
 function sortData(col) {

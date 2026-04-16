@@ -131,3 +131,37 @@ td:last-child {
 
 .badge-status:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
 
+/* --- [6] Toast Notifications System --- */
+.toast-container {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 99999;
+    pointer-events: none;
+}
+
+.toast-msg {
+    background: white;
+    color: var(--taxi-dark-grey);
+    padding: 15px 25px;
+    border-radius: var(--border-radius-sm);
+    box-shadow: var(--luxury-shadow);
+    border-right: 5px solid var(--taxi-green);
+    font-weight: 700;
+    font-size: 0.95rem;
+    opacity: 0;
+    transform: translateX(-30px);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.toast-msg.show {
+    opacity: 1;
+    transform: translateX(0);
+}

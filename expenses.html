@@ -14,6 +14,7 @@
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="global-config.js"></script>
+    <script src="droplistsdata.js"></script>
     <link rel="stylesheet" href="expenses.css">
     <link rel="stylesheet" href="revenues.css">
 </head>
@@ -60,12 +61,7 @@
                     <div class="form-group">
                         <label>نوع المصروف | Category</label>
                         <select id="f05_expense_type" required>
-                            <option value="صيانة">صيانة | Maintenance</option>
-                            <option value="اطارات">اطارات | Tires</option>
-                            <option value="بطاريات">بطاريات | Batteries</option>
-                            <option value="زيوت">زيوت | Oil Change</option>
-                            <option value="وقود">وقود | Fuel</option>
-                            <option value="أخرى">أخرى | Others</option>
+                            <option value="">-- اختر النوع --</option>
                         </select>
                     </div>
 
@@ -86,15 +82,13 @@
 
                     <div class="form-group">
                         <label>الموظف | Staff</label>
-                        <select id="f09_user_id" required title="الموظف المسجل (t06_expenses.f09_user_id)"></select>
+                        <select id="f09_staff_id" required title="الموظف المسجل (t06_expenses.f09_staff_id)"></select>
                     </div>
 
                     <div class="form-group">
                         <label>حالة السداد | Status</label>
                         <select id="f10_status" required>
-                            <option value="Paid|مدفوع">تم السداد | Paid</option>
-                            <option value="Unpaid|غير مدفوع">غير مسدد | Unpaid</option>
-                            <option value="Pending">معلق | Pending</option>
+                            <option value="">-- اختر الحالة --</option>
                         </select>
                     </div>
 

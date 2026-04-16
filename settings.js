@@ -23,7 +23,7 @@ async function fetchSettings() {
         const { data, error } = await _supabase
             .from('t14_system_settings')
             .select('*')
-            .order('f02_key', { ascending: true });
+            .order('f02_setting_key', { ascending: true });
 
         if (error) throw error;
         allSettings = data || [];
@@ -47,8 +47,8 @@ function renderTable() {
         <table>
             <thead>
                 <tr>
-                    <th onclick="sortData('f02_key')">المفتاح | Key ↕</th>
-                    <th onclick="sortData('f03_value')">القيمة | Value ↕</th>
+                    <th onclick="sortData('f02_setting_key')">المفتاح | Key ↕</th>
+                    <th onclick="sortData('f03_setting_value')">القيمة | Value ↕</th>
                     <th>الوصف | Description</th>
                     <th>إجراءات | Acts</th>
                 </tr>
@@ -56,8 +56,8 @@ function renderTable() {
             <tbody>
                 ${filteredSettings.map(s => `
                     <tr>
-                        <td style="font-weight:bold; color:var(--taxi-dark)">${s.f02_key}</td>
-                        <td style="color:var(--taxi-green); font-family:monospace;">${s.f03_value}</td>
+                        <td style="font-weight:bold; color:var(--taxi-dark)">${s.f02_setting_key}</td>
+                        <td style="color:var(--taxi-green); font-family:monospace;">${s.f03_setting_value}</td>
                         <td style="font-size:0.9rem; color:#666;">${s.f04_description || '---'}</td>
                         <td>
                             <div class="action-btns-group">
@@ -79,8 +79,8 @@ async function handleFormSubmit(e) {
     safeSubmit(async () => {
         const id = document.getElementById('f01_id').value;
         const payload = {
-            f02_key: document.getElementById('f02_key').value.trim(),
-            f03_value: document.getElementById('f03_value').value.trim(),
+            f02_setting_key: document.getElementById('f02_setting_key').value.trim(),
+            f03_setting_value: document.getElementById('f03_setting_value').value.trim(),
             f04_description: document.getElementById('f04_description').value.trim()
         };
 
@@ -105,8 +105,8 @@ function editRecord(id) {
     if (!s) return;
 
     document.getElementById('f01_id').value = s.f01_id;
-    document.getElementById('f02_key').value = s.f02_key;
-    document.getElementById('f03_value').value = s.f03_value;
+    document.getElementById('f02_setting_key').value = s.f02_setting_key;
+    document.getElementById('f03_setting_value').value = s.f03_setting_value;
     document.getElementById('f04_description').value = s.f04_description || '';
 
     window.scrollTo({ top: 0, behavior: 'smooth' });

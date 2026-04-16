@@ -38,7 +38,7 @@ async function loadComprehensiveDashboard() {
         // الفلترة بناءً على المحصل
         if (selectedCollector !== 'all') {
             revenues = revenues.filter(r => 
-                String(r.f08_collector).trim() === String(selectedCollector).trim()
+                String(r.f08_collector_id).trim() === String(selectedCollector).trim()
             );
         }
 
@@ -46,7 +46,7 @@ async function loadComprehensiveDashboard() {
         const ownersSection = document.getElementById('ownersSection');
         if (ownersSection) {
             ownersSection.innerHTML = owners.map((owner, index) => {
-                const ownerCarsList = cars.filter(c => c.f11_owner_id == owner.f01_id);
+                const ownerCarsList = cars.filter(c => c.f10_owner_id == owner.f01_id);
                 const ownerCarPlates = ownerCarsList.map(c => c.f02_plate_no);
                 const ownerRevRecords = revenues.filter(r => ownerCarPlates.includes(r.f03_car_no));
                 const totalOwnerRevenue = ownerRevRecords.reduce((sum, r) => sum + parseFloat(r.f06_amount || 0), 0);
@@ -99,7 +99,7 @@ async function loadComprehensiveDashboard() {
 
         // 3. معالجة إنتاجية السائقين
         const driversData = drivers.map(d => {
-            const driverRev = revenues.filter(r => r.f04_driver_name === d.f02_name);
+            const driverRev = revenues.filter(r => r.f04_driver_id === d.f01_id);
             const total = driverRev.reduce((sum, r) => sum + parseFloat(r.f06_amount || 0), 0);
             return { 
                 label: d.f02_name, 

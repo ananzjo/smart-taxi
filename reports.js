@@ -100,7 +100,7 @@ function getWorkingDaysCount(from, to) {
 // --- [Investor Monthly Report] ---
 async function buildInvestorMonthlyReport(ownerId, from, to) {
     const owner = owners.find(o => o.f01_id == ownerId);
-    const investorCars = cars.filter(c => c.f11_owner_id == ownerId);
+    const investorCars = cars.filter(c => c.f10_owner_id == ownerId);
     if (investorCars.length === 0) {
         document.getElementById('reportPreview').innerHTML = "❌ لا توجد سيارات مرتبطة بهذا المستثمر";
         return;
@@ -208,7 +208,7 @@ async function buildDriverSOA(driverId, from, to) {
     
     const [workRes, revRes, fineRes] = await Promise.all([
         _supabase.from('t08_work_days').select('*').eq('f04_driver_id', driverId).gte('f02_date', from).lte('f02_date', to),
-        _supabase.from('t05_revenues').select('*').eq('f04_driver_name', driver.f02_name).gte('f02_date', from).lte('f02_date', to),
+        _supabase.from('t05_revenues').select('*').eq('f04_driver_id', driverId).gte('f02_date', from).lte('f02_date', to),
         _supabase.from('t09_fines_accidents').select('*').eq('f04_driver_id', driverId).gte('f02_date', from).lte('f02_date', to)
     ]);
 
@@ -284,7 +284,7 @@ async function buildBrokenDaysReport(from, to) {
     // Fetch all revenues to catch late payments regardless of date
     const { data: revenues } = await _supabase
             .from('t05_revenues')
-            .select('f01_id, f02_date, f03_car_no, f06_amount, f10_work_day_link');
+            .select('f01_id, f02_date, f03_car_no, f06_amount');
 
     const allRevs = revenues || [];
 
@@ -294,13 +294,12 @@ async function buildBrokenDaysReport(from, to) {
     workDays.forEach(day => {
         // Calculate same-day payments
         const sameDayRev = allRevs
-            .filter(r => r.f03_car_no === day.f03_car_no && r.f02_date === day.f02_date && !r.f10_work_day_link)
+            .filter(r => r.f03_car_no === day.f03_car_no && r.f02_date === day.f02_date)
             .reduce((sum, r) => sum + parseFloat(r.f06_amount), 0);
 
         // Calculate mapped late payments
-        const lateRev = allRevs
-            .filter(r => r.f10_work_day_link == day.f01_id)
-            .reduce((sum, r) => sum + parseFloat(r.f06_amount), 0);
+        // Late payment matching removed (f10_work_day_link column doesn't exist)
+        const lateRev = 0;
 
         const dailyDue = parseFloat(day.f05_daily_amount);
         const initialBroken = dailyDue - sameDayRev;

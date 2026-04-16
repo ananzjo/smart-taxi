@@ -17,7 +17,6 @@ async function recordLoginEvent(username, status, reason = null) {
         f04_status: status,
         f05_failure_reason: reason,
         f06_ip_address: ipData.ip,
-        f07_location: `${ipData.city || ''}, ${ipData.country_name || ''}`,
         f08_device_info: navigator.userAgent
     };
 
@@ -68,8 +67,7 @@ async function handleLogin(event) {
 
         const userRecord = data[0];
 
-        // حالة: نجاح الدخول (تأكد من مطابقة اسم الحقل f03_password أو f09_password حسب جدولك)
-        // ملاحظة: الكود السابق كان يستخدم f03_password، عدله لـ f09_password إذا لزم الأمر
+        // حالة: نجاح الدخول (الحقل الصحيح: f03_password في t11_staff)
         if (String(userRecord.f03_password) === String(passVal)) {
             await recordLoginEvent(userVal, 'Success', 'دخول ناجح');
             sessionStorage.setItem('full_name_ar', userRecord.f02_name);

@@ -5,6 +5,7 @@
     <title>إدارة المُلاك | Owners Management</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="global-config.js"></script>
+    <script src="droplistsdata.js"></script>
     <link rel="stylesheet" href="owners.css">
 </head>
 <body>
@@ -22,9 +23,8 @@
                     </div>
                     <div class="form-group">
                         <label>نوع المالك | Owner Type</label>
-                        <select id="f03_owner_type" title="f03_owner_type: تصنيف المالك">
-                            <option value="فرد">فرد | Individual</option>
-                            <option value="شركة">شركة | Company</option>
+                        <select id="f03_owner_type" required>
+                            <option value="">-- اختر النوع --</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -46,7 +46,7 @@
                 </div>
 
                 <div class="form-actions">
-                    <button type="button" onclick="saveData()" class="btn-main">حفظ البيانات | Save</button>
+                    <button type="submit" class="btn-main">حفظ البيانات | Save</button>
                     <button type="button" onclick="confirmReset()" class="btn-sub">تفريغ | Clear</button>
                 </div>
             </form>

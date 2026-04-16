@@ -6,16 +6,32 @@ let allPayments = [];
 
 // [1] تهيئة الصفحة عند التحميل
 async function initPaymentPage() {
+    if (typeof LookupEngine !== 'undefined') {
+        await LookupEngine.fillSelect('payment_methods', 'f07_method', { placeholder: '-- طريقة الدفع --' });
+    }
     await fillCarDropdown();
     await loadPaymentsData();
     syncPayerField();
     
+    // ربط اختيار السيارة بتحميل المصاريف والاختيار التلقائي
+    const carSelect = document.getElementById('f05_car_no');
+    if (carSelect) {
+        carSelect.addEventListener('change', (e) => {
+            loadPendingExpenses(e.target.value);
+            // Although payments doesn't have a direct driver field, 
+            // the user might want a recipient or other field auto-filled.
+            // For now, let's keep it to matching expenses.
+        });
+    }
+
     // ربط الفورم بعملية الحفظ
     const form = document.getElementById('paymentForm');
     if(form) {
         form.onsubmit = async (e) => {
             e.preventDefault();
-            await savePaymentData();
+            safeSubmit(async () => {
+                await savePaymentData();
+            });
         };
     }
 }
@@ -37,12 +53,12 @@ async function loadPendingExpenses(carNo) {
     
     // جلب المصاريف المرتبطة بالسيارة من جدول t06
     const { data } = await _supabase.from('t06_expenses')
-        .select('f01_id, f07_expense_type, f08_amount, f02_date')
+        .select('f01_id, f05_expense_type, f07_amount, f02_date')
         .eq('f03_car_no', carNo);
 
     if (data && expenseSelect) {
         expenseSelect.innerHTML = '<option value="">-- اختر مصروف للمطابقة --</option>' + 
-            data.map(e => `<option value="${e.f01_id}">${e.f02_date} | ${e.f07_expense_type} (${e.f08_amount} د.أ)</option>`).join('');
+            data.map(e => `<option value="${e.f01_id}">${e.f02_date} | ${e.f05_expense_type} (${e.f07_amount} د.أ)</option>`).join('');
     }
 }
 
@@ -126,7 +142,6 @@ async function savePaymentData() {
         f07_method: document.getElementById('f07_method').value,
         f08_payer: document.getElementById('f08_payer').value,
         f09_recipient: document.getElementById('f09_recipient').value,
-        f10_reference: document.getElementById('f10_reference').value,
         f11_is_reconciled: isReconciled,
         f13_notes: document.getElementById('f13_notes').value
     };
@@ -138,11 +153,11 @@ async function savePaymentData() {
         res = await _supabase.from('t07_payments').insert([payload]);
     }
 
-    if (!res.error) {
-        window.showModal("نجاح", "تمت العملية بنجاح", "success");
-        resetFieldsOnly();
-        loadPaymentsData();
-    }
+    if (res.error) throw res.error;
+
+    showToast("تمت العملية بنجاح", "success");
+    resetFieldsOnly();
+    loadPaymentsData();
 }
 
 function syncPayerField() {

@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إدارة الإيرادات | Revenues Management</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="global-config.js"></script>
+    <script src="droplistsdata.js"></script>
+    
     <link rel="stylesheet" href="revenues.css">
-    <link rel="stylesheet" href="unified-ui.css">
 </head>
 <body onload="bootSystem('إدارة الإيرادات | Revenues')">
 
@@ -15,78 +17,75 @@
         <div class="luxury-page-header">
             <div class="header-info">
                 <h1>💰 الإيرادات والتحصيل | Revenues</h1>
-                <p>تسجيل المقبوضات اليومية والتسويات المالية</p>
+                <p>تسجيل المقبوضات اليومية والتسويات المالية | Daily Cash Receipts & Settlements</p>
             </div>
         </div>
 
         <div class="elegant-card luxury-card-border">
-            <div class="card-header"><span>📝 نماذج البيانات | Data Entry Form</span></div>
+            <div class="card-header">
+                <span>📝 نماذج البيانات | Data Entry Form</span>
+            </div>
             <form id="revenueForm" class="taxi-form">
                 <input type="hidden" id="f01_id">
+                
                 <div class="input-grid">
                     <div class="form-group">
-                        <label class="label-help">التاريخ | Collection Date
-                            <span class="tooltip-box"><b>تاريخ العملية</b>تاريخ استلام المبلغ الفعلي من السائق.</span>
-                        </label>
+                        <label>التاريخ | Collection Date</label>
                         <input type="date" id="f02_date" required>
                     </div>
 
                     <div class="form-group">
-                        <label class="label-help">رقم السيارة | Plate No
-                            <span class="tooltip-box"><b>اختيار السيارة</b>يتم عرض السيارات النشطة فقط في النظام.</span>
-                        </label>
-                        <select id="f03_car_no" required onchange="loadPendingWorkDays(this.value)"></select>
+                        <label>رقم السيارة | Plate No</label>
+                        <select id="f03_car_no" required>
+                            <option value="">-- جاري التحميل --</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
                         <label>اسم السائق | Driver Name</label>
-                        <select id="f04_driver_name" required></select>
+                        <select id="f04_driver_id" required>
+                            <option value="">-- جاري التحميل --</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
                         <label>الفئة | Category</label>
-                        <select id="f05_category" required>
-                            <option value="ضمان يومي">ضمان يومي | Daily Rent</option>
-                            <option value="دفعة مقدمة">دفعة مقدمة | Pre-payment</option>
-                            <option value="مخالفة">مخالفة | Violation</option>
-                            <option value="أخرى">أخرى | Other</option>
-                        </select>
+                        <select id="f05_category" required></select>
                     </div>
 
                     <div class="form-group" id="workDayGroup" style="display:none;">
-                        <label class="label-help" style="color: var(--taxi-red); font-weight: bold;">⚠️ مطابقة الضمان
-                             <span class="tooltip-box"><b>المطابقة المالية</b>ربط هذا المبلغ بيوم عمل محدد في السجل.</span>
-                        </label>
-                        <select id="f10_work_day_link"></select>
+                        <label>مطابقة مع استحقاق | Match with Due</label>
+                        <select id="f10_work_day_link">
+                            <option value="">-- اختر ضمان للمطابقة --</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
                         <label>المبلغ | Amount</label>
-                        <input type="number" step="0.5" id="f06_amount" required>
+                        <input type="number" step="0.5" id="f06_amount" placeholder="0.00" required>
                     </div>
 
                     <div class="form-group">
-                        <label>طريقة الدفع | Method</label>
-                        <select id="f07_method" required>
-                            <option value="نقدي">نقدي | Cash</option>
-                            <option value="بنك">بنك | Bank</option>
-                            <option value="محفظة">محفظة | Cliq</option>
-                        </select>
+                        <label>طريقة الدفع | Payment Method</label>
+                        <select id="f07_method" required></select>
                     </div>
 
                     <div class="form-group">
                         <label>المحصل | Collector</label>
-                        <select id="f08_collector" required></select>
+                        <select id="f08_collector_id" required>
+                            <option value="">-- اختر المحصل --</option>
+                        </select>
                     </div>
 
                     <div class="form-group full-width">
                         <label>ملاحظات إضافية | Notes</label>
-                        <textarea id="f09_notes" rows="2"></textarea>
+                        <textarea id="f09_notes" rows="2" placeholder="أي تفاصيل أخرى لعملية القبض"></textarea>
                     </div>
                 </div>
+
                 <div class="form-actions">
-                    <button type="submit" onclick="saveData(event)" class="primary-btn">حفظ البيانات | Save Data ✅</button>
-                    <button type="button" onclick="resetFieldsOnly()" class="secondary-btn">تفريغ الحقول | Reset 🔄</button>
+                    <button type="submit" class="primary-btn">حفظ البيانات | Save Data ✅</button>
+                    <button type="reset" class="secondary-btn" onclick="resetRevenueForm()">تفريغ | Reset 🔄</button>
                 </div>
             </form>
         </div>
@@ -94,25 +93,36 @@
         <div id="tableControlsPlaceholder"></div>
 
         <div class="elegant-card grid-card">
-            <div class="card-header"><span>📋 سجل التحصيلات | Revenues Ledger</span></div>
-            <div id="tableContainer" class="table-responsive">
-                </div>
-        </div>
-    </div>
-
-    <div id="viewModal" class="view-modal-overlay">
-        <div class="view-modal-card">
-            <div class="view-modal-header">
-                <h3 id="modalTitle">تفاصيل الإيراد</h3>
-                <button onclick="closeViewModal()" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
+            <div class="card-header">
+                <span>📋 سجل التحصيلات | Revenues Ledger</span>
             </div>
-            <div class="view-modal-body" id="modalBody"></div>
-            <div class="view-modal-footer">
-                <button class="close-view-btn" onclick="closeViewModal()">إغلاق | Close</button>
+            <div id="tableContainer" class="table-responsive">
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>جاري تحميل البيانات... | Loading Data...</p>
+                </div>
             </div>
         </div>
     </div>
 
     <script src="revenues.js"></script>
+
+    <script>
+        // نداء واحد فقط عند تحميل النافذة بالكامل
+        window.onload = async () => {
+            // 1. تشغيل النظام العام (Sidebar, Clock, إلخ)
+            if (typeof bootSystem === 'function') bootSystem('إدارة الإيرادات | Revenues');
+            
+            // 2. تعيين التاريخ
+            const dateInput = document.getElementById('f02_date');
+            if (dateInput) dateInput.valueAsDate = new Date();
+
+            // 3. تشغيل منطق الصفحة من ملف JS الخارجي فقط
+            if (typeof initRevenuesPage === 'function') {
+                await initRevenuesPage();
+            }
+        };
+    </script>
+    
 </body>
 </html>

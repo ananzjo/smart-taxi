@@ -13,6 +13,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initPage() {
+    if (typeof LookupEngine !== 'undefined') {
+        await Promise.all([
+            LookupEngine.fillSelect('incident_type', 'f06_type', { placeholder: '-- اختر النوع --' }),
+            LookupEngine.fillSelect('financial_status', 'f07_status', { placeholder: '-- اختر الحالة --' })
+        ]);
+    }
     await fillDropdowns();
     await fetchRecords();
     initTableControls();
@@ -22,18 +28,26 @@ async function initPage() {
 async function fillDropdowns() {
     try {
         const [carsRes, driversRes] = await Promise.all([
-            _supabase.from('t01_cars').select('f02_plate_no'),
-            _supabase.from('t02_drivers').select('f01_id, f02_name')
+            _supabase.from('t01_cars').select('f02_plate_no, f11_is_active'),
+            _supabase.from('t02_drivers').select('f01_id, f02_name, f06_status')
         ]);
 
         const carSel = document.getElementById('f03_car_no');
         const drvSel = document.getElementById('f04_driver_id');
 
-        if (carsRes.data && carSel) {
-            carSel.innerHTML += carsRes.data.map(c => `<option value="${c.f02_plate_no}">${c.f02_plate_no}</option>`).join('');
+        // تصفية بمرونة للنشط فقط
+        const activeCars = (carsRes.data || []).filter(c => 
+            !c.f11_is_active || c.f11_is_active.includes('نشط') || c.f11_is_active.toLowerCase().includes('active')
+        );
+        const activeDrivers = (driversRes.data || []).filter(d => 
+            !d.f06_status || d.f06_status.includes('نشط') || d.f06_status.toLowerCase().includes('active')
+        );
+
+        if (carSel) {
+            carSel.innerHTML = '<option value="">-- اختر السيارة --</option>' + activeCars.map(c => `<option value="${c.f02_plate_no}">${c.f02_plate_no}</option>`).join('');
         }
-        if (driversRes.data && drvSel) {
-            drvSel.innerHTML += driversRes.data.map(d => `<option value="${d.f01_id}">${d.f02_name}</option>`).join('');
+        if (drvSel) {
+            drvSel.innerHTML = '<option value="">-- اختر السائق --</option>' + activeDrivers.map(d => `<option value="${d.f01_id}">${d.f02_name}</option>`).join('');
         }
     } catch (err) {
         console.error("Dropdown Error:", err);
@@ -91,7 +105,7 @@ function renderTable() {
                             <td><span class="badge-status ${statusClass}">${r.f07_status}</span></td>
                             <td>
                                 <div class="action-btns-group">
-                                    ${r.f09_attachment ? `<a href="${r.f09_attachment}" target="_blank" class="btn-action-sm" title="عرض المرفق">📎</a>` : ''}
+                                    ${r.f09_attachment_url ? `<a href="${r.f09_attachment_url}" target="_blank" class="btn-action-sm" title="عرض المرفق">📎</a>` : ''}
                                     <button class="btn-action-sm btn-edit" onclick="editRecord(${r.f01_id})" title="تعديل">✏️</button>
                                     <button class="btn-action-sm btn-delete" onclick="confirmDelete(${r.f01_id})" title="حذف">🗑️</button>
                                 </div>
@@ -118,7 +132,7 @@ async function handleFormSubmit(e) {
             f06_type: document.getElementById('f06_type').value,
             f07_status: document.getElementById('f07_status').value,
             f08_description: document.getElementById('f08_description').value.trim(),
-            f09_attachment: document.getElementById('f09_attachment').value.trim()
+            f09_attachment_url: document.getElementById('f09_attachment_url').value.trim()
         };
 
         try {
@@ -149,7 +163,7 @@ function editRecord(id) {
     document.getElementById('f06_type').value = r.f06_type;
     document.getElementById('f07_status').value = r.f07_status || 'Pending';
     document.getElementById('f08_description').value = r.f08_description || '';
-    document.getElementById('f09_attachment').value = r.f09_attachment || '';
+    document.getElementById('f09_attachment_url').value = r.f09_attachment_url || '';
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }

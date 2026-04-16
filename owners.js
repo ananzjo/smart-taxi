@@ -13,6 +13,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initPage() {
+    if (typeof LookupEngine !== 'undefined') {
+        await LookupEngine.fillSelect('owner_type', 'f03_owner_type', { placeholder: '-- فئة المالك --' });
+    }
     await loadData();
     initTableControls();
     setupFormListener();
@@ -79,7 +82,9 @@ async function handleFormSubmit(e) {
             f02_owner_name: document.getElementById('f02_owner_name').value.trim(),
             f03_owner_type: document.getElementById('f03_owner_type').value,
             f04_contact_number: document.getElementById('f04_contact_number').value.trim(),
-            f05_notes: document.getElementById('f05_notes').value.trim()
+            f05_national_id: document.getElementById('f05_national_id').value.trim(),
+            f06_bank_account: document.getElementById('f06_bank_account').value.trim(),
+            f07_owner_notes: document.getElementById('f07_owner_notes').value.trim()
         };
 
         if (!payload.f02_owner_name || !payload.f04_contact_number) {

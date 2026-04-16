@@ -14,6 +14,7 @@
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="global-config.js"></script>
+    <script src="droplistsdata.js"></script>
     <link rel="stylesheet" href="handover.css">
     <link rel="stylesheet" href="revenues.css">
 </head>
@@ -47,9 +48,17 @@
                         </div>
                     </div>
 
+                    <div class="form-group full-width">
+                        <label>التاريخ والوقت | Date & Time</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="date" id="f02_date" required style="flex:1;" title="تاريخ العملية (t04_handover.f02_date)">
+                            <input type="time" id="f03_time" required step="1" style="flex:1;" title="وقت العملية (t04_handover.f03_time)">
+                        </div>
+                    </div>
+
                     <div class="form-group">
                         <label>رقم السيارة | Plate No</label>
-                        <select id="f04_car_id" required title="رقم اللوحة (t04_handover.f04_car_id)">
+                        <select id="f04_car_no" required title="رقم اللوحة (t04_handover.f04_car_no)">
                             <option value="">-- اختر السيارة --</option>
                         </select>
                     </div>
@@ -80,12 +89,9 @@
 
                     <div class="form-group">
                         <label>حالة المركبة | Vehicle Cond.</label>
-                        <input type="text" id="f10_car_condition" list="condition-list" placeholder="جيدة، تحتاج غسيل (t04_handover.f10_car_condition)">
-                        <datalist id="condition-list">
-                            <option value="جيدة جداً">
-                            <option value="تحتاج غسيل">
-                            <option value="صدمة خفيفة">
-                        </datalist>
+                        <select id="f10_car_condition" required>
+                            <option value="">-- اختر الحالة الفنية --</option>
+                        </select>
                     </div>
 
                     <div class="form-group full-width">

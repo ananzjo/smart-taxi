@@ -1,7 +1,7 @@
 /* START OF FILE: drivers.js */
 /**
  * File: drivers.js
- * Version: v1.2.0
+ * Version: v1.3.0
  * Function: إدارة بيانات السائقين وتتبع الحالة الوظيفية
  * Components: Supabase Client, Identity Validation, Status Tracker
  * Inputs: t02_drivers
@@ -25,15 +25,26 @@ async function fetchDrivers() {
     try {
         const [drvRes, carRes] = await Promise.all([
             _supabase.from('t02_drivers').select('*').order('f02_name', { ascending: true }),
-            _supabase.from('t01_cars').select('f02_plate_no').eq('f12_is_active', 'Active')
+            _supabase.from('t01_cars').select('f02_plate_no, f11_is_active')
         ]);
+
+        if (carRes.data) {
+            const activeCars = carRes.data.filter(c => 
+                !c.f11_is_active || c.f11_is_active.includes('نشط') || c.f11_is_active.toLowerCase().includes('active')
+            );
+            const sel = document.getElementById('f08_car_no');
+            if (sel) {
+                sel.innerHTML = '<option value="">-- بلا سيارة حالياً --</option>' +
+                    activeCars.map(c => `<option value="${c.f02_plate_no}">${c.f02_plate_no}</option>`).join('');
+            }
+        }
 
         if (drvRes.error) throw drvRes.error;
         allDrivers = drvRes.data || [];
         filteredDrivers = [...allDrivers];
 
         // تعبئة قائمة السيارات في الفورم
-        const carSel = document.getElementById('f09_car');
+        const carSel = document.getElementById('f08_car_no');
         if (carSel) {
             carSel.innerHTML = '<option value="">-- بلا سيارة --</option>' + 
                 (carRes.data || []).map(c => `<option value="${c.f02_plate_no}">${c.f02_plate_no}</option>`).join('');
@@ -63,15 +74,15 @@ function renderTable() {
                     <th onclick="sortData('f03_national_no')">الهوية | ID ↕</th>
                     <th onclick="sortData('f04_mobile')">الهاتف | Phone ↕</th>
                     <th>السيارة | Car</th>
-                    <th onclick="sortData('f07_status')">الحالة | Status ↕</th>
+                    <th onclick="sortData('f06_status')">الحالة | Status ↕</th>
                     <th>إجراءات | Actions</th>
                 </tr>
             </thead>
             <tbody>
                 ${filteredDrivers.map(d => {
-                    const s = (d.f07_status || '').trim();
-                    const hasCar = (d.f09_car && d.f09_car.trim() !== '');
-                    const isActive = (s === 'نشط' || s === 'Active' || s === 'فعال | Active' || hasCar);
+                    const s = (d.f06_status || '').trim();
+                    const hasCar = (d.f08_car_no && d.f08_car_no.trim() !== '');
+                    const isActive = (s === 'نشط | Active' || s === 'Active' || s === 'نشط' || s === 'فعال | Active' || hasCar);
                     
                     const statusClass = isActive ? 'badge-active' : 'badge-inactive';
                     const statusText = isActive ? 'نشط | Active' : 'غير نشط | InActive';
@@ -80,13 +91,13 @@ function renderTable() {
                             <td style="font-weight:900; color:var(--taxi-dark)">${d.f02_name}</td>
                             <td>${d.f03_national_no}</td>
                             <td dir="ltr">${d.f04_mobile}</td>
-                             <td>${d.f09_car ? window.formatJordanPlate(d.f09_car, true) : '<span style="color:#ccc">---</span>'}</td>
+                             <td>${d.f08_car_no ? window.formatJordanPlate(d.f08_car_no, true) : '<span style="color:#ccc">---</span>'}</td>
                             <td><span class="badge-status ${statusClass}">${statusText}</span></td>
                             <td>
                                 <div class="action-btns-group">
                                     <button class="btn-action-sm btn-view" onclick='showViewModal(${JSON.stringify(d)}, "بيانات السائق | Driver Info")' title="عرض">👁️</button>
-                                    <button class="btn-action-sm btn-edit" onclick="editRecord(${d.f01_id})" title="تعديل">✏️</button>
-                                    <button class="btn-action-sm btn-delete" onclick="confirmDelete(${d.f01_id})" title="حذف">🗑️</button>
+                                    <button class="btn-action-sm btn-edit" onclick="editRecord('${d.f01_id}')" title="تعديل">✏️</button>
+                                    <button class="btn-action-sm btn-delete" onclick="confirmDelete('${d.f01_id}')" title="حذف">🗑️</button>
                                 </div>
                             </td>
                         </tr>
@@ -109,10 +120,9 @@ async function handleFormSubmit(e) {
             f03_national_no: document.getElementById('f03_national_no').value.trim(),
             f04_mobile: document.getElementById('f04_mobile').value.trim(),
             f05_address: document.getElementById('f05_address').value.trim(),
-            f06_location_url: document.getElementById('f06_location_url').value.trim(),
-            f07_status: document.getElementById('f07_status').value,
-            f09_car: document.getElementById('f09_car').value || null,
-            f08_status_date: new Date()
+            f06_status: document.getElementById('f06_status').value,
+            f08_car_no: document.getElementById('f08_car_no').value || null,
+            f07_status_date: new Date()
         };
 
         if (payload.f03_national_no.length < 5) {
@@ -170,9 +180,8 @@ function editRecord(id) {
     document.getElementById('f03_national_no').value = d.f03_national_no;
     document.getElementById('f04_mobile').value = d.f04_mobile;
     document.getElementById('f05_address').value = d.f05_address || '';
-    document.getElementById('f06_location_url').value = d.f06_location_url || '';
-    document.getElementById('f07_status').value = d.f07_status || 'غير نشط';
-    document.getElementById('f09_car').value = d.f09_car || '';
+    document.getElementById('f06_status').value = d.f06_status || 'غير نشط | InActive';
+    document.getElementById('f08_car_no').value = d.f08_car_no || '';
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }

@@ -6,11 +6,18 @@ let allStaff = [];
 let sortDirections = {}; 
 
 // [1] جلب البيانات من جدول t11_staff
+async function initPage() {
+    await loadData();
+    setupFormListener();
+}
+
+document.addEventListener('DOMContentLoaded', initPage);
+
 async function loadData() {
     const { data, error } = await _supabase
         .from('t11_staff')
         .select('*')
-        .order('f07_created_at', { ascending: false });
+        .order('created_at', { ascending: false });
 
     if (error) { 
         window.showModal("خطأ", "تعذر جلب بيانات الموظفين", "error");
@@ -34,12 +41,16 @@ function renderTable(list) {
         </thead>
         <tbody>`;
 
-    list.forEach(item => {
+        const authRaw = (item.f06_authority || '').toLowerCase();
+        let badgeClass = 'user';
+        if (authRaw.includes('admin')) badgeClass = 'admin';
+        if (authRaw.includes('owner')) badgeClass = 'owner';
+        
         html += `<tr>
             <td><b style="color:var(--taxi-dark)">${item.f02_name}</b></td>
             <td>${item.f05_title || '-'}</td>
             <td>${item.f04_mobile || '-'}</td>
-            <td><span class="badge-${item.f06_authority}">${item.f06_authority.toUpperCase()}</span></td>
+            <td><span class="badge-${badgeClass}">${item.f06_authority}</span></td>
             <td>
                 <button onclick='editRecord(${JSON.stringify(item)})' class="btn-action edit-btn">📝</button>
                 <button onclick="deleteRecord('${item.f01_id}')" class="btn-action delete-btn">🗑️</button>
@@ -50,31 +61,34 @@ function renderTable(list) {
 }
 
 // [3] حفظ البيانات (Insert / Update)
-async function saveData() {
-    const id = document.getElementById('f01_id').value;
-    const payload = {};
-    
-    // جمع الحقول التي تبدأ بـ f حسب الدستور
-    document.querySelectorAll('[id^="f"]').forEach(el => {
-        if(el.value.trim() !== "") payload[el.id] = el.value.trim();
+async function saveData(e) {
+    if (e) e.preventDefault();
+    safeSubmit(async () => {
+        const id = document.getElementById('f01_id').value;
+        const payload = {};
+        
+        // جمع الحقول التي تبدأ بـ f حسب الدستور
+        document.querySelectorAll('[id^="f"]').forEach(el => {
+            if(el.id !== 'f01_id' && el.value.trim() !== "") payload[el.id] = el.value.trim();
+        });
+
+        if (!payload.f02_name || !payload.f03_password) {
+            window.showModal("تنبيه", "يرجى إدخال الاسم وكلمة المرور", "warning");
+            return;
+        }
+
+        const { error } = id 
+            ? await _supabase.from('t11_staff').update(payload).eq('f01_id', id)
+            : await _supabase.from('t11_staff').insert([payload]);
+
+        if (error) {
+            window.showModal("خطأ", "فشل الحفظ: " + error.message, "error");
+        } else {
+            window.showModal("نجاح", "تم حفظ بيانات الموظف بنجاح ✅", "success");
+            resetFieldsOnly();
+            loadData();
+        }
     });
-
-    if (!payload.f02_name || !payload.f03_password) {
-        window.showModal("تنبيه", "يرجى إدخال الاسم وكلمة المرور", "warning");
-        return;
-    }
-
-    const { error } = id 
-        ? await _supabase.from('t11_staff').update(payload).eq('f01_id', id)
-        : await _supabase.from('t11_staff').insert([payload]);
-
-    if (error) {
-        window.showModal("خطأ", "فشل الحفظ: " + error.message, "error");
-    } else {
-        window.showModal("نجاح", "تم حفظ بيانات الموظف بنجاح ✅", "success");
-        resetFieldsOnly();
-        loadData();
-    }
 }
 
 // [4] الحذف باستخدام المودال العالمي
@@ -142,4 +156,14 @@ function excelFilter() {
         Object.values(item).some(v => String(v).toLowerCase().includes(val))
     );
     renderTable(filtered);
+}
+
+function setupFormListener() {
+    const form = document.getElementById('staffForm');
+    if (form) form.addEventListener('submit', saveData);
+}
+
+function togglePassword() {
+    const p = document.getElementById('f03_password');
+    if(p) p.type = p.type === 'password' ? 'text' : 'password';
 }

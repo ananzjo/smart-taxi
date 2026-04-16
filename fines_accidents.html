@@ -14,6 +14,7 @@
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="global-config.js"></script>
+    <script src="droplistsdata.js"></script>
     <link rel="stylesheet" href="fines_accidents.css">
     <link rel="stylesheet" href="revenues.css">
 </head>
@@ -60,10 +61,7 @@
                     <div class="form-group">
                         <label>النوع | Type</label>
                         <select id="f06_type" required>
-                            <option value="مخالفة مرورية">مخالفة مرورية | Traffic Fine</option>
-                            <option value="حادث سير">حادث سير | Road Accident</option>
-                            <option value="ضرر فني">ضرر فني | Technical Damage</option>
-                            <option value="أخرى">أخرى | Other</option>
+                            <option value="">-- اختر النوع --</option>
                         </select>
                     </div>
 
@@ -75,15 +73,13 @@
                     <div class="form-group">
                         <label>حالة الذمة | Record Status</label>
                         <select id="f07_status">
-                            <option value="Pending">معلق | Pending</option>
-                            <option value="Paid">مسدد | Paid</option>
-                            <option value="Under Review">مراجعة | Review</option>
+                            <option value="">-- اختر الحالة --</option>
                         </select>
                     </div>
 
                     <div class="form-group full-width">
                         <label>رابط المرفق | Attachment URL</label>
-                        <input type="url" id="f09_attachment" placeholder="رابط صورة المخالفة أو التقرير (t09_fines_accidents.f09_attachment)">
+                        <input type="url" id="f09_attachment_url" placeholder="رابط صورة المخالفة أو التقرير (t09_fines_accidents.f09_attachment_url)">
                     </div>
 
                     <div class="form-group full-width">

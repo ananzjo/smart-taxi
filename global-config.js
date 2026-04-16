@@ -14,6 +14,7 @@ window.safeSubmit = async function(submitFunction) {
     if (isSubmitting) return; 
     const activeBtns = document.querySelectorAll('button[type="submit"], .primary-btn');
     activeBtns.forEach(btn => { 
+        if (!btn.dataset.oldText) btn.dataset.oldText = btn.innerHTML;
         btn.disabled = true; 
         btn.classList.add('btn-clicked');
         btn.innerHTML = '⌛ جاري المعالجة...'; 
@@ -230,7 +231,7 @@ const tooltipsDictionary = {
     f02_name: { ar: 'الاسم الكامل للسائق كما في الهوية', en: 'Full legal name of the driver' },
     f04_mobile: { ar: 'رقم الهاتف الفعال للتواصل السريع', en: 'Active mobile number for contact' },
     f06_amount: { ar: 'المبلغ المالي المدفوع أو المصروف', en: 'Financial amount paid or spent' },
-    f09_car: { ar: 'السيارة الحالية الموجودة بحوزة السائق', en: 'Current vehicle assigned to driver' },
+    f08_car_no: { ar: 'السيارة الحالية الموجودة بحوزة السائق', en: 'Current vehicle assigned to driver' },
     f10_notes: { ar: 'أي ملاحظات إضافية بخصوص هذا السجل', en: 'Additional remarks for this record' }
 };
 
@@ -256,7 +257,6 @@ const globalLabels = {
     f02_date: 'التاريخ | Date',
     f03_car_no: 'رقم السيارة | Car No',
     f04_driver_id: 'كود السائق | Driver ID',
-    f04_driver_name: 'اسم السائق | Driver Name',
     f05_revenue_type: 'نوع الإيراد | Rev Type',
     f05_expense_type: 'نوع المصروف | Exp Type',
     f05_category: 'الفئة | Category',
@@ -266,14 +266,13 @@ const globalLabels = {
     f07_amount: 'المبلغ الإجمالي | Total Amount',
     f07_method: 'الطريقة | Method',
     f08_ref_no: 'رقم المرجع | Ref No',
-    f08_collector: 'المحصّل | Collector',
-    f09_user_id: 'الموظف | Staff',
+    f08_collector_id: 'المحصّل | Collector',
+    f09_staff_id: 'الموظف | Staff',
     f09_notes: 'الملاحظات | Notes',
     f10_status: 'الحالة | Status',
     f11_notes: 'تفاصيل إضافية | Details',
-    f12_created_at: 'وقت التسجيل | Created At',
     f03_time: 'الوقت | Time',
-    f04_car_id: 'رقم السيارة | Car No',
+    f04_car_no: 'رقم السيارة | Car No',
     f05_driver_id: 'كود السائق | Driver ID',
     f06_staff_id: 'موظف الاستلام | Staff ID',
     f07_action_type: 'نوع الحركة | Mov Type',
@@ -281,6 +280,7 @@ const globalLabels = {
     f09_km_reading: 'العداد | KM Reading',
     f10_car_condition: 'حالة السيارة | Condition',
     t02_drivers: 'اسم السائق | Driver Name',
+    t11_staff: 'الموظف | Staff Name',
     f02_plate_no: 'رقم اللوحة | Plate No',
     f03_car_office: 'المكتب | Office',
     f04_brand: 'الماركة | Brand',
@@ -288,17 +288,16 @@ const globalLabels = {
     f07_license_expiry: 'انتهاء الترخيص | License Expiry',
     f08_standard_rent: 'الضمان الافتراضي | Std. Rent',
     f09_management_fee: 'رسوم الإدارة | Admin Fee',
-    f11_owner_id: 'المالك | Owner',
-    f12_is_active: 'الحالة | Status',
-    f13_current_driver_id: 'السائق الحالي | Driver',
-    f14_car_notes: 'ملاحظات السيارة | Car Notes',
-    f15_fuel_type: 'الوقود | Fuel',
+    f10_owner_id: 'المالك | Owner',
+    f11_is_active: 'الحالة | Status',
+    f13_fuel_type: 'الوقود | Fuel',
     f02_name: 'الاسم | Name',
     f03_national_no: 'الرقم الوطني | National ID',
     f04_mobile: 'الهاتف | Mobile',
     f05_address: 'العنوان | Address',
-    f06_location_url: 'الموقع | Location',
-    f07_status: 'الحالة | Status'
+    f06_status: 'الحالة | Status',
+    f08_car_no: 'السيارة | Car',
+    f09_attachment_url: 'المرفق | Attachment'
 };
 
 // --- [7] نظام العرض التفصيلي ---
@@ -313,7 +312,7 @@ window.showViewModal = function(data, title = "Record Details", labelsMapping = 
     let html = '<div class="view-data-grid" style="direction:rtl;">';
     const finalMapping = { ...globalLabels, ...labelsMapping };
     Object.keys(data).forEach(key => {
-        if (['f01_id', 'id', 'created_at', 'updated_at', 'f15_id', 'f08_status_date'].includes(key)) return;
+        if (['f01_id', 'id', 'created_at', 'updated_at'].includes(key)) return;
         let value = data[key]; if (value === null || value === undefined) value = '---';
         if (typeof value === 'object' && value.f02_name) value = value.f02_name;
         if (typeof value === 'object' && value.f02_plate_no) value = value.f02_plate_no;
@@ -337,7 +336,12 @@ window.showModal = function(title, message, type = 'info', onConfirm = null) {
     const container = document.getElementById('modalBtnContainer'); container.innerHTML = '';
     if (onConfirm) {
         const okBtn = document.createElement('button'); okBtn.innerText = 'تأكيد'; okBtn.className = 'primary-btn'; okBtn.style.background = '#e74c3c';
-        okBtn.onclick = async () => { await onConfirm(); modal.style.display = 'none'; };
+        okBtn.onclick = async () => { 
+            safeSubmit(async () => {
+                await onConfirm(); 
+                modal.style.display = 'none'; 
+            });
+        };
         const cancelBtn = document.createElement('button'); cancelBtn.innerText = 'إلغاء'; cancelBtn.className = 'secondary-btn'; cancelBtn.style.marginRight = '10px';
         cancelBtn.onclick = () => modal.style.display = 'none';
         container.appendChild(okBtn); container.appendChild(cancelBtn);
@@ -354,4 +358,40 @@ window.showToast = function(message, type = 'success') {
     setTimeout(() => toast.classList.add('show'), 10);
     setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, 3000);
 };
+
+// --- [8] نظام الاختيار التلقائي (Smart Auto-Select) ---
+window.smartAutoSelect = {
+    async onCarChange(carNo, driverFieldId) {
+        if (!carNo) return;
+        const driverEl = document.getElementById(driverFieldId);
+        if (!driverEl) return;
+
+        // Find driver assigned to this car via t02_drivers.f08_car_no
+        const { data, error } = await _supabase.from('t02_drivers')
+            .select('f01_id, f02_name')
+            .eq('f08_car_no', carNo)
+            .maybeSingle();
+
+        if (data && data.f01_id) {
+            driverEl.value = data.f01_id;
+            driverEl.dispatchEvent(new Event('change'));
+        }
+    },
+    async onDriverChange(driverId, carFieldId) {
+        if (!driverId) return;
+        const carEl = document.getElementById(carFieldId);
+        if (!carEl) return;
+
+        const { data, error } = await _supabase.from('t02_drivers')
+            .select('f08_car_no')
+            .eq('f01_id', driverId)
+            .maybeSingle();
+
+        if (data && data.f08_car_no) {
+            carEl.value = data.f08_car_no;
+            carEl.dispatchEvent(new Event('change'));
+        }
+    }
+};
+
 window.bootSystem = bootSystem;

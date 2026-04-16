@@ -1,7 +1,7 @@
 /* START OF FILE: expenses.js */
 /**
  * File: expenses.js
- * Version: v1.3.0
+ * Version: v1.4.0
  * Function: إدارة المصاريف التشغيلية
  */
 
@@ -21,24 +21,43 @@ async function initPage() {
 
 async function fillExpenseDropdowns() {
     try {
+        // 1. Metadata from Lookup Table
+        if (typeof LookupEngine !== 'undefined') {
+            await Promise.all([
+                LookupEngine.fillSelect('expense_type', 'f05_expense_type', { placeholder: '-- فئة المصروف --' }),
+                LookupEngine.fillSelect('financial_status', 'f10_status', { placeholder: '-- الحالة المالية --' })
+            ]);
+        }
+
+        // 2. Relational data from primary tables
         const [carsRes, driversRes, staffRes] = await Promise.all([
-            _supabase.from('t01_cars').select('f02_plate_no'),
-            _supabase.from('t02_drivers').select('f01_id, f02_name').eq('f07_status', 'فعال | Active'),
+            _supabase.from('t01_cars').select('f02_plate_no, f11_is_active'),
+            _supabase.from('t02_drivers').select('f01_id, f02_name, f06_status'),
             _supabase.from('t11_staff').select('f01_id, f02_name')
         ]);
 
         const carSelect = document.getElementById('f03_car_no');
         const driverSelect = document.getElementById('f04_driver_id');
-        const staffSelect = document.getElementById('f09_user_id');
+        const staffSelect = document.getElementById('f09_staff_id');
 
-        if (carsRes.data && carSelect) {
-            carSelect.innerHTML += carsRes.data.map(c => `<option value="${c.f02_plate_no}">${c.f02_plate_no}</option>`).join('');
+        // تصفية السيارات النشطة بمرونة
+        const activeCars = (carsRes.data || []).filter(c => 
+            !c.f11_is_active || c.f11_is_active.includes('نشط') || c.f11_is_active.toLowerCase().includes('active')
+        );
+
+        // تصفية السائقين النشطين بمرونة
+        const activeDrivers = (driversRes.data || []).filter(d => 
+            !d.f06_status || d.f06_status.includes('نشط') || d.f06_status.toLowerCase().includes('active')
+        );
+
+        if (activeCars && carSelect) {
+            carSelect.innerHTML = '<option value="">-- السيارة --</option>' + activeCars.map(c => `<option value="${c.f02_plate_no}">${c.f02_plate_no}</option>`).join('');
         }
-        if (driversRes.data && driverSelect) {
-            driverSelect.innerHTML += driversRes.data.map(d => `<option value="${d.f01_id}">${d.f02_name}</option>`).join('');
+        if (activeDrivers && driverSelect) {
+            driverSelect.innerHTML = '<option value="">-- السائق --</option>' + activeDrivers.map(d => `<option value="${d.f01_id}">${d.f02_name}</option>`).join('');
         }
         if (staffRes.data && staffSelect) {
-            staffSelect.innerHTML += staffRes.data.map(s => `<option value="${s.f01_id}">${s.f02_name}</option>`).join('');
+            staffSelect.innerHTML = '<option value="">-- الموظف المسؤول --</option>' + staffRes.data.map(s => `<option value="${s.f01_id}">${s.f02_name}</option>`).join('');
         }
     } catch (err) {
         console.error("Dropdown Fill Error:", err);
@@ -95,8 +114,8 @@ function renderTable() {
                         <td>
                             <div class="action-btns-group">
                                 <button onclick='showViewModal(${JSON.stringify(ex)}, "تفاصيل المصروف | Expense Info")' class="btn-action-sm btn-view">👁️</button>
-                                <button onclick='editRecord(${ex.f01_id})' class="btn-action-sm btn-edit">✏️</button>
-                                <button onclick="deleteRecord(${ex.f01_id})" class="btn-action-sm btn-delete">🗑️</button>
+                                <button onclick="editRecord('${ex.f01_id}')" class="btn-action-sm btn-edit">✏️</button>
+                                <button onclick="deleteRecord('${ex.f01_id}')" class="btn-action-sm btn-delete">🗑️</button>
                             </div>
                         </td>
                     </tr>
@@ -115,12 +134,12 @@ async function handleFormSubmit(e) {
         const payload = {
             f02_date: document.getElementById('f02_date').value,
             f03_car_no: document.getElementById('f03_car_no').value,
-            f04_driver_id: parseInt(document.getElementById('f04_driver_id').value),
+            f04_driver_id: document.getElementById('f04_driver_id').value || null,
             f05_expense_type: document.getElementById('f05_expense_type').value,
             f06_seller: document.getElementById('f06_seller').value.trim(),
             f07_amount: parseFloat(document.getElementById('f07_amount').value),
             f08_ref_no: document.getElementById('f08_ref_no').value.trim(),
-            f09_user_id: parseInt(document.getElementById('f09_user_id').value),
+            f09_staff_id: document.getElementById('f09_staff_id').value || null,
             f10_status: document.getElementById('f10_status').value,
             f11_notes: document.getElementById('f11_notes').value.trim()
         };
@@ -153,7 +172,7 @@ function editRecord(id) {
     document.getElementById('f06_seller').value = ex.f06_seller || '';
     document.getElementById('f07_amount').value = ex.f07_amount;
     document.getElementById('f08_ref_no').value = ex.f08_ref_no || '';
-    document.getElementById('f09_user_id').value = ex.f09_user_id;
+    document.getElementById('f09_staff_id').value = ex.f09_staff_id;
     document.getElementById('f10_status').value = ex.f10_status;
     document.getElementById('f11_notes').value = ex.f11_notes || '';
 
@@ -202,6 +221,22 @@ function resetForm() {
 
 function setupFormListener() {
     document.getElementById('expenseForm').addEventListener('submit', handleFormSubmit);
+
+    // Auto-select logic
+    const carSel = document.getElementById('f03_car_no');
+    const drvSel = document.getElementById('f04_driver_id');
+
+    if (carSel) {
+        carSel.addEventListener('change', (e) => {
+            window.smartAutoSelect.onCarChange(e.target.value, 'f04_driver_id');
+        });
+    }
+
+    if (drvSel) {
+        drvSel.addEventListener('change', (e) => {
+            window.smartAutoSelect.onDriverChange(e.target.value, 'f03_car_no');
+        });
+    }
 }
 
 /* END OF FILE: expenses.js */
