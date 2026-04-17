@@ -90,9 +90,9 @@ function injectGlobalStyles() {
         @keyframes pulse-glow-green { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
         @keyframes pulse-glow-red { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
         .header-page-name { color: var(--taxi-gold); font-weight: 900; font-size: 1.2rem; margin-right: 15px; border-right: 2px solid #444; padding-right: 15px; }
-        .sidebar { height: 100vh; width: 280px; position: fixed; z-index: 4000; top: 0; right: -300px; background: rgba(15,15,15,0.98); backdrop-filter: blur(15px); transition: 0.5s ease; border-left: 2px solid var(--taxi-gold); }
+        .sidebar { height: 100vh; width: 280px; position: fixed; z-index: 4000; top: 0; right: -300px; background: rgba(15,15,15,0.98); backdrop-filter: blur(15px); transition: 0.5s ease; border-left: 2px solid var(--taxi-gold); overflow-y: auto; }
         .sidebar.open { transform: translateX(-300px); }
-        .sidebar a { padding: 18px 25px; text-decoration: none; color: #ccc; display: block; border-bottom: 1px solid #222; transition: 0.3s; font-weight: 600; }
+        .sidebar a { padding: 12px 25px; text-decoration: none; color: #ccc; display: block; border-bottom: 1px solid #222; transition: 0.3s; font-weight: 600; }
         .sidebar a:hover { color: var(--taxi-gold); background: rgba(212,175,55,0.08); padding-right: 40px; }
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2500; }
         .table-header-controls { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; background: #fff; border-bottom: 2px solid var(--taxi-gold); border-radius: 12px 12px 0 0; margin-top: 20px; }
@@ -161,7 +161,7 @@ function renderGlobalLayout(title) {
         </header>
         <div id="navOverlay" class="overlay" onclick="toggleNav(false)"></div>
         <nav id="sideNav" class="sidebar">
-            <div style="padding:35px 20px; color:var(--taxi-gold); font-weight:900; text-align:center; border-bottom:1px solid #333;">🚖 مـديـر الـتـاكـسـي</div>
+            <div style="padding:20px 20px; color:var(--taxi-gold); font-weight:900; text-shadow: 0 2px 4px rgba(0,0,0,0.5); text-align:center; border-bottom:1px solid #333;">🚖 مـديـر الـتـاكـسـي</div>
             <a href="index.html">📉 لوحة التحكم | Dashboard</a>
             <a href="work_days.html">📅 أيام العمل والضمان</a>
             <a href="cars.html">🚗 أسطول السيارات</a>
@@ -175,8 +175,9 @@ function renderGlobalLayout(title) {
             <a href="payments.html">💳 المدفوعات والتسوية</a>
             <a href="reports.html" style="color:var(--taxi-gold); font-weight:bold;">📊 التقارير المركزية</a>
             
-            <div style="padding:15px 25px; color:#555; font-size:0.8rem; font-weight:bold; border-top:1px solid #222; margin-top:10px;">إدارة النظام | ADMIN</div>
+            <div style="padding:10px 25px 5px 25px; color:#555; font-size:0.75rem; font-weight:bold; border-top:1px solid #222; margin-top:5px;">إدارة النظام | ADMIN</div>
             <a href="staff.html">👔 إدارة الموظفين</a>
+            <a href="lookups.html">🗂️ إدارة القوائم المنسدلة</a>
             <a href="login_logs.html">📜 سجلات الدخول</a>
             <a href="settings.html">⚙️ إعدادات النظام</a>
         </nav>

@@ -7,6 +7,7 @@
 
 let allOwners = [];
 let filteredOwners = [];
+let currentSort = { col: 'f02_owner_name', asc: true };
 
 document.addEventListener('DOMContentLoaded', () => {
     initPage();
@@ -46,9 +47,9 @@ function renderTable() {
         <table>
             <thead>
                 <tr>
-                    <th onclick="sortData('f02_owner_name')">الاسم | Name ↕</th>
-                    <th onclick="sortData('f04_contact_number')">الهاتف | Phone ↕</th>
-                    <th onclick="sortData('f03_owner_type')">النوع | Type ↕</th>
+                    <th onclick="sortData('f02_owner_name')" style="cursor:pointer">الاسم | Name ↕</th>
+                    <th onclick="sortData('f04_contact_number')" style="cursor:pointer">الهاتف | Phone ↕</th>
+                    <th onclick="sortData('f03_owner_type')" style="cursor:pointer">النوع | Type ↕</th>
                     <th>إجراءات | Acts</th>
                 </tr>
             </thead>
@@ -170,8 +171,26 @@ function setupFormListener() {
 }
 
 function sortData(col) {
-    // Basic sort logic if needed
-    filteredOwners.sort((a,b) => (a[col] > b[col] ? 1 : -1));
+    if (currentSort.col === col) {
+        currentSort.asc = !currentSort.asc;
+    } else {
+        currentSort.col = col;
+        currentSort.asc = true;
+    }
+    
+    filteredOwners.sort((a, b) => {
+        let vA = a[col] || '';
+        let vB = b[col] || '';
+        
+        if (!isNaN(vA) && !isNaN(vB) && vA !== "" && vB !== "") {
+            vA = parseFloat(vA);
+            vB = parseFloat(vB);
+        }
+
+        if (vA < vB) return currentSort.asc ? -1 : 1;
+        if (vA > vB) return currentSort.asc ? 1 : -1;
+        return 0;
+    });
     renderTable();
 }
 

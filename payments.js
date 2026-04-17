@@ -3,6 +3,8 @@
  ================================================================== */
 
 let allPayments = [];
+let filteredPayments = [];
+let currentSort = { col: 'f02_date', asc: false };
 
 // [1] تهيئة الصفحة عند التحميل
 async function initPaymentPage() {
@@ -67,13 +69,22 @@ async function loadPaymentsData() {
     const { data, error } = await _supabase.from('t07_payments').select('*').order('f02_date', { ascending: false });
     if (data) {
         allPayments = data;
-        renderTable(data);
+        filteredPayments = [...data];
+        renderTable();
     }
 }
 
-function renderTable(data) {
+function renderTable() {
+    const data = filteredPayments;
+    if(document.getElementById("recordCount")) document.getElementById("recordCount").innerText = data.length;
     let html = `<table><thead><tr>
-        <th>التاريخ</th><th>النوع</th><th>السيارة</th><th>المبلغ</th><th>المستلم</th><th>مطابقة؟</th><th>إجراءات</th>
+        <th onclick="sortData('f02_date')" style="cursor:pointer">التاريخ ↕</th>
+        <th onclick="sortData('f03_type')" style="cursor:pointer">النوع ↕</th>
+        <th onclick="sortData('f05_car_no')" style="cursor:pointer">السيارة ↕</th>
+        <th onclick="sortData('f04_amount')" style="cursor:pointer">المبلغ ↕</th>
+        <th onclick="sortData('f09_recipient')" style="cursor:pointer">المستلم ↕</th>
+        <th onclick="sortData('f06_expense_link')" style="cursor:pointer">مطابقة؟ ↕</th>
+        <th>إجراءات</th>
     </tr></thead><tbody>`;
 
     data.forEach(item => {
@@ -178,10 +189,34 @@ function confirmReset() {
 
 function excelFilter() {
     const val = document.getElementById('excelSearch').value.toLowerCase();
-    const filtered = allPayments.filter(p => 
+    filteredPayments = allPayments.filter(p => 
         (p.f03_type && p.f03_type.toLowerCase().includes(val)) || 
         (p.f05_car_no && p.f05_car_no.toLowerCase().includes(val)) ||
         (p.f09_recipient && p.f09_recipient.toLowerCase().includes(val))
     );
-    renderTable(filtered);
+    renderTable();
+}
+
+function sortData(col) {
+    if (currentSort.col === col) {
+        currentSort.asc = !currentSort.asc;
+    } else {
+        currentSort.col = col;
+        currentSort.asc = true;
+    }
+    
+    filteredPayments.sort((a, b) => {
+        let vA = a[col] || '';
+        let vB = b[col] || '';
+        
+        if (!isNaN(vA) && !isNaN(vB) && vA !== "" && vB !== "") {
+            vA = parseFloat(vA);
+            vB = parseFloat(vB);
+        }
+
+        if (vA < vB) return currentSort.asc ? -1 : 1;
+        if (vA > vB) return currentSort.asc ? 1 : -1;
+        return 0;
+    });
+    renderTable();
 }

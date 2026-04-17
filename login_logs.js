@@ -1,22 +1,27 @@
-/* ==================================================================
- [login_logs.js] - إدارة سجلات الأمان
- ================================================================== */
+let allLogs = [];
+let filteredLogs = [];
+let currentSort = { col: 'f02_datetime', asc: false };
 
- async function loadLoginLogs() {
+async function loadLoginLogs() {
     const { data, error } = await _supabase
         .from('t15_login_logs')
         .select('*')
         .order('f02_datetime', { ascending: false });
 
     if (data) {
-        renderLogsTable(data);
+        allLogs = data;
+        filteredLogs = [...data];
+        renderLogsTable();
     }
 }
 
-function renderLogsTable(data) {
+
+function renderLogsTable() {
+    const data = filteredLogs;
     const tbody = document.getElementById('logsBody');
+    if (!tbody) return;
+
     tbody.innerHTML = data.map(log => {
-        // تنسيق الحالة بالألوان
         const statusStyle = log.f04_status === 'Success' 
             ? 'color: #27ae60; font-weight: bold;' 
             : 'color: #e74c3c; font-weight: bold;';
@@ -32,14 +37,45 @@ function renderLogsTable(data) {
             </tr>
         `;
     }).join('');
+    
+    if (document.getElementById('recordCount')) {
+        document.getElementById('recordCount').innerText = data.length;
+    }
+}
+
+function sortData(col) {
+    if (currentSort.col === col) {
+        currentSort.asc = !currentSort.asc;
+    } else {
+        currentSort.col = col;
+        currentSort.asc = true;
+    }
+    
+    filteredLogs.sort((a, b) => {
+        let vA = a[col] || '';
+        let vB = b[col] || '';
+        
+        if (!isNaN(Date.parse(vA)) && !isNaN(Date.parse(vB))) {
+            vA = new Date(vA);
+            vB = new Date(vB);
+        } else if (!isNaN(vA) && !isNaN(vB) && vA !== "" && vB !== "") {
+            vA = parseFloat(vA);
+            vB = parseFloat(vB);
+        }
+
+        if (vA < vB) return currentSort.asc ? -1 : 1;
+        if (vA > vB) return currentSort.asc ? 1 : -1;
+        return 0;
+    });
+    renderLogsTable();
 }
 
 function filterLogs() {
     const val = document.getElementById('logSearch').value.toLowerCase();
-    const rows = document.querySelectorAll('#logsBody tr');
-    rows.forEach(row => {
-        row.style.display = row.innerText.toLowerCase().includes(val) ? '' : 'none';
-    });
+    filteredLogs = allLogs.filter(log => 
+        Object.values(log).some(v => String(v).toLowerCase().includes(val))
+    );
+    renderLogsTable();
 }
 
 async function loginProcess() {

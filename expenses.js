@@ -7,6 +7,7 @@
 
 let allExpenses = [];
 let filteredExpenses = [];
+let currentSort = { col: 'f02_date', asc: false };
 
 document.addEventListener('DOMContentLoaded', () => {
     initPage();
@@ -41,12 +42,12 @@ async function fillExpenseDropdowns() {
         const staffSelect = document.getElementById('f09_staff_id');
 
         // تصفية السيارات النشطة بمرونة
-        const activeCars = (carsRes.data || []).filter(c => 
+        const activeCars = (carsRes.data || []).filter(c =>
             !c.f11_is_active || c.f11_is_active.includes('نشط') || c.f11_is_active.toLowerCase().includes('active')
         );
 
         // تصفية السائقين النشطين بمرونة
-        const activeDrivers = (driversRes.data || []).filter(d => 
+        const activeDrivers = (driversRes.data || []).filter(d =>
             !d.f06_status || d.f06_status.includes('نشط') || d.f06_status.toLowerCase().includes('active')
         );
 
@@ -93,13 +94,13 @@ function renderTable() {
         <table>
             <thead>
                 <tr>
-                    <th onclick="sortData('f02_date')">التاريخ | Date ↕</th>
-                    <th onclick="sortData('f03_car_no')">السيارة | Plate ↕</th>
-                    <th>النوع | Type</th>
-                    <th onclick="sortData('f07_amount')">المبلغ | Amt ↕</th>
-                    <th>المسؤول | Admin</th>
-                    <th>السداد | Status</th>
-                    <th>إجراءات | Acts</th>
+                    <th onclick="sortData('f02_date')" style="cursor:pointer">التاريخ | Date ↕</th>
+                    <th onclick="sortData('f03_car_no')" style="cursor:pointer">السيارة | Plate ↕</th>
+                    <th onclick="sortData('f05_expense_type')" style="cursor:pointer">النوع | Type ↕</th>
+                    <th onclick="sortData('f07_amount')" style="cursor:pointer">المبلغ | Amt ↕</th>
+                    <th onclick="sortData('f09_staff_id')" style="cursor:pointer">المسؤول | Admin ↕</th>
+                    <th onclick="sortData('f10_status')" style="cursor:pointer">السداد | Status ↕</th>
+                    <th class="no-print">إجراءات | Acts</th>
                 </tr>
             </thead>
             <tbody>
@@ -111,10 +112,11 @@ function renderTable() {
                         <td style="font-weight:900; color:var(--taxi-red)">${ex.f07_amount.toLocaleString()}</td>
                         <td>${ex.t11_staff?.f02_name || '-'}</td>
                         <td><span class="badge-status ${ex.f10_status === 'Paid|مدفوع' ? 'badge-paid' : 'badge-pending'}">${ex.f10_status}</span></td>
-                        <td>
+                        <td class="no-print">
                             <div class="action-btns-group">
                                 <button onclick='showViewModal(${JSON.stringify(ex)}, "تفاصيل المصروف | Expense Info")' class="btn-action-sm btn-view">👁️</button>
                                 <button onclick="editRecord('${ex.f01_id}')" class="btn-action-sm btn-edit">✏️</button>
+                                <button onclick="printExpense('${ex.f01_id}')" class="btn-action-sm btn-print" title="طباعة سند صرف">🖨️</button>
                                 <button onclick="deleteRecord('${ex.f01_id}')" class="btn-action-sm btn-delete">🗑️</button>
                             </div>
                         </td>
@@ -145,7 +147,7 @@ async function handleFormSubmit(e) {
         };
 
         try {
-            const res = id 
+            const res = id
                 ? await _supabase.from('t06_expenses').update(payload).eq('f01_id', id)
                 : await _supabase.from('t06_expenses').insert([payload]);
 
@@ -179,14 +181,76 @@ function editRecord(id) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function deleteRecord(id) {
-    showModal("تأكيد الحذف", "هل تريد حذف هذا السجل المالي؟", 'error', async () => {
-        const { error } = await _supabase.from('t06_expenses').delete().eq('f01_id', id);
-        if (!error) {
-            showToast("تم الحذف بنجاح", "success");
-            loadData();
-        }
-    });
+
+async function printExpense(id) {
+    const record = allExpenses.find(e => e.f01_id === id);
+    if (!record) return;
+
+    const staffName = record.t11_staff?.f02_name || '---';
+    const driverName = record.t02_drivers?.f02_name || '---';
+    const printArea = document.getElementById('printVoucherSection');
+
+    if (!printArea) return;
+
+    printArea.innerHTML = `
+        <div class="v-stamp">صُرف | DISBURSED</div>
+        <div class="v-header" style="border-bottom: 3px solid #000; padding-bottom:15px; margin-bottom:25px;">
+            <div class="v-logo" style="font-size:3.5rem;">🚖</div>
+            <div class="v-title">
+                <h2 style="font-size:2.2rem; font-weight:900; margin:0;">Smart Taxi Systems</h2>
+                <p style="font-size:1.1rem; font-weight:bold; margin:5px 0 0; color:#333;">سند صرف رسمي | Official Disbursement Voucher</p>
+            </div>
+            <div class="v-meta" style="text-align:left; font-size:0.9rem; line-height:1.4;">
+                <p><strong>الرقم | REF:</strong> ${record.f01_id.slice(0, 8).toUpperCase()}</p>
+                <p><strong>التاريخ | Date:</strong> ${record.f02_date}</p>
+                <p><strong>الوقت | Time:</strong> ${new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}</p>
+            </div>
+        </div>
+
+        <div class="v-body">
+            <div class="v-row">
+                <span class="v-lbl">يصرف للسيد:</span>
+                <span class="v-val">${record.f06_seller || driverName}</span>
+            </div>
+            <div class="v-row">
+                <span class="v-lbl">مبلغ وقدره:</span>
+                <span class="v-val">${record.f07_amount} JD</span>
+            </div>
+            <div class="v-row">
+                <span class="v-lbl">بخصوص:</span>
+                <span class="v-val">${record.f05_expense_type} ${record.f03_car_no ? ` للسيارة (${record.f03_car_no})` : ''}</span>
+            </div>
+            <div class="v-row">
+                <span class="v-lbl">ملاحظات:</span>
+                <span class="v-val">${record.f11_notes || '-'}</span>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <div class="v-amount-box">
+                    <span>${record.f07_amount} JD</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="v-footer">
+            <div class="v-sig">
+                <p>توقيع المستلم</p>
+                <div class="v-line"></div>
+            </div>
+            <div class="v-sig">
+                <p>المحاسب المسؤول (${staffName})</p>
+                <div class="v-line"></div>
+            </div>
+        </div>
+
+        <div class="v-notice">
+            * هذا السند يثبت عملية الصرف المالي من خزينة الشركة. يرجى التدقيق قبل التوقيع.
+        </div>
+    `;
+
+    setTimeout(() => {
+        window.print();
+    }, 250);
 }
 
 function initTableControls() {
@@ -237,6 +301,30 @@ function setupFormListener() {
             window.smartAutoSelect.onDriverChange(e.target.value, 'f03_car_no');
         });
     }
+}
+
+function sortData(col) {
+    if (currentSort.col === col) {
+        currentSort.asc = !currentSort.asc;
+    } else {
+        currentSort.col = col;
+        currentSort.asc = true;
+    }
+
+    filteredExpenses.sort((a, b) => {
+        let vA = a[col] || '';
+        let vB = b[col] || '';
+
+        if (!isNaN(vA) && !isNaN(vB) && vA !== "" && vB !== "") {
+            vA = parseFloat(vA);
+            vB = parseFloat(vB);
+        }
+
+        if (vA < vB) return currentSort.asc ? -1 : 1;
+        if (vA > vB) return currentSort.asc ? 1 : -1;
+        return 0;
+    });
+    renderTable();
 }
 
 /* END OF FILE: expenses.js */

@@ -9,6 +9,7 @@
 // --- [1] التعريفات العامة ---
 let allRevenues = [];
 let filteredRevenues = [];
+let currentSort = { col: 'f02_date', asc: false };
 let driversList = [];
 let staffList = [];
 let carsList = [];
@@ -37,7 +38,7 @@ async function initRevenuesPage() {
 
         // 3. جلب الجدول
         await fetchRevenuesData();
-
+        initTableControls();
         setupFormListener();
         
         console.log("✅ System Ready.");
@@ -94,12 +95,12 @@ function renderTable() {
         <table class="taxi-table">
             <thead>
                 <tr>
-                    <th>التاريخ</th>
-                    <th>السيارة</th>
-                    <th>السائق</th>
-                    <th>الفئة</th>
-                    <th>المبلغ</th>
-                    <th>المحصل</th>
+                    <th onclick="sortData('f02_date')" style="cursor:pointer">التاريخ ↕</th>
+                    <th onclick="sortData('f03_car_no')" style="cursor:pointer">السيارة ↕</th>
+                    <th onclick="sortData('f04_driver_id')" style="cursor:pointer">السائق ↕</th>
+                    <th onclick="sortData('f05_category')" style="cursor:pointer">الفئة ↕</th>
+                    <th onclick="sortData('f06_amount')" style="cursor:pointer">المبلغ ↕</th>
+                    <th onclick="sortData('f08_collector_id')" style="cursor:pointer">المحصل ↕</th>
                     <th style="text-align:center">العمليات</th>
                 </tr>
             </thead>
@@ -130,6 +131,7 @@ function renderTable() {
 
     html += `</tbody></table>`;
     container.innerHTML = html;
+    updateCounter();
 }
 
 // --- [4] العمليات ---
@@ -153,7 +155,76 @@ function editRevenue(id) {
 }
 
 function viewRevenue(id) { console.log("View:", id); }
-function printRevenue(id) { window.print(); }
+async function printRevenue(id) {
+    const record = allRevenues.find(r => r.f01_id === id);
+    if (!record) return;
+
+    const driverName = driversList.find(d => d.f01_id === record.f04_driver_id)?.f02_name || '---';
+    const staffName = staffList.find(s => s.f01_id === record.f08_collector_id)?.f02_name || '---';
+    const printArea = document.getElementById('printReceiptSection');
+
+    if (!printArea) return;
+
+    printArea.innerHTML = `
+        <div class="v-stamp" style="font-family: 'Tajawal', sans-serif;">مدفوع | PAID</div>
+        <div class="v-header" style="border-bottom: 3px solid #000; padding-bottom:15px; margin-bottom:25px;">
+            <div class="v-logo" style="font-size:3.5rem;">🚖</div>
+            <div class="v-title">
+                <h2 style="font-size:2.2rem; font-weight:900; margin:0;">Smart Taxi Systems</h2>
+                <p style="font-size:1.1rem; font-weight:bold; margin:5px 0 0; color:#333;">وصل مالي رسمي | Official Payment Receipt</p>
+            </div>
+            <div class="v-meta" style="text-align:left; font-size:0.9rem; line-height:1.4;">
+                <p><strong>الرقم | REF:</strong> ${record.f01_id.slice(0,8).toUpperCase()}</p>
+                <p><strong>التاريخ | Date:</strong> ${record.f02_date}</p>
+                <p><strong>الوقت | Time:</strong> ${new Date().toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'})}</p>
+            </div>
+        </div>
+
+        <div class="v-body">
+            <div class="v-row">
+                <span class="v-lbl">وصلنا من السيد:</span>
+                <span class="v-val">${driverName}</span>
+            </div>
+            <div class="v-row">
+                <span class="v-lbl">رقم السيارة:</span>
+                <span class="v-val">${record.f03_car_no}</span>
+            </div>
+            <div class="v-row">
+                <span class="v-lbl">وذلك عن:</span>
+                <span class="v-val">${record.f05_category} ${record.f09_notes ? ` - ${record.f09_notes}` : ''}</span>
+            </div>
+            <div class="v-row">
+                <span class="v-lbl">طريقة الدفع:</span>
+                <span class="v-val">${record.f07_method}</span>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <div class="v-amount-box">
+                    <span>${record.f06_amount} JD</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="v-footer">
+            <div class="v-sig">
+                <p>توقيع السائق</p>
+                <div class="v-line"></div>
+            </div>
+            <div class="v-sig">
+                <p>توقيع المحصل (${staffName})</p>
+                <div class="v-line"></div>
+            </div>
+        </div>
+
+        <div class="v-notice">
+            * تم إصدار هذا السند آلياً عبر نظام Smart Taxi. يرجى الاحتفاظ به لضمان حقوقك المالية.
+        </div>
+    `;
+
+    setTimeout(() => {
+        window.print();
+    }, 250);
+}
 
 async function deleteRevenue(id) {
     if (!confirm("تأكيد الحذف؟")) return;
@@ -280,6 +351,61 @@ async function handleFormSubmit(e) {
             showToast("حدث خطأ أثناء الحفظ", "error");
         }
     });
+}
+
+function sortData(col) {
+    if (currentSort.col === col) {
+        currentSort.asc = !currentSort.asc;
+    } else {
+        currentSort.col = col;
+        currentSort.asc = true;
+    }
+    
+    filteredRevenues.sort((a, b) => {
+        let vA = a[col] || '';
+        let vB = b[col] || '';
+        
+        if (!isNaN(vA) && !isNaN(vB) && vA !== "" && vB !== "") {
+            vA = parseFloat(vA);
+            vB = parseFloat(vB);
+        }
+
+        if (vA < vB) return currentSort.asc ? -1 : 1;
+        if (vA > vB) return currentSort.asc ? 1 : -1;
+        return 0;
+    });
+    renderTable();
+}
+
+function initTableControls() {
+    const placeholder = document.getElementById('tableControlsPlaceholder');
+    if (placeholder) {
+        placeholder.innerHTML = `
+            <div class="table-header-controls">
+                <div class="record-badge">إجمالي التحصيلات: <span id="count">${allRevenues.length}</span></div>
+                <div class="global-search-wrapper">
+                    <input type="text" id="excelSearch" class="global-search-input" placeholder="بحث بالسيارة، السائق أو الوصف..." onkeyup="excelFilter()">
+                    <span class="search-icon">🔍</span>
+                </div>
+            </div>
+        `;
+    }
+}
+
+function excelFilter() {
+    const val = document.getElementById('excelSearch').value.toLowerCase();
+    filteredRevenues = allRevenues.filter(r => 
+        (r.f03_car_no && r.f03_car_no.toLowerCase().includes(val)) ||
+        (r.f05_category && r.f05_category.toLowerCase().includes(val)) ||
+        (r.f09_notes && r.f09_notes.toLowerCase().includes(val)) ||
+        Object.values(r).some(v => String(v).toLowerCase().includes(val))
+    );
+    renderTable();
+}
+
+function updateCounter() {
+    const el = document.getElementById('count');
+    if (el) el.innerText = filteredRevenues.length;
 }
 
 /* === END OF FILE === */

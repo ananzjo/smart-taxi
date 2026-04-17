@@ -7,6 +7,7 @@
 
 let allSuppliers = [];
 let filteredSuppliers = [];
+let currentSort = { col: 'f02_supplier_name', asc: true };
 
 document.addEventListener('DOMContentLoaded', () => {
     initPage();
@@ -47,10 +48,10 @@ function renderTable() {
         <table>
             <thead>
                 <tr>
-                    <th onclick="sortData('f02_supplier_name')">المورد | Supplier ↕</th>
-                    <th onclick="sortData('f03_contact_person')">المسؤول | Contact ↕</th>
-                    <th onclick="sortData('f04_phone')">الهاتف | Phone ↕</th>
-                    <th>العنوان | Address</th>
+                    <th onclick="sortData('f02_supplier_name')" style="cursor:pointer">المورد | Supplier ↕</th>
+                    <th onclick="sortData('f03_contact_person')" style="cursor:pointer">المسؤول | Contact ↕</th>
+                    <th onclick="sortData('f04_phone')" style="cursor:pointer">الهاتف | Phone ↕</th>
+                    <th onclick="sortData('f05_address')" style="cursor:pointer">العنوان | Address ↕</th>
                     <th>إجراءات | Acts</th>
                 </tr>
             </thead>
@@ -162,6 +163,30 @@ function resetForm() {
 
 function setupFormListener() {
     document.getElementById('supplierForm').addEventListener('submit', handleFormSubmit);
+}
+
+function sortData(col) {
+    if (currentSort.col === col) {
+        currentSort.asc = !currentSort.asc;
+    } else {
+        currentSort.col = col;
+        currentSort.asc = true;
+    }
+    
+    filteredSuppliers.sort((a, b) => {
+        let vA = a[col] || '';
+        let vB = b[col] || '';
+        
+        if (!isNaN(vA) && !isNaN(vB) && vA !== "" && vB !== "") {
+            vA = parseFloat(vA);
+            vB = parseFloat(vB);
+        }
+
+        if (vA < vB) return currentSort.asc ? -1 : 1;
+        if (vA > vB) return currentSort.asc ? 1 : -1;
+        return 0;
+    });
+    renderTable();
 }
 
 /* END OF FILE: suppliers.js */

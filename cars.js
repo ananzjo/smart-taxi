@@ -91,13 +91,13 @@ function renderTable() {
         <table>
             <thead>
                 <tr>
-                    <th onclick="sortData('f02_plate_no')">اللوحة | Plate ↕</th>
-                    <th onclick="sortData('f03_car_office')">المكتب | Office ↕</th>
-                    <th onclick="sortData('f06_model')">الموديل | Model ↕</th>
-                    <th onclick="sortData('f08_standard_rent')">الضمان | Rent ↕</th>
-                    <th>المالك | Owner</th>
+                    <th onclick="sortData('f02_plate_no')" style="cursor:pointer">اللوحة | Plate ↕</th>
+                    <th onclick="sortData('f03_car_office')" style="cursor:pointer">المكتب | Office ↕</th>
+                    <th onclick="sortData('f06_model')" style="cursor:pointer">الموديل | Model ↕</th>
+                    <th onclick="sortData('f08_standard_rent')" style="cursor:pointer">الضمان | Rent ↕</th>
+                    <th onclick="sortData('f10_owner_id')" style="cursor:pointer">المالك | Owner ↕</th>
                     <th>السائق | Driver</th>
-                    <th onclick="sortData('f11_is_active')">الحالة | Status ↕</th>
+                    <th onclick="sortData('f11_is_active')" style="cursor:pointer">الحالة | Status ↕</th>
                     <th>إجراءات | Acts</th>
                 </tr>
             </thead>
@@ -244,12 +244,26 @@ function filterLocal() {
 
 let currentSort = { col: 'f02_plate_no', asc: true };
 function sortData(col) {
-    currentSort.asc = (currentSort.col === col) ? !currentSort.asc : true;
-    currentSort.col = col;
+    if (currentSort.col === col) {
+        currentSort.asc = !currentSort.asc;
+    } else {
+        currentSort.col = col;
+        currentSort.asc = true;
+    }
+    
     filteredCars.sort((a, b) => {
         let vA = a[col] || '';
         let vB = b[col] || '';
-        return currentSort.asc ? (vA > vB ? 1 : -1) : (vA < vB ? 1 : -1);
+        
+        // Use numeric comparison if both are numbers
+        if (!isNaN(vA) && !isNaN(vB) && vA !== "" && vB !== "") {
+            vA = parseFloat(vA);
+            vB = parseFloat(vB);
+        }
+
+        if (vA < vB) return currentSort.asc ? -1 : 1;
+        if (vA > vB) return currentSort.asc ? 1 : -1;
+        return 0;
     });
     renderTable();
 }

@@ -69,12 +69,11 @@ function renderTable() {
     let html = `
         <table>
             <thead>
-                <tr>
-                    <th onclick="sortData('f02_name')">الاسم | Name ↕</th>
-                    <th onclick="sortData('f03_national_no')">الهوية | ID ↕</th>
-                    <th onclick="sortData('f04_mobile')">الهاتف | Phone ↕</th>
-                    <th>السيارة | Car</th>
-                    <th onclick="sortData('f06_status')">الحالة | Status ↕</th>
+                    <th onclick="sortData('f02_name')" style="cursor:pointer">الاسم | Name ↕</th>
+                    <th onclick="sortData('f03_national_no')" style="cursor:pointer">الهوية | ID ↕</th>
+                    <th onclick="sortData('f04_mobile')" style="cursor:pointer">الهاتف | Phone ↕</th>
+                    <th onclick="sortData('f08_car_no')" style="cursor:pointer">السيارة | Car ↕</th>
+                    <th onclick="sortData('f06_status')" style="cursor:pointer">الحالة | Status ↕</th>
                     <th>إجراءات | Actions</th>
                 </tr>
             </thead>
@@ -212,12 +211,25 @@ function filterLocal() {
 
 let currentSort = { col: 'f02_name', asc: true };
 function sortData(col) {
-    currentSort.asc = (currentSort.col === col) ? !currentSort.asc : true;
-    currentSort.col = col;
+    if (currentSort.col === col) {
+        currentSort.asc = !currentSort.asc;
+    } else {
+        currentSort.col = col;
+        currentSort.asc = true;
+    }
+    
     filteredDrivers.sort((a,b) => {
         let vA = a[col] || '';
         let vB = b[col] || '';
-        return currentSort.asc ? (vA > vB ? 1 : -1) : (vA < vB ? 1 : -1);
+        
+        if (!isNaN(vA) && !isNaN(vB) && vA !== "" && vB !== "") {
+            vA = parseFloat(vA);
+            vB = parseFloat(vB);
+        }
+
+        if (vA < vB) return currentSort.asc ? -1 : 1;
+        if (vA > vB) return currentSort.asc ? 1 : -1;
+        return 0;
     });
     renderTable();
 }

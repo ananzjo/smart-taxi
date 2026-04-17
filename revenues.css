@@ -129,3 +129,73 @@ th.sort-desc::after {
     color: #1d4ed8; /* لون أزرق أكثر حدة للرقم نفسه */
     font-size: 1rem;
 }
+
+/* --- [Print & Voucher Optimization] --- */
+.print-voucher-container { display: none; }
+
+@media print {
+    @page { size: A5; margin: 5mm; }
+    /* Hide everything by default when printing */
+    header, nav, .main-container, .modal-overlay, #navOverlay { display: none !important; }
+    body { background: white !important; padding: 0 !important; margin: 0 !important; direction: rtl; }
+
+    /* Show only the voucher */
+    .print-voucher-container { 
+        display: block !important; 
+        width: 138mm; /* Fits A5 Portrait (148mm width) with 5mm margins */
+        margin: 0 auto;
+        padding: 20px;
+        border: 4px double #1a1a1a;
+        background: #fff;
+        color: #000;
+        position: relative;
+        min-height: 190mm; /* Ensure it takes most of the A5 page */
+    }
+
+    .v-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 25px; }
+    .v-logo { font-size: 2.5rem; }
+    .v-title { flex-grow: 1; text-align: center; }
+    .v-title h2 { margin: 0; font-size: 1.8rem; font-weight: 900; }
+    .v-meta { text-align: left; font-size: 0.85rem; }
+
+    .v-body { margin: 20px 0; line-height: 1.8; font-size: 1rem; }
+    .v-row { display: flex; margin-bottom: 12px; border-bottom: 1px dashed #ccc; padding-bottom: 4px; }
+    .v-lbl { font-weight: bold; width: 110px; color: #444; font-size: 0.9rem; }
+    .v-val { font-weight: 800; border-bottom: 2px solid #000; flex-grow: 1; padding: 0 8px; font-size: 1rem; }
+
+    .v-amount-box { 
+        display: inline-block; 
+        border: 3px solid #000; 
+        padding: 8px 25px; 
+        font-size: 1.5rem; 
+        font-weight: 900; 
+        background: #f9f9f9; 
+        margin-top: 15px;
+        border-radius: 8px;
+    }
+
+    .v-footer { display: flex; justify-content: space-between; margin-top: 60px; }
+    .v-sig { width: 45%; text-align: center; font-size: 0.85rem; }
+    .v-line { border-top: 2px solid #000; margin-top: 40px; }
+    
+    .v-notice { text-align: center; font-size: 0.65rem; margin-top: 40px; border-top: 1px solid #ddd; padding-top: 8px; font-style: italic; }
+    /* Awesome PAID Stamp */
+    .v-stamp {
+        position: absolute;
+        top: 35%;
+        left: 5%;
+        border: 5px double #8b0000;
+        color: #8b0000;
+        font-size: 2.2rem;
+        font-weight: 900;
+        padding: 5px 25px;
+        transform: rotate(-25deg);
+        opacity: 0.35; /* More transparent for a professional ink feel */
+        border-radius: 12px;
+        text-transform: uppercase;
+        font-family: 'Arial Black', Gadget, sans-serif;
+        pointer-events: none;
+        letter-spacing: 4px;
+        z-index: 10;
+    }
+}

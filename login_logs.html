@@ -18,18 +18,20 @@
                 <span>📋 قائمة محاولات الدخول</span>
                 <input type="text" id="logSearch" placeholder="بحث باسم المستخدم أو الـ IP..." onkeyup="filterLogs()">
             </div>
+            <div class="table-info-bar">
+                <span class="record-badge">عدد السجلات: <span id="recordCount">0</span></span>
+            </div>
 
             <div class="table-responsive">
                 <table>
                     <thead>
                         <tr>
-                            <th>التاريخ والوقت</th>
-                            <th>المستخدم</th>
-                            <th>الحالة</th>
-                            <th>السبب</th>
-                            <th>عنوان IP</th>
-                            <th>الموقع</th>
-                            <th>الجهاز</th>
+                            <th onclick="sortData('f02_datetime')" style="cursor:pointer">التاريخ والوقت ↕</th>
+                            <th onclick="sortData('f03_username')" style="cursor:pointer">المستخدم ↕</th>
+                            <th onclick="sortData('f04_status')" style="cursor:pointer">الحالة ↕</th>
+                            <th onclick="sortData('f05_failure_reason')" style="cursor:pointer">السبب ↕</th>
+                            <th onclick="sortData('f06_ip_address')" style="cursor:pointer">عنوان IP ↕</th>
+                            <th onclick="sortData('f08_device_info')" style="cursor:pointer">الجهاز ↕</th>
                         </tr>
                     </thead>
                     <tbody id="logsBody">

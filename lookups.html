@@ -1,0 +1,123 @@
+<!-- START OF FILE: lookups.html -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة القوائم المنسدلة | Lookup Management</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="global-config.js"></script>
+    <link rel="stylesheet" href="revenues.css">
+    <style>
+        .category-pill {
+            cursor: pointer;
+            padding: 8px 15px;
+            border-radius: 20px;
+            background: #eee;
+            color: #555;
+            transition: 0.3s;
+            font-size: 0.9rem;
+            border: 1px solid #ddd;
+        }
+        .category-pill.active {
+            background: var(--taxi-gold);
+            color: var(--taxi-dark);
+            font-weight: bold;
+            border-color: var(--taxi-dark);
+            box-shadow: 0 4px 10px rgba(212,175,55,0.3);
+        }
+        .lookup-grid-card {
+            border-top: 5px solid var(--taxi-gold);
+        }
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .status-active { background: #e8f5e9; color: #2e7d32; }
+        .status-inactive { background: #ffebee; color: #c62828; }
+    </style>
+</head>
+<body onload="bootSystem('إدارة القوائم | Lookups')">
+
+    <div class="main-container">
+        
+        <!-- Luxury Page Header -->
+        <div class="luxury-page-header">
+            <div class="header-info">
+                <h1>🗂️ إدارة القوائم المنسدلة | Lookups</h1>
+                <p>إضافة وتعديل وحذف خيارات القوائم في جميع أقسام النظام</p>
+            </div>
+            <div class="header-actions">
+                <button onclick="showNewCategoryModal()" class="action-btn-primary">➕ تصنيف جديد | New Category</button>
+            </div>
+        </div>
+
+        <!-- Section 1: Category Picker -->
+        <div class="elegant-card luxury-card-border" style="margin-bottom: 25px;">
+            <div class="card-header">
+                <span>📂 اختر التصنيف المراد تعديله | Select Category</span>
+            </div>
+            <div id="categoryContainer" style="padding: 15px; display: flex; flex-wrap: wrap; gap: 10px;">
+                <div class="loading-state"><p>جاري تحميل التصنيفات...</p></div>
+            </div>
+        </div>
+
+        <!-- Section 2: Entry Form -->
+        <div class="elegant-card luxury-card-border" id="entryFormSection" style="display:none; margin-bottom: 25px;">
+            <div class="card-header">
+                <span id="formTitle">📝 إضافة قيمة جديدة | Add Entry</span>
+            </div>
+            <form id="lookupForm" class="taxi-form">
+                <input type="hidden" id="f01_id">
+                <input type="hidden" id="f02_category">
+                
+                <div class="input-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+                    <div class="form-group">
+                        <label>الاسم (بالعربي) | Label (AR)</label>
+                        <input type="text" id="f03_label_ar" placeholder="الاسم الذي سيظهر في القائمة" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>مفتاح القيمة | Value Key</label>
+                        <input type="text" id="f04_value_key" placeholder="القيمة المخزنة (إنجليزي غالباً)" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>الحالة | Status</label>
+                        <select id="f05_is_active">
+                            <option value="true">✅ نشط (متاح في القوائم)</option>
+                            <option value="false">❌ معطل (مخفي)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="primary-btn">حفظ القيمة | Save Entry ✅</button>
+                    <button type="button" onclick="resetLookupForm()" class="secondary-btn">تفريغ | Reset 🔄</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Section 3: Records Table -->
+        <div class="elegant-card lookup-grid-card">
+            <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                <span id="tableTitle">📋 سجل القيم | Entries</span>
+                <input type="text" id="lookupSearch" placeholder="بحث سريع في القيم..." onkeyup="filterLookups()" 
+                       style="padding: 6px 15px; border-radius: 20px; border: 1px solid var(--taxi-gold); width: 250px;">
+            </div>
+            <div id="lookupTableContainer" class="table-responsive">
+                <div class="empty-state" style="padding: 60px;">
+                    <div class="icon">🔍</div>
+                    <p>يرجى اختيار تصنيف من الأعلى لعرض القيم الخاصة به</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals and Tooltips placeholder -->
+    <script src="lookups.js"></script>
+</body>
+</html>

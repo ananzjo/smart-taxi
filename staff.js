@@ -3,7 +3,8 @@
    ================================================================== */
 
 let allStaff = [];
-let sortDirections = {}; 
+let filteredStaff = [];
+let currentSort = { col: 'f02_name', asc: true };
 
 // [1] جلب البيانات من جدول t11_staff
 async function initPage() {
@@ -24,23 +25,26 @@ async function loadData() {
         return; 
     }
     allStaff = data;
-    renderTable(data);
+    filteredStaff = [...data];
+    renderTable();
 }
 
 // [2] بناء الجدول مع دعم الأسهم المركزية (السهم الأصفر)
-function renderTable(list) {
+function renderTable() {
+    const data = filteredStaff;
     let html = `<table>
         <thead>
             <tr>
-                <th onclick="sortTable(0)" style="cursor:pointer">الاسم الكامل <span id="sortIcon0" class="sort-icon">↕</span></th>
-                <th onclick="sortTable(1)" style="cursor:pointer">المسمى الوظيفي <span id="sortIcon1" class="sort-icon">↕</span></th>
-                <th onclick="sortTable(2)" style="cursor:pointer">رقم الهاتف <span id="sortIcon2" class="sort-icon">↕</span></th>
-                <th onclick="sortTable(3)" style="cursor:pointer">الصلاحية <span id="sortIcon3" class="sort-icon">↕</span></th>
+                <th onclick="sortData('f02_name')" style="cursor:pointer">الاسم الكامل ↕</th>
+                <th onclick="sortData('f05_title')" style="cursor:pointer">المسمى الوظيفي ↕</th>
+                <th onclick="sortData('f04_mobile')" style="cursor:pointer">رقم الهاتف ↕</th>
+                <th onclick="sortData('f06_authority')" style="cursor:pointer">الصلاحية ↕</th>
                 <th>إجراءات</th>
             </tr>
         </thead>
         <tbody>`;
 
+    data.forEach(item => {
         const authRaw = (item.f06_authority || '').toLowerCase();
         let badgeClass = 'user';
         if (authRaw.includes('admin')) badgeClass = 'admin';
@@ -58,6 +62,7 @@ function renderTable(list) {
         </tr>`;
     });
     document.getElementById('tableContainer').innerHTML = html + "</tbody></table>";
+    updateCounter();
 }
 
 // [3] حفظ البيانات (Insert / Update)
@@ -104,31 +109,28 @@ function deleteRecord(id) {
 }
 
 // [5] محرك الفرز الذكي (مرتبط بالجلوبال)
-function sortTable(n) {
-    const tbody = document.querySelector("table tbody");
-    if (!tbody) return;
-
-    let rows = Array.from(tbody.rows);
-    sortDirections[n] = !sortDirections[n];
-    const direction = sortDirections[n] ? 1 : -1;
-
-    // تحديث الأسهم الصفراء (المخ المركزي)
-    if (window.updateSortVisuals) {
-        window.updateSortVisuals(n, sortDirections[n]);
+function sortData(col) {
+    if (currentSort.col === col) {
+        currentSort.asc = !currentSort.asc;
+    } else {
+        currentSort.col = col;
+        currentSort.asc = true;
     }
-
-    rows.sort((a, b) => {
-        let aT = a.cells[n].innerText.trim();
-        let bT = b.cells[n].innerText.trim();
+    
+    filteredStaff.sort((a, b) => {
+        let vA = a[col] || '';
+        let vB = b[col] || '';
         
-        // فرز الأرقام والنصوص
-        if (!isNaN(aT) && !isNaN(bT) && aT !== "" && bT !== "") {
-            return (parseFloat(aT) - parseFloat(bT)) * direction;
+        if (!isNaN(vA) && !isNaN(vB) && vA !== "" && vB !== "") {
+            vA = parseFloat(vA);
+            vB = parseFloat(vB);
         }
-        return aT.localeCompare(bT, 'ar', { numeric: true }) * direction;
-    });
 
-    tbody.append(...rows);
+        if (vA < vB) return currentSort.asc ? -1 : 1;
+        if (vA > vB) return currentSort.asc ? 1 : -1;
+        return 0;
+    });
+    renderTable();
 }
 
 // [6] دوال مساعدة (تعديل وتفريغ)
@@ -152,10 +154,15 @@ function confirmReset() {
 
 function excelFilter() {
     const val = document.getElementById('excelSearch').value.toLowerCase();
-    const filtered = allStaff.filter(item => 
+    filteredStaff = allStaff.filter(item => 
         Object.values(item).some(v => String(v).toLowerCase().includes(val))
     );
-    renderTable(filtered);
+    renderTable();
+}
+
+function updateCounter() {
+    const el = document.getElementById('recordCount');
+    if (el) el.innerText = filteredStaff.length;
 }
 
 function setupFormListener() {

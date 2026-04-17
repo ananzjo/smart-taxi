@@ -7,6 +7,7 @@
 
 let allRecords = [];
 let filteredRecords = [];
+let currentSort = { col: 'f02_date', asc: false };
 
 document.addEventListener('DOMContentLoaded', () => {
     initPage();
@@ -83,12 +84,12 @@ function renderTable() {
         <table>
             <thead>
                 <tr>
-                    <th onclick="sortData('f02_date')">التاريخ | Date ↕</th>
-                    <th onclick="sortData('f03_car_no')">السيارة | Plate ↕</th>
-                    <th>السائق | Driver</th>
-                    <th onclick="sortData('f06_type')">النوع | Type ↕</th>
-                    <th onclick="sortData('f05_amount')">المبلغ | Amt ↕</th>
-                    <th onclick="sortData('f07_status')">الحالة | Status ↕</th>
+                    <th onclick="sortData('f02_date')" style="cursor:pointer">التاريخ | Date ↕</th>
+                    <th onclick="sortData('f03_car_no')" style="cursor:pointer">السيارة | Plate ↕</th>
+                    <th onclick="sortData('f04_driver_id')" style="cursor:pointer">السائق | Driver ↕</th>
+                    <th onclick="sortData('f06_type')" style="cursor:pointer">النوع | Type ↕</th>
+                    <th onclick="sortData('f05_amount')" style="cursor:pointer">المبلغ | Amt ↕</th>
+                    <th onclick="sortData('f07_status')" style="cursor:pointer">الحالة | Status ↕</th>
                     <th>إجراءات | Acts</th>
                 </tr>
             </thead>
@@ -212,6 +213,30 @@ function resetForm() {
 
 function setupFormListener() {
     document.getElementById('finesForm').addEventListener('submit', handleFormSubmit);
+}
+
+function sortData(col) {
+    if (currentSort.col === col) {
+        currentSort.asc = !currentSort.asc;
+    } else {
+        currentSort.col = col;
+        currentSort.asc = true;
+    }
+    
+    filteredRecords.sort((a, b) => {
+        let vA = a[col] || '';
+        let vB = b[col] || '';
+        
+        if (!isNaN(vA) && !isNaN(vB) && vA !== "" && vB !== "") {
+            vA = parseFloat(vA);
+            vB = parseFloat(vB);
+        }
+
+        if (vA < vB) return currentSort.asc ? -1 : 1;
+        if (vA > vB) return currentSort.asc ? 1 : -1;
+        return 0;
+    });
+    renderTable();
 }
 
 /* END OF FILE: fines_accidents.js */

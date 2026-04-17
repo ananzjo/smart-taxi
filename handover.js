@@ -4,6 +4,7 @@
 
 let allHandovers = [];
 let filteredHandovers = [];
+let currentSort = { col: 'created_at', asc: false };
 
 let allCarsList = [];
 let allDriversList = [];
@@ -102,7 +103,15 @@ function renderTable() {
         return;
     }
 
-    let html = `<table><thead><tr><th>العملية | Type</th><th>السيارة | Plate</th><th>السائق | Driver</th><th>العداد | KM</th><th>الضمان | Rent</th><th>التاريخ | Date</th><th>إجراءات | Acts</th></tr></thead><tbody>`;
+    let html = `<table><thead><tr>
+        <th onclick="sortData('f07_action_type')" style="cursor:pointer">العملية | Type ↕</th>
+        <th onclick="sortData('f04_car_no')" style="cursor:pointer">السيارة | Plate ↕</th>
+        <th onclick="sortData('f05_driver_id')" style="cursor:pointer">السائق | Driver ↕</th>
+        <th onclick="sortData('f09_km_reading')" style="cursor:pointer">العداد | KM ↕</th>
+        <th onclick="sortData('f08_daman')" style="cursor:pointer">الضمان | Rent ↕</th>
+        <th onclick="sortData('created_at')" style="cursor:pointer">التاريخ | Date ↕</th>
+        <th>إجراءات | Acts</th>
+    </tr></thead><tbody>`;
     filteredHandovers.forEach(h => {
         const typeColor = h.f07_action_type === 'OUT' ? '#27ae60' : '#e74c3c';
         const driverName = (h.t02_drivers && h.t02_drivers.f02_name) ? h.t02_drivers.f02_name : `ID: ${h.f05_driver_id}`;
@@ -250,4 +259,27 @@ function resetForm() {
     const tInput = document.getElementById('f03_time');
     if(dInput) dInput.valueAsDate = new Date();
     if(tInput) tInput.value = new Date().toLocaleTimeString('en-GB', { hour12: false });
+}
+function sortData(col) {
+    if (currentSort.col === col) {
+        currentSort.asc = !currentSort.asc;
+    } else {
+        currentSort.col = col;
+        currentSort.asc = true;
+    }
+    
+    filteredHandovers.sort((a, b) => {
+        let vA = a[col] || '';
+        let vB = b[col] || '';
+        
+        if (!isNaN(vA) && !isNaN(vB) && vA !== "" && vB !== "") {
+            vA = parseFloat(vA);
+            vB = parseFloat(vB);
+        }
+
+        if (vA < vB) return currentSort.asc ? -1 : 1;
+        if (vA > vB) return currentSort.asc ? 1 : -1;
+        return 0;
+    });
+    renderTable();
 }

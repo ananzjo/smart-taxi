@@ -7,6 +7,7 @@
 
 let allSettings = [];
 let filteredSettings = [];
+let currentSort = { col: 'f02_setting_key', asc: true };
 
 document.addEventListener('DOMContentLoaded', () => {
     initPage();
@@ -47,9 +48,9 @@ function renderTable() {
         <table>
             <thead>
                 <tr>
-                    <th onclick="sortData('f02_setting_key')">المفتاح | Key ↕</th>
-                    <th onclick="sortData('f03_setting_value')">القيمة | Value ↕</th>
-                    <th>الوصف | Description</th>
+                    <th onclick="sortData('f02_setting_key')" style="cursor:pointer">المفتاح | Key ↕</th>
+                    <th onclick="sortData('f03_setting_value')" style="cursor:pointer">القيمة | Value ↕</th>
+                    <th onclick="sortData('f04_description')" style="cursor:pointer">الوصف | Description ↕</th>
                     <th>إجراءات | Acts</th>
                 </tr>
             </thead>
@@ -138,6 +139,30 @@ function initTableControls() {
 function filterLocal() {
     const term = document.getElementById('globalSearch').value.toLowerCase();
     filteredSettings = allSettings.filter(s => Object.values(s).some(v => String(v).toLowerCase().includes(term)));
+    renderTable();
+}
+
+function sortData(col) {
+    if (currentSort.col === col) {
+        currentSort.asc = !currentSort.asc;
+    } else {
+        currentSort.col = col;
+        currentSort.asc = true;
+    }
+    
+    filteredSettings.sort((a, b) => {
+        let vA = a[col] || '';
+        let vB = b[col] || '';
+        
+        if (!isNaN(vA) && !isNaN(vB) && vA !== "" && vB !== "") {
+            vA = parseFloat(vA);
+            vB = parseFloat(vB);
+        }
+
+        if (vA < vB) return currentSort.asc ? -1 : 1;
+        if (vA > vB) return currentSort.asc ? 1 : -1;
+        return 0;
+    });
     renderTable();
 }
 

@@ -7,6 +7,7 @@
 
 let allWorkDays = [];
 let filteredWorkDays = [];
+let currentSort = { col: 'f02_date', asc: false };
 let carsList = [];
 let driversList = [];
 let revenuesList = [];
@@ -89,12 +90,11 @@ function renderTable() {
         <table>
             <thead>
                 <tr>
-                    <th onclick="sortData('f02_date')">التاريخ | Date ↕</th>
-                    <th onclick="sortData('f03_car_no')">السيارة | Car ↕</th>
-                    <th>السائق | Driver</th>
-                    <th>المستحق | Due</th>
-                    <th>المسدد | Paid</th>
-                    <th>الحالة | Status</th>
+                    <th onclick="sortData('f02_date')" style="cursor:pointer">التاريخ | Date ↕</th>
+                    <th onclick="sortData('f03_car_no')" style="cursor:pointer">السيارة | Car ↕</th>
+                    <th onclick="sortData('f04_driver_id')" style="cursor:pointer">السائق | Driver ↕</th>
+                    <th onclick="sortData('f05_daily_amount')" style="cursor:pointer">المستحق | Due ↕</th>
+                    <th onclick="sortData('f06_is_off_day')" style="cursor:pointer">الحالة | Status ↕</th>
                     <th>إجراءات | Acts</th>
                 </tr>
             </thead>
@@ -319,7 +319,26 @@ function updateCounter() {
 }
 
 function sortData(col) {
-    filteredWorkDays.sort((a,b) => (a[col] > b[col] ? 1 : -1));
+    if (currentSort.col === col) {
+        currentSort.asc = !currentSort.asc;
+    } else {
+        currentSort.col = col;
+        currentSort.asc = true;
+    }
+    
+    filteredWorkDays.sort((a, b) => {
+        let vA = a[col] || '';
+        let vB = b[col] || '';
+        
+        if (!isNaN(vA) && !isNaN(vB) && vA !== "" && vB !== "") {
+            vA = parseFloat(vA);
+            vB = parseFloat(vB);
+        }
+
+        if (vA < vB) return currentSort.asc ? -1 : 1;
+        if (vA > vB) return currentSort.asc ? 1 : -1;
+        return 0;
+    });
     renderTable();
 }
 
