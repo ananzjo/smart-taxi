@@ -181,6 +181,18 @@ function editRecord(id) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+function deleteRecord(id) {
+    window.showModal("تأكيد الحذف", "هل تريد حذف هذا المصروف نهائياً؟", "warning", async () => {
+        const { error } = await _supabase.from('t06_expenses').delete().eq('f01_id', id);
+        if (error) {
+            window.showToast("خطأ في الحذف: " + error.message, "error");
+        } else {
+            window.showToast("تم الحذف بنجاح", "success");
+            loadData();
+        }
+    });
+}
+
 
 async function printExpense(id) {
     const record = allExpenses.find(e => e.f01_id === id);

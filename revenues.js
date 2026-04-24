@@ -77,7 +77,7 @@ async function fetchStaff() {
 }
 
 async function fetchRevenuesData() {
-    const { data, error } = await _supabase.from('t05_revenues').select('*').order('f02_date', { ascending: false });
+    const { data, error } = await _supabase.from('t05_revenues').select('*').order('f02_date', { ascending: false }).order('created_at', { ascending: false });
     if (!error) {
         allRevenues = data || [];
         filteredRevenues = [...allRevenues];
@@ -113,7 +113,7 @@ function renderTable() {
         html += `
             <tr>
                 <td>${row.f02_date}</td>
-                <td><strong>${row.f03_car_no}</strong></td>
+                <td>${window.formatJordanPlate(row.f03_car_no, true)}</td>
                 <td>${driverName}</td>
                 <td>${row.f05_category}</td>
                 <td style="color:green; font-weight:bold">${row.f06_amount}</td>
@@ -149,12 +149,30 @@ function editRevenue(id) {
     document.getElementById('f07_method').value = record.f07_method;
     document.getElementById('f08_collector_id').value = record.f08_collector_id || "";
     document.getElementById('f09_notes').value = record.f09_notes || "";
-    if (document.getElementById('f10_work_day_link')) document.getElementById('f10_work_day_link').value = record.f10_work_day_link || "";
+    const workDaySelect = document.getElementById('f10_work_day_link');
+    if (workDaySelect && record.f10_work_day_link) {
+        try {
+            const ids = JSON.parse(record.f10_work_day_link);
+            Array.from(workDaySelect.options).forEach(opt => {
+                opt.selected = ids.includes(opt.value);
+            });
+        } catch (e) { /* ignore */ }
+    }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function viewRevenue(id) { console.log("View:", id); }
+function viewRevenue(id) {
+    const record = allRevenues.find(r => r.f01_id === id);
+    if (!record) return;
+
+    // Enhance data with names instead of UUIDs
+    const viewData = { ...record };
+    viewData.f04_driver_id = driversList.find(d => d.f01_id === record.f04_driver_id)?.f02_name || record.f04_driver_id || '---';
+    viewData.f08_collector_id = staffList.find(s => s.f01_id === record.f08_collector_id)?.f02_name || record.f08_collector_id || '---';
+
+    window.showViewModal(viewData, "تفاصيل الإيراد | Revenue Details");
+}
 async function printRevenue(id) {
     const record = allRevenues.find(r => r.f01_id === id);
     if (!record) return;
@@ -306,7 +324,7 @@ async function updateWorkDayDues() {
 
         let html = '<option value="">-- اختر ضمان للمطابقة --</option>';
         (data || []).forEach(day => {
-            html += `<option value="${day.f01_id}">${day.f02_date} (المستحق: ${day.f05_daily_amount})</option>`;
+            html += `<option value="${day.f01_id}" data-amount="${day.f05_daily_amount}">${day.f02_date} (المستحق: ${day.f05_daily_amount})</option>`;
         });
         matchSel.innerHTML = html;
     } catch (err) {
@@ -325,33 +343,51 @@ async function handleFormSubmit(e) {
     if (e) e.preventDefault();
     safeSubmit(async () => {
         const id = document.getElementById('f01_id').value;
+        const workDaySelect = document.getElementById('f10_work_day_link');
+        let selectedWorkDays = [];
+        if (workDaySelect) {
+            selectedWorkDays = Array.from(workDaySelect.selectedOptions)
+                .filter(o => o.value)
+                .map(o => o.value);
+        }
+        // Validation: ensure revenue amount covers selected due amounts (allow partial payment)
+        const revenueAmt = parseFloat(document.getElementById('f06_amount').value) || 0;
+        if (selectedWorkDays.length) {
+            const totalDue = selectedWorkDays.reduce((sum, id) => {
+                const opt = workDaySelect.querySelector(`option[value="${id}"]`);
+                return sum + parseFloat(opt?.dataset.amount || 0);
+            }, 0);
+            if (revenueAmt < totalDue) {
+                return window.showModal('خطأ في العملية', `المبلغ المدفوع (${revenueAmt}) أقل من مجموع المستحقات (${totalDue}). يرجى اختيار أيام أقل أو زيادة المبلغ.`, 'error');
+            }
+        }
         const payload = {
             f02_date: document.getElementById('f02_date').value,
             f03_car_no: document.getElementById('f03_car_no').value,
             f04_driver_id: document.getElementById('f04_driver_id').value || null,
             f05_category: document.getElementById('f05_category').value,
-            f06_amount: parseFloat(document.getElementById('f06_amount').value) || 0,
+            f06_amount: revenueAmt,
             f07_method: document.getElementById('f07_method').value,
             f08_collector_id: document.getElementById('f08_collector_id').value || null,
-            f09_notes: document.getElementById('f09_notes').value || "",
-            f10_work_day_link: document.getElementById('f10_work_day_link')?.value || null
+            f09_notes: document.getElementById('f09_notes').value || '',
+            f10_work_day_link: selectedWorkDays.length ? JSON.stringify(selectedWorkDays) : null
         };
-
         try {
-            const res = id 
+            const res = id
                 ? await _supabase.from('t05_revenues').update(payload).eq('f01_id', id)
                 : await _supabase.from('t05_revenues').insert([payload]);
-
             if (res.error) throw res.error;
-
-            showToast("تم حفظ الإيراد بنجاح ✅", "success");
+            window.showToast("تم حفظ الإيراد بنجاح ✅", "success");
             resetRevenueForm();
             fetchRevenuesData();
         } catch (err) {
-            showToast("حدث خطأ أثناء الحفظ", "error");
+            console.error("Revenue Save Error:", err);
+            window.showToast("حدث خطأ أثناء الحفظ: " + (err.message || ''), "error");
         }
     });
 }
+    
+
 
 function sortData(col) {
     if (currentSort.col === col) {

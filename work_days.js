@@ -121,7 +121,7 @@ function renderTable() {
                             <td>
                                 <div class="action-btns-group">
                                     <button class="btn-action-sm btn-view" onclick='showViewModal(${JSON.stringify(day)}, "تفاصيل اليوم | Day Details")' title="عرض">👁️</button>
-                                    <button class="btn-action-sm btn-edit" onclick="openAdjustmentModal(${day.f01_id})" title="تعديل">🛠️</button>
+                                    <button class="btn-action-sm btn-edit" onclick="openAdjustmentModal('${day.f01_id}')" title="تعديل">🛠️</button>
                                 </div>
                             </td>
                         </tr>

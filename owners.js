@@ -62,8 +62,8 @@ function renderTable() {
                         <td>
                             <div class="action-btns-group">
                                 <button onclick='showViewModal(${JSON.stringify(item)}, "بيانات المالك | Owner Info")' class="btn-action-sm btn-view">👁️</button>
-                                <button onclick='editRecord(${item.f01_id})' class="btn-action-sm btn-edit">✏️</button>
-                                <button onclick="deleteRecord(${item.f01_id})" class="btn-action-sm btn-delete">🗑️</button>
+                                <button onclick="editRecord('${item.f01_id}')" class="btn-action-sm btn-edit">✏️</button>
+                                <button onclick="deleteRecord('${item.f01_id}')" class="btn-action-sm btn-delete">🗑️</button>
                             </div>
                         </td>
                     </tr>

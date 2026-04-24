@@ -99,7 +99,7 @@ function renderTable() {
                     return `
                         <tr>
                             <td>${r.f02_date}</td>
-                            <td style="font-weight:700;">${r.f03_car_no}</td>
+                            <td>${window.formatJordanPlate(r.f03_car_no, true)}</td>
                             <td>${r.t02_drivers ? r.t02_drivers.f02_name : '---'}</td>
                             <td>${r.f06_type}</td>
                             <td style="font-weight:900; color:var(--taxi-red)">${r.f05_amount}</td>
@@ -107,8 +107,8 @@ function renderTable() {
                             <td>
                                 <div class="action-btns-group">
                                     ${r.f09_attachment_url ? `<a href="${r.f09_attachment_url}" target="_blank" class="btn-action-sm" title="عرض المرفق">📎</a>` : ''}
-                                    <button class="btn-action-sm btn-edit" onclick="editRecord(${r.f01_id})" title="تعديل">✏️</button>
-                                    <button class="btn-action-sm btn-delete" onclick="confirmDelete(${r.f01_id})" title="حذف">🗑️</button>
+                                    <button class="btn-action-sm btn-edit" onclick="editRecord('${r.f01_id}')" title="تعديل">✏️</button>
+                                    <button class="btn-action-sm btn-delete" onclick="confirmDelete('${r.f01_id}')" title="حذف">🗑️</button>
                                 </div>
                             </td>
                         </tr>

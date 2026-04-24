@@ -30,6 +30,7 @@ window.safeSubmit = async function(submitFunction) {
             isSubmitting = false;
             activeBtns.forEach(btn => { 
                 btn.disabled = false; 
+                btn.classList.remove('btn-clicked');
                 btn.innerHTML = btn.dataset.oldText || 'حفظ | Save';
             });
         }, 1000);
@@ -280,7 +281,10 @@ const globalLabels = {
     f08_daman: 'الضمان | Rent',
     f09_km_reading: 'العداد | KM Reading',
     f10_car_condition: 'حالة السيارة | Condition',
+    t01_cars: 'السيارة | Car',
     t02_drivers: 'اسم السائق | Driver Name',
+    t03_owners: 'المالك | Owner Name',
+    t06_suppliers: 'المورد | Supplier',
     t11_staff: 'الموظف | Staff Name',
     f02_plate_no: 'رقم اللوحة | Plate No',
     f03_car_office: 'المكتب | Office',
@@ -315,9 +319,13 @@ window.showViewModal = function(data, title = "Record Details", labelsMapping = 
     Object.keys(data).forEach(key => {
         if (['f01_id', 'id', 'created_at', 'updated_at'].includes(key)) return;
         let value = data[key]; if (value === null || value === undefined) value = '---';
+        
+        // Hide UUIDs completely across the system
+        if (typeof value === 'string' && value.length === 36 && value.split('-').length === 5) return;
+
         if (typeof value === 'object' && value.f02_name) value = value.f02_name;
         if (typeof value === 'object' && value.f02_plate_no) value = value.f02_plate_no;
-        if (key === 'f02_plate_no' || key === 'f03_car_no') value = window.formatJordanPlate(value);
+        if (key.includes('car_no') || key.includes('plate_no')) value = window.formatJordanPlate(value);
         const label = finalMapping[key] || key;
         const isFullWidth = (String(value).length > 35 || key === 'f09_notes' || key === 'f11_notes') ? 'full-width' : '';
         html += `<div class="view-item ${isFullWidth}"><span class="view-label">${label}</span><span class="view-value">${value}</span></div>`;

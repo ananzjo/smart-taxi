@@ -49,18 +49,26 @@ async function fillCarDropdown() {
 }
 
 // [3] مطابقة ذكية: جلب مصاريف السيارة المختارة (غير المدفوعة)
-async function loadPendingExpenses(carNo) {
-    if (!carNo) return;
+async function loadPendingExpenses(carNo, selectedIds = []) {
     const expenseSelect = document.getElementById('f06_expense_link');
-    
+    if (expenseSelect) {
+        expenseSelect.innerHTML = '<option value="">-- اختر مصروف للمطابقة --</option>';
+        expenseSelect.multiple = true;
+    }
+    if (!carNo) return;
+
     // جلب المصاريف المرتبطة بالسيارة من جدول t06
     const { data } = await _supabase.from('t06_expenses')
-        .select('f01_id, f05_expense_type, f07_amount, f02_date')
-        .eq('f03_car_no', carNo);
+      .select('f01_id, f05_expense_type, f07_amount, f02_date, f10_status')
+      .eq('f03_car_no', carNo);
 
     if (data && expenseSelect) {
-        expenseSelect.innerHTML = '<option value="">-- اختر مصروف للمطابقة --</option>' + 
-            data.map(e => `<option value="${e.f01_id}">${e.f02_date} | ${e.f05_expense_type} (${e.f07_amount} د.أ)</option>`).join('');
+        // فلترة: إظهار المصاريف غير المدفوعة فقط، أو المصاريف المحددة مسبقاً في هذه الدفعة
+        const filteredData = data.filter(e => e.f10_status !== 'Paid|مدفوع' || selectedIds.includes(e.f01_id));
+        
+        expenseSelect.innerHTML += filteredData.map(e => 
+            `<option value="${e.f01_id}" data-amount="${e.f07_amount}">${e.f02_date} | ${e.f05_expense_type} (${e.f07_amount} د.أ)</option>`
+        ).join('');
     }
 }
 
@@ -88,19 +96,19 @@ function renderTable() {
     </tr></thead><tbody>`;
 
     data.forEach(item => {
-        // تحويل البيانات لنص JSON لإرسالها لدالة التعديل
-        const itemJson = JSON.stringify(item).replace(/'/g, "&apos;");
-        
         html += `<tr>
             <td>${item.f02_date}</td>
             <td>${item.f03_type}</td>
-            <td>${item.f05_car_no || '-'}</td>
+            <td>${item.f05_car_no ? window.formatJordanPlate(item.f05_car_no, true) : '-'}</td>
             <td style="font-weight:bold;">${item.f04_amount}</td>
             <td>${item.f09_recipient || '-'}</td>
             <td>${item.f06_expense_link ? '✅' : '❌'}</td>
-            <td>
-                <button class="btn-action edit-btn" onclick='editRecord(${itemJson})'>📝</button>
-                <button class="btn-action delete-btn" onclick="deleteRecord('${item.f01_id}')">🗑️</button>
+            <td class="no-print">
+                <div class="action-btns-group">
+                    <button class="btn-action-sm btn-view" onclick="viewPayment('${item.f01_id}')" title="عرض">👁️</button>
+                    <button class="btn-action-sm btn-edit" onclick="editRecord('${item.f01_id}')" title="تعديل">✏️</button>
+                    <button class="btn-action-sm btn-delete" onclick="deleteRecord('${item.f01_id}')" title="حذف">🗑️</button>
+                </div>
             </td>
         </tr>`;
     });
@@ -108,8 +116,10 @@ function renderTable() {
     document.getElementById('tableContainer').innerHTML = html;
 }
 
-// [5] دالة التعديل (تعبئة الفورم بالبيانات)
-function editRecord(item) {
+function editRecord(id) {
+    const item = allPayments.find(p => p.f01_id === id);
+    if (!item) return;
+
     // تعبئة كل الحقول التي تبدأ بـ f وتطابق أسماء الأعمدة
     Object.keys(item).forEach(key => {
         const input = document.getElementById(key);
@@ -118,19 +128,47 @@ function editRecord(item) {
     
     // إذا كانت السيارة مختارة، يجب تحميل قائمة المصاريف المرتبطة بها
     if(item.f05_car_no) {
-        loadPendingExpenses(item.f05_car_no).then(() => {
-            document.getElementById('f06_expense_link').value = item.f06_expense_link || "";
+        let selectedIds = [];
+        if (item.f06_expense_link) {
+            try { selectedIds = JSON.parse(item.f06_expense_link); } catch(e){}
+        }
+        loadPendingExpenses(item.f05_car_no, selectedIds).then(() => {
+            const expenseSelect = document.getElementById('f06_expense_link');
+            if (expenseSelect) {
+                Array.from(expenseSelect.options).forEach(opt => {
+                    if (selectedIds.includes(opt.value)) opt.selected = true;
+                });
+            }
         });
     }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+window.viewPayment = function(id) {
+    const item = allPayments.find(p => p.f01_id === id);
+    if (!item) return;
+    const viewData = { ...item };
+    // Expand expense links cleanly if needed, or just let them display raw. 
+    window.showViewModal(viewData, "تفاصيل الدفعة | Payment Info");
+};
+
 // [6] دالة الحذف (باستخدام المودال المخصص)
 function deleteRecord(id) {
     window.showModal("تنبيه الحذف", "هل أنت متأكد من حذف هذه الدفعة؟ لا يمكن التراجع!", "danger", async () => {
+        // Fetch the payment to see linked expenses before deleting
+        const { data: oldPayment } = await _supabase.from('t07_payments').select('f06_expense_link').eq('f01_id', id).single();
+        let linkedIds = [];
+        if (oldPayment && oldPayment.f06_expense_link) {
+            try { linkedIds = JSON.parse(oldPayment.f06_expense_link); } catch(e){}
+        }
+
         const { error } = await _supabase.from('t07_payments').delete().eq('f01_id', id);
         if (!error) {
+            // Revert linked expenses to Pending
+            if (linkedIds.length > 0) {
+                await _supabase.from('t06_expenses').update({ f10_status: 'Pending|معلق' }).in('f01_id', linkedIds);
+            }
             window.showModal("نجاح", "تم الحذف بنجاح", "success");
             loadPaymentsData();
         } else {
@@ -144,27 +182,53 @@ async function savePaymentData() {
     const id = document.getElementById('f01_id').value;
     const isReconciled = document.getElementById('f06_expense_link').value !== "";
     
+    const expenseSelect = document.getElementById('f06_expense_link');
+    const selectedOptions = Array.from(expenseSelect.selectedOptions).filter(o => o.value !== "");
+    const selectedIds = selectedOptions.map(o => o.value);
+    const totalDue = selectedOptions.reduce((sum, o) => sum + parseFloat(o.dataset.amount || 0), 0);
+    const paymentAmount = parseFloat(document.getElementById('f04_amount').value);
+    if (selectedIds.length > 0 && paymentAmount < totalDue) {
+        return window.showModal('خطأ في العملية', `المبلغ المدفوع (${paymentAmount}) أقل من مجموع المستحقات (${totalDue}). يرجى تعديل المبلغ أو اختيار مستحقات أقل.`, 'error');
+    }
     const payload = {
         f02_date: document.getElementById('f02_date').value,
         f03_type: document.getElementById('f03_type').value,
-        f04_amount: parseFloat(document.getElementById('f04_amount').value),
-        f05_car_no: document.getElementById('f05_car_no').value,
-        f06_expense_link: document.getElementById('f06_expense_link').value || null,
+        f04_amount: paymentAmount,
+        f05_car_no: document.getElementById('f05_car_no').value || null,
+        f06_expense_link: selectedIds.length ? JSON.stringify(selectedIds) : null,
         f07_method: document.getElementById('f07_method').value,
-        f08_payer: document.getElementById('f08_payer').value,
-        f09_recipient: document.getElementById('f09_recipient').value,
-        f11_is_reconciled: isReconciled,
-        f13_notes: document.getElementById('f13_notes').value
+        f08_payer: document.getElementById('f08_payer').value || null,
+        f09_recipient: document.getElementById('f09_recipient').value || null,
+        f10_reference: document.getElementById('f10_reference') ? document.getElementById('f10_reference').value : null,
+        f11_is_reconciled: selectedIds.length > 0,
+        f13_notes: document.getElementById('f13_notes').value || null
     };
 
+    let oldExpenseIds = [];
     let res;
     if (id) {
+        // Fetch old payment record to see if we unlinked any expenses
+        const { data: oldPayment } = await _supabase.from('t07_payments').select('f06_expense_link').eq('f01_id', id).single();
+        if (oldPayment && oldPayment.f06_expense_link) {
+            try { oldExpenseIds = JSON.parse(oldPayment.f06_expense_link); } catch(e){}
+        }
         res = await _supabase.from('t07_payments').update(payload).eq('f01_id', id);
     } else {
         res = await _supabase.from('t07_payments').insert([payload]);
     }
 
     if (res.error) throw res.error;
+
+    // Update newly linked expenses to 'Paid|مدفوع'
+    if (selectedIds.length > 0) {
+        await _supabase.from('t06_expenses').update({ f10_status: 'Paid|مدفوع' }).in('f01_id', selectedIds);
+    }
+
+    // Revert unlinked expenses back to 'Pending|معلق'
+    const unlinkedIds = oldExpenseIds.filter(oldId => !selectedIds.includes(oldId));
+    if (unlinkedIds.length > 0) {
+        await _supabase.from('t06_expenses').update({ f10_status: 'Pending|معلق' }).in('f01_id', unlinkedIds);
+    }
 
     showToast("تمت العملية بنجاح", "success");
     resetFieldsOnly();

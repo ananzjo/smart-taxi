@@ -37,20 +37,24 @@ td { padding: 12px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
 .btn-del:hover { filter: none; }
 
 /* --- [@media print] Executive Disbursement Voucher Styling --- */
+.print-disbursement-container { display: none; }
+
 @media print {
-    body * { visibility: hidden; }
-    #printVoucherSection, #printVoucherSection * { visibility: visible; }
+    @page { size: A5; margin: 5mm; }
+    /* Hide everything by default when printing */
+    header, nav, .main-container, .elegant-card, .modal-overlay, #navOverlay, #toastContainer, #globalModal, #viewModalOverlay { display: none !important; }
+    body { background: white !important; padding: 0 !important; margin: 0 !important; direction: rtl; }
+
     #printVoucherSection {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 148mm; /* A5 Width */
+        display: block !important;
+        width: 138mm; /* Fits A5 Portrait (148mm width) with 5mm margins */
         margin: 0 auto;
-        padding: 50px; /* Equivalent to 15mm padding */
-        direction: rtl;
-        font-family: 'Tajawal', sans-serif;
+        padding: 20px;
+        border: 4px double #1a1a1a;
+        background: #fff;
         color: #000;
-        min-height: 190mm;
+        position: relative;
+        min-height: 190mm; /* Ensure it takes most of the A5 page */
     }
 
     .v-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px double #000; padding-bottom: 20px; margin-bottom: 30px; }

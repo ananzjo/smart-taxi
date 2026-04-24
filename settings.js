@@ -62,8 +62,8 @@ function renderTable() {
                         <td style="font-size:0.9rem; color:#666;">${s.f04_description || '---'}</td>
                         <td>
                             <div class="action-btns-group">
-                                <button class="btn-action-sm btn-edit" onclick="editRecord(${s.f01_id})" title="تعديل">✏️</button>
-                                <button class="btn-action-sm btn-delete" onclick="confirmDelete(${s.f01_id})" title="حذف">🗑️</button>
+                                <button class="btn-action-sm btn-edit" onclick="editRecord('${s.f01_id}')" title="تعديل">✏️</button>
+                                <button class="btn-action-sm btn-delete" onclick="confirmDelete('${s.f01_id}')" title="حذف">🗑️</button>
                             </div>
                         </td>
                     </tr>

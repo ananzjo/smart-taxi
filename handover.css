@@ -85,8 +85,8 @@
     transition: 0.3s;
 }
 
-#out:checked + .action-btn { background: var(--out-color); color: white; border-color: #d35400; }
-#in:checked + .action-btn { background: var(--in-color); color: white; border-color: #219150; }
+#out:checked + .action-btn { background: var(--out-color); color: white; border-color: #1e8449; } /* أخضر داكن للحدود */
+#in:checked + .action-btn { background: var(--in-color); color: white; border-color: #c0392b; }  /* أحمر داكن للحدود */
 
 /* 4. زر الحفظ الموسط (تصميم الكبسولة) */
 .form-actions { 

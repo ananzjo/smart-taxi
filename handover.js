@@ -51,37 +51,68 @@ async function loadFormData() {
     } catch (err) { console.error("Initialization Error:", err); }
 }
 
-function refreshDropdowns() {
-    const action = document.querySelector('input[name="f07_action_type"]:checked').value;
+function refreshDropdowns(forceCarNo = null, forceDriverId = null) {
+    const radios = document.getElementsByName('f07_action_type');
+    let action = 'OUT';
+    for (let r of radios) { if (r.checked) action = r.value; }
+
     const carSelect = document.getElementById('f04_car_no');
     const driverSelect = document.getElementById('f05_driver_id');
 
-    // منطق الفلترة بمرونة: في التسليم نحتاج غير النشط، وفي الاستلام نحتاج النشط
-    const isOut = action === 'OUT';
+    if (!carSelect || !driverSelect) return;
+
+    const isOutAction = (action === 'OUT');
     
-    const filteredCars = allCarsList.filter(c => {
-        const s = (c.f11_is_active || '').toLowerCase();
-        const isInActive = s.includes('inactive') || s.includes('غير نشط');
-        return isOut ? isInActive : !isInActive;
+    // --- Helper Functions for Status Check ---
+    const checkCarActive = (statusString) => {
+        const s = (statusString || '').toLowerCase();
+        const isExplicitlyInActive = s.includes('inactive') || s.includes('غير') || s.includes('off');
+        return !isExplicitlyInActive && (s.includes('active') || s.includes('نشط') || s.includes('مشغول'));
+    };
+
+    const checkDriverActive = (statusString, carNo) => {
+        const s = (statusString || '').toLowerCase();
+        const isExplicitlyInActive = s.includes('inactive') || s.includes('غير') || s.includes('off');
+        const hasCar = (carNo && carNo.trim() !== '');
+        return !isExplicitlyInActive && (s.includes('active') || s.includes('نشط') || s.includes('مشغول') || hasCar);
+    };
+
+    // --- الفلترة الصارمة للسيارات ---
+    const filteredCars = allCarsList.filter(car => {
+        if (forceCarNo && car.f02_plate_no === forceCarNo) return true;
+        const isActiveForce = checkCarActive(car.f11_is_active);
+        
+        if (isOutAction) {
+            return !isActiveForce; // في التسليم: نريد السيارات الموجودة في المكتب (InActive)
+        } else {
+            return isActiveForce;  // في الاستلام: نريد السيارات التي بالخارج (Active)
+        }
     });
 
-    const filteredDrivers = allDriversList.filter(d => {
-        const s = (d.f06_status || '').toLowerCase();
-        const isInActive = s.includes('inactive') || s.includes('غير نشط');
-        return isOut ? isInActive : !isInActive;
+    // --- الفلترة الصارمة للسائقين ---
+    const filteredDrivers = allDriversList.filter(driver => {
+        if (forceDriverId && driver.f01_id === forceDriverId) return true;
+        const isActiveForce = checkDriverActive(driver.f06_status, driver.f08_car_no);
+
+        if (isOutAction) {
+            return !isActiveForce; // متاح للتسليم
+        } else {
+            return isActiveForce;  // لديه عهدة
+        }
     });
 
-    carSelect.innerHTML = `<option value="">-- اختر السيارة (${action === 'OUT' ? 'المتاحة' : 'المستلمة'}) --</option>` +
+    // تعبئة القوائم
+    carSelect.innerHTML = `<option value="">-- اختر السيارة (${isOutAction ? 'المتاحة بالمكتب' : 'المستلمة من السائق'}) --</option>` +
         filteredCars.map(c => `<option value="${c.f02_plate_no}" data-id="${c.f01_id}">${c.f02_plate_no}</option>`).join('');
 
-    driverSelect.innerHTML = `<option value="">-- اختر السائق (${action === 'OUT' ? 'المتاح' : 'المسلم'}) --</option>` +
+    driverSelect.innerHTML = `<option value="">-- اختر السائق (${isOutAction ? 'المتاح للتسليم' : 'الذي سيسلم السيارة'}) --</option>` +
         filteredDrivers.map(d => `<option value="${d.f01_id}">${d.f02_name}</option>`).join('');
 }
 
 async function loadHistory() {
     let { data, error } = await _supabase
         .from('t04_handover')
-        .select(`*, t02_drivers ( f02_name )`)
+        .select(`*, t02_drivers ( f02_name ), t11_staff ( f02_name )`)
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -109,23 +140,30 @@ function renderTable() {
         <th onclick="sortData('f05_driver_id')" style="cursor:pointer">السائق | Driver ↕</th>
         <th onclick="sortData('f09_km_reading')" style="cursor:pointer">العداد | KM ↕</th>
         <th onclick="sortData('f08_daman')" style="cursor:pointer">الضمان | Rent ↕</th>
-        <th onclick="sortData('created_at')" style="cursor:pointer">التاريخ | Date ↕</th>
+        <th onclick="sortData('f02_date')" style="cursor:pointer">التاريخ | Date ↕</th>
         <th>إجراءات | Acts</th>
     </tr></thead><tbody>`;
     filteredHandovers.forEach(h => {
-        const typeColor = h.f07_action_type === 'OUT' ? '#27ae60' : '#e74c3c';
+        const isOut = h.f07_action_type === 'OUT' || h.f07_action_type === 'تسليم للسائق';
+        const typeColor = isOut ? '#27ae60' : '#e74c3c';
         const driverName = (h.t02_drivers && h.t02_drivers.f02_name) ? h.t02_drivers.f02_name : `ID: ${h.f05_driver_id}`;
-        const dateObj = new Date(h.created_at);
+        const staffName = (h.t11_staff && h.t11_staff.f02_name) ? h.t11_staff.f02_name : `ID: ${h.f06_staff_id}`;
+        const opDate = h.f02_date || (h.created_at ? h.created_at.split('T')[0] : '');
+        const opTime = h.f03_time || (h.created_at ? new Date(h.created_at).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', hour12: true }) : '');
+
+        const dateStr = h.f02_date || '';
+        const timeStr = h.f03_time || '';
+
         html += `<tr>
-            <td style="color:${typeColor}; font-weight:bold;">${h.f07_action_type === 'OUT' ? '📤 تسليم | OUT' : '📥 استلام | IN'}</td>
+            <td style="color:${typeColor}; font-weight:bold;">${isOut ? '📤 تسليم | OUT' : '📥 استلام | IN'}</td>
             <td>${window.formatJordanPlate(h.f04_car_no, true)}</td>
             <td style="font-weight:600;">${driverName}</td>
             <td><span class="odometer-red">${(h.f09_km_reading || 0).toLocaleString()}</span></td>
             <td style="font-weight:bold; color:var(--taxi-green)">${h.f08_daman || '---'}</td>
-            <td style="font-size:0.85rem; color:#666;">${dateObj.toLocaleDateString('ar-EG')} | <strong>${dateObj.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', hour12: true })}</strong></td>
+            <td style="font-size:0.85rem; color:#666;">${dateStr} | <strong>${timeStr}</strong></td>
             <td>
                 <div class="action-btns-group">
-                    <button class="btn-action-sm btn-view" onclick='showViewModal(${JSON.stringify(h)}, "تفاصيل الحركة | Mov Details")' title="عرض">👁️</button>
+                    <button class="btn-action-sm btn-view" onclick="viewHandover('${h.f01_id}')" title="عرض">👁️</button>
                     <button class="btn-action-sm btn-edit" onclick="editRecord('${h.f01_id}')" title="تعديل">✏️</button>
                     <button class="btn-action-sm btn-delete" onclick="deleteRecord('${h.f01_id}')" title="حذف">🗑️</button>
                 </div>
@@ -179,13 +217,33 @@ document.getElementById('handoverForm').onsubmit = async (e) => {
 
         const action = document.querySelector('input[name="f07_action_type"]:checked').value;
 
+        // --- Helper function (copied from refreshDropdowns) ---
+        const checkCarActive = (statusString) => {
+            const s = (statusString || '').toLowerCase();
+            const isExplicitlyInActive = s.includes('inactive') || s.includes('غير') || s.includes('off');
+            return !isExplicitlyInActive && (s.includes('active') || s.includes('نشط') || s.includes('مشغول'));
+        };
+
+        // --- Verifying state logic (Check current car status from server) ---
+        if (!id) {
+            const { data: currentCar } = await _supabase.from('t01_cars').select('f11_is_active').eq('f01_id', carUUID).single();
+            const carIsActive = checkCarActive(currentCar?.f11_is_active);
+
+            if (action === 'OUT' && carIsActive) {
+                return window.showModal("خطأ في العملية", "لا يمكن تسليم السيارة وهي (نشطة) بالفعل. يرجى استلامها أولاً.", "error");
+            }
+            if (action === 'IN' && !carIsActive) {
+                return window.showModal("خطأ في العملية", "لا يمكن استلام السيارة وهي (غير نشطة) بالفعل. يرجى تسليمها أولاً.", "error");
+            }
+        }
+
         const payload = {
             f02_date: document.getElementById('f02_date').value,
             f03_time: document.getElementById('f03_time').value,
             f04_car_no: carNo,
             f05_driver_id: driverUUID,
             f06_staff_id: document.getElementById('f06_staff_id').value,
-            f07_action_type: action === 'OUT' ? 'تسليم للسائق' : 'استلام من السائق',
+            f07_action_type: action, // OUT or IN
             f08_daman: parseFloat(document.getElementById('f08_daman').value) || 0,
             f09_km_reading: parseInt(document.getElementById('f09_km_reading').value),
             f10_car_condition: document.getElementById('f10_car_condition').value,
@@ -216,7 +274,7 @@ document.getElementById('handoverForm').onsubmit = async (e) => {
             window.showToast("تم الحفظ بنجاح ✅", "success");
             resetForm();
             loadHistory();
-            loadFormData(); // Refresh lists
+            loadFormData(); 
         } catch (err) {
             window.showModal("خطأ في الحفظ", err.message, "error");
         }
@@ -230,7 +288,12 @@ function editRecord(id) {
     document.getElementById('f01_id').value = h.f01_id;
     document.getElementById('f02_date').value = h.f02_date || '';
     document.getElementById('f03_time').value = h.f03_time || '';
-    document.getElementById(h.f07_action_type.toLowerCase()).checked = true;
+    const isOUT = h.f07_action_type === 'OUT' || h.f07_action_type === 'تسليم للسائق';
+    document.getElementById(isOUT ? 'out' : 'in').checked = true;
+
+    // Refresh dropdowns forcing the existing car and driver to appear in the list
+    refreshDropdowns(h.f04_car_no, h.f05_driver_id);
+
     document.getElementById('f04_car_no').value = h.f04_car_no;
     document.getElementById('f05_driver_id').value = h.f05_driver_id;
     document.getElementById('f09_km_reading').value = h.f09_km_reading;
@@ -241,6 +304,21 @@ function editRecord(id) {
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+window.viewHandover = function(id) {
+    const h = allHandovers.find(x => x.f01_id == id);
+    if (!h) return;
+    const viewData = { ...h };
+    viewData.f05_driver_id = h.t02_drivers?.f02_name || viewData.f05_driver_id;
+    viewData.f06_staff_id = h.t11_staff?.f02_name || viewData.f06_staff_id;
+    
+    // Remove nested objects before displaying
+    delete viewData.t02_drivers;
+    delete viewData.t11_staff;
+    delete viewData.t01_cars;
+
+    window.showViewModal(viewData, "تفاصيل الحركة | Mov Details");
+};
 
 function deleteRecord(id) {
     window.showModal("تأكيد الحذف", "هل تريد حذف هذا السجل؟ لن يتم تغيير حالة السيارة تلقائياً.", "warning", async () => {

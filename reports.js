@@ -37,27 +37,46 @@ async function fetchOwners() {
 }
 
 function toggleSecondaryFilter() {
+    // 1. تعريف جميع العناصر المطلوبة
     const type = document.getElementById('report_type').value;
     const wrapper = document.getElementById('secondary_filter_wrapper');
     const label = document.getElementById('secondary_label');
     const select = document.getElementById('secondary_id');
+    const staffWrapper = document.getElementById('staff_filter_wrapper');
+    const staffSelect = document.getElementById('staff_name_filter');
 
-    if (type === 'driver_soa') {
-        wrapper.style.display = 'flex';
-        label.innerText = 'اختر السائق';
-        select.innerHTML = drivers.map(d => `<option value="${d.f01_id}">${d.f02_name}</option>`).join('');
-    } else if (type === 'car_performance') {
-        wrapper.style.display = 'flex';
-        label.innerText = 'اختر السيارة';
-        select.innerHTML = cars.map(c => `<option value="${c.f02_plate_no}">${c.f02_plate_no}</option>`).join('');
-    } else if (type === 'investor_monthly') {
-        wrapper.style.display = 'flex';
+    // 2. إخفاء الفلاتر مبدئياً لتنظيف الشاشة
+    if (wrapper) wrapper.style.display = 'none';
+    if (staffWrapper) staffWrapper.style.display = 'none';
+
+    // 3. منطق إظهار الفلاتر حسب نوع التقرير
+    if (type === 'investor_monthly') {
+        // إظهار المالك والموظف معاً
+        if (wrapper) wrapper.style.display = 'flex';
+        if (staffWrapper) staffWrapper.style.display = 'flex';
+
         label.innerText = 'اختر المالك';
         select.innerHTML = owners.map(o => `<option value="${o.f01_id}">${o.f02_owner_name}</option>`).join('');
-    } else {
-        wrapper.style.display = 'none';
+
+        // تعبئة فلتر الموظفين بأسماء فريدة من جدول السيارات
+        const staffList = [...new Set(cars.map(c => c.f11_staff_in_charge).filter(s => s))];
+        if (staffSelect) {
+            staffSelect.innerHTML = '<option value="all">كل الموظفين</option>' + 
+                staffList.map(s => `<option value="${s}">${s}</option>`).join('');
+        }
+    } 
+    else if (type === 'driver_soa') {
+        if (wrapper) wrapper.style.display = 'flex';
+        label.innerText = 'اختر السائق';
+        select.innerHTML = drivers.map(d => `<option value="${d.f01_id}">${d.f02_name}</option>`).join('');
+    } 
+    else if (type === 'car_performance') {
+        if (wrapper) wrapper.style.display = 'flex';
+        label.innerText = 'اختر السيارة';
+        select.innerHTML = cars.map(c => `<option value="${c.f02_plate_no}">${c.f02_plate_no}</option>`).join('');
     }
-}
+} // نهاية الدالة بشكل صحيح
+
 
 async function generateLuxuryReport() {
     const type = document.getElementById('report_type').value;
@@ -133,7 +152,7 @@ async function buildInvestorMonthlyReport(ownerId, from, to) {
 
     const ownerWithdrawals = allPayments.filter(p => p.f03_type === 'نسبة صاحب سيارة').reduce((s, p) => s + parseFloat(p.f04_amount), 0);
     const totalPaymentsToSuppliers = allPayments.filter(p => p.f03_type !== 'نسبة صاحب سيارة').reduce((s, p) => s + parseFloat(p.f04_amount), 0);
-    
+
     // Expenses Due but NOT PAID
     const totalDueNotPaid = totalAllExpensesDue - totalPaymentsToSuppliers;
 
@@ -186,7 +205,7 @@ async function buildInvestorMonthlyReport(ownerId, from, to) {
         html += `
             <tr>
                 <td>${index + 1}</td>
-                <td><b>${car.f02_plate_no}</b></td>
+                <td>${window.formatJordanPlate(car.f02_plate_no, true)}</td>
                 <td>${car.f08_standard_rent || 0}</td>
                 <td>${expectedRev.toLocaleString()}</td>
                 <td>${carRev.toLocaleString()}</td>
@@ -205,7 +224,7 @@ async function buildInvestorMonthlyReport(ownerId, from, to) {
 // --- [1] كشف حساب سائق (Statement of Account) ---
 async function buildDriverSOA(driverId, from, to) {
     const driver = drivers.find(d => d.f01_id == driverId);
-    
+
     const [workRes, revRes, fineRes] = await Promise.all([
         _supabase.from('t08_work_days').select('*').eq('f04_driver_id', driverId).gte('f02_date', from).lte('f02_date', to),
         _supabase.from('t05_revenues').select('*').eq('f04_driver_id', driverId).gte('f02_date', from).lte('f02_date', to),
@@ -236,9 +255,9 @@ async function buildDriverSOA(driverId, from, to) {
                 <tr><th>التاريخ</th><th>البيان / النوع</th><th>السيارة</th><th>مدين (+)</th><th>دائن (-)</th><th>الحالة</th></tr>
             </thead>
             <tbody>
-                ${workDays.map(d => `<tr><td>${d.f02_date}</td><td>ضمان يومي</td><td>${d.f03_car_no}</td><td class="amount-cell">${d.f05_daily_amount}</td><td>0</td><td>${d.f06_is_off_day ? 'توقف' : 'مستحق'}</td></tr>`).join('')}
-                ${fines.map(f => `<tr><td>${f.f02_date}</td><td>⚠️ ${f.f06_type}</td><td>${f.f03_car_no}</td><td class="amount-cell">${f.f05_amount}</td><td>0</td><td>${f.f07_status}</td></tr>`).join('')}
-                ${revenues.map(r => `<tr><td>${r.f02_date}</td><td>💰 دفعة نقدية (${r.f07_method})</td><td>${r.f03_car_no}</td><td>0</td><td class="amount-cell">${r.f06_amount}</td><td>محصل</td></tr>`).join('')}
+                ${workDays.map(d => `<tr><td>${d.f02_date}</td><td>ضمان يومي</td><td>${window.formatJordanPlate(d.f03_car_no, true)}</td><td class="amount-cell">${d.f05_daily_amount}</td><td>0</td><td>${d.f06_is_off_day ? 'توقف' : 'مستحق'}</td></tr>`).join('')}
+                ${fines.map(f => `<tr><td>${f.f02_date}</td><td>⚠️ ${f.f06_type}</td><td>${window.formatJordanPlate(f.f03_car_no, true)}</td><td class="amount-cell">${f.f05_amount}</td><td>0</td><td>${f.f07_status}</td></tr>`).join('')}
+                ${revenues.map(r => `<tr><td>${r.f02_date}</td><td>💰 دفعة نقدية (${r.f07_method})</td><td>${window.formatJordanPlate(r.f03_car_no, true)}</td><td>0</td><td class="amount-cell">${r.f06_amount}</td><td>محصل</td></tr>`).join('')}
             </tbody>
         </table>
     `;
@@ -275,16 +294,16 @@ async function buildFinancialSummary(from, to) {
 // --- [3] تقرير الأيام المكسورة (Broken Days) ---
 async function buildBrokenDaysReport(from, to) {
     const { data: workDays } = await _supabase
-            .from('t08_work_days')
-            .select('*')
-            .gte('f02_date', from)
-            .lte('f02_date', to)
-            .eq('f06_is_off_day', false);
+        .from('t08_work_days')
+        .select('*')
+        .gte('f02_date', from)
+        .lte('f02_date', to)
+        .eq('f06_is_off_day', false);
 
     // Fetch all revenues to catch late payments regardless of date
     const { data: revenues } = await _supabase
-            .from('t05_revenues')
-            .select('f01_id, f02_date, f03_car_no, f06_amount');
+        .from('t05_revenues')
+        .select('f01_id, f02_date, f03_car_no, f06_amount');
 
     const allRevs = revenues || [];
 
@@ -313,7 +332,7 @@ async function buildBrokenDaysReport(from, to) {
             car: day.f03_car_no,
             due: dailyDue,
             sameDayPaid: sameDayRev,
-            brokenAmount: initialBroken < 0 ? 0 : initialBroken, 
+            brokenAmount: initialBroken < 0 ? 0 : initialBroken,
             latePaid: lateRev,
             netMissing: (initialBroken - lateRev) < 0 ? 0 : (initialBroken - lateRev)
         });
@@ -326,7 +345,7 @@ async function buildBrokenDaysReport(from, to) {
         html = '<div class="empty-state">لا يوجد أيام مكسورة في هذه الفترة</div>';
     } else {
         html += `<div class="investor-report-container">`;
-        
+
         for (const drvId of Object.keys(driverGroups)) {
             const drvObj = drivers.find(dr => dr.f01_id == drvId);
             const drvName = drvObj ? drvObj.f02_name : 'سائق غير محدد';
