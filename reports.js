@@ -198,7 +198,7 @@ async function buildInvestorMonthlyReport(ownerId, from, to, staffFilter = 'all'
                 <tr class="net-row"><td class="lbl">رصيد الصندوق المتاح | Net Amount Available</td><td class="val" style="color:#e74c3c; font-size:1.8rem;">${netRemaining.toLocaleString()}</td></tr>
             </table>
 
-            <table class="report-table" style="margin-top:30px;">
+            <table class="report-table" style="margin-top:10px;">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -328,24 +328,24 @@ async function buildDriverSOA(driverId, from, to) {
     const netBalance = (totalDue + totalFines) - totalPaid;
 
     let html = `
-        <div class="report-stats-banner" style="grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 40px;">
-            <div class="stat-box" style="border-top: 5px solid #3498db; padding: 15px;">
+        <div class="report-stats-banner" style="grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 15px;">
+            <div class="stat-box" style="border-top: 5px solid #3498db; padding: 10px;">
                 <h4 style="font-size:0.75rem; font-weight:bold; color:#555;">إجمالي ضمان الفترة</h4>
                 <div class="val" style="font-size: 1.6rem; font-weight: 900; color: #3498db;">${totalDue.toLocaleString()}</div>
             </div>
-            <div class="stat-box" style="border-top: 5px solid #27ae60; padding: 15px;">
+            <div class="stat-box" style="border-top: 5px solid #27ae60; padding: 10px;">
                 <h4 style="font-size:0.75rem; font-weight:bold; color:#555;">إجمالي المسدد</h4>
                 <div class="val" style="font-size: 1.6rem; font-weight: 900; color: #27ae60;">${totalPaid.toLocaleString()}</div>
             </div>
-            <div class="stat-box" style="border-top: 5px solid #9b59b6; padding: 15px;">
+            <div class="stat-box" style="border-top: 5px solid #9b59b6; padding: 10px;">
                 <h4 style="font-size:0.75rem; font-weight:bold; color:#555;">سداد بدون مطابقة</h4>
                 <div class="val" style="font-size: 1.6rem; font-weight: 900; color: #9b59b6;">${totalUnmatched.toLocaleString()}</div>
             </div>
-            <div class="stat-box" style="border-top: 5px solid #e67e22; padding: 15px;">
+            <div class="stat-box" style="border-top: 5px solid #e67e22; padding: 10px;">
                 <h4 style="font-size:0.75rem; font-weight:bold; color:#555;">عدد أيام العمل</h4>
                 <div class="val" style="font-size: 1.6rem; font-weight: 900; color: #e67e22;">${workingDaysCount} <small style="font-size:0.8rem; font-weight:normal;">يوم</small></div>
             </div>
-            <div class="stat-box" style="border-top: 5px solid #e74c3c; background: #fff8f8; padding: 15px;">
+            <div class="stat-box" style="border-top: 5px solid #e74c3c; background: #fff8f8; padding: 10px;">
                 <h4 style="font-size:0.75rem; font-weight:bold; color:#c0392b;">الذمة المتبقية</h4>
                 <div class="val" style="font-size: 1.6rem; font-weight: 900; color: #e74c3c;">${netBalance.toLocaleString()}</div>
             </div>
@@ -401,7 +401,7 @@ async function buildFinancialSummary(from, to) {
             <div class="stat-box"><h4>صافي الربح التشغيلي</h4><div class="val" style="color:var(--taxi-green)">${netProfit.toLocaleString()}</div></div>
             <div class="stat-box"><h4>ذمم مخالفات معلقة</h4><div class="val">${totalFines.toLocaleString()}</div></div>
         </div>
-        <p style="text-align:center; margin-top:40px; color:#666;">* تم احتساب صافي الربح بناءً على (الإيراد المحصل - المصاريف المسجلة) خلال الفترة المحددة.</p>
+        <p style="text-align:center; margin-top:15px; color:#666;">* تم احتساب صافي الربح بناءً على (الإيراد المحصل - المصاريف المسجلة) خلال الفترة المحددة.</p>
     `;
 
     updateUIAndPrint("ملخص الأداء المالي العام", `الفترة من ${from} إلى ${to}`, html);
@@ -470,7 +470,7 @@ async function buildBrokenDaysReport(from, to) {
             let sumBroken = 0, sumLate = 0, sumMissing = 0;
 
             html += `
-                <h3 style="background:var(--taxi-dark); color:var(--taxi-gold); padding:10px; margin-top:30px; border-radius:8px;">
+                <h3 style="background:var(--taxi-dark); color:var(--taxi-gold); padding:10px; margin-top:10px; border-radius:8px;">
                     👨‍✈️ السائق: ${drvName}
                 </h3>
                 <table class="report-table">
@@ -529,7 +529,7 @@ async function buildBrokenDaysReport(from, to) {
         }
 
         html += `
-            <table class="summary-table-luxury" style="margin-top:40px; border-top:4px solid var(--taxi-dark);">
+            <table class="summary-table-luxury" style="margin-top:15px; border-top:4px solid var(--taxi-dark);">
                 <tr><td class="lbl" style="color:#c0392b">إجمالي الكسر العام | Total Initial Broken</td><td class="val" style="color:#c0392b;">${globalBroken.toLocaleString()}</td></tr>
                 <tr><td class="lbl" style="color:#27ae60">إجمالي السداد اللاحق | Total Late Payments</td><td class="val" style="color:#27ae60;">${globalLatePaid.toLocaleString()}</td></tr>
                 <tr class="net-row"><td class="lbl">إجمالي الذمم المعلقة النهائي | Net Total Missing</td><td class="val" style="color:#e74c3c; font-size:1.8rem;">${globalNetMissing.toLocaleString()}</td></tr>

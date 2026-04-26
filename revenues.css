@@ -1,5 +1,5 @@
 /* مأخوذ من cars.css حرفياً */
-.main-container { padding: 30px; max-width: 1400px; margin: 0 auto; font-family: 'Segoe UI', sans-serif; }
+.main-container { padding: 10px; max-width: 1400px; margin: 0 auto; font-family: 'Segoe UI', sans-serif; }
 .elegant-card { background: #fff; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.07); margin-bottom: 30px; border: 1px solid #efefef; overflow: hidden; }
 .card-header { background: #121212; color: #f1c40f; padding: 18px 25px; font-weight: bold; font-size: 1rem; display: flex; justify-content: space-between; align-items: center; }
 
@@ -134,7 +134,7 @@ th.sort-desc::after {
 .print-voucher-container { display: none; }
 
 @media print {
-    @page { size: A5; margin: 5mm; }
+    @page { size: A5; margin: 2mm; }
     /* Hide everything by default when printing */
     header, nav, .main-container, .modal-overlay, #navOverlay { display: none !important; }
     body { background: white !important; padding: 0 !important; margin: 0 !important; direction: rtl; }

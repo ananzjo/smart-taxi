@@ -1,7 +1,8 @@
-/* ==================================================================
- [global-config.js] - القاموس الموحد + التلميحات الذكية + نظام الجداول المطور
- نظام إدارة التاكسي الذكي - Smart Taxi Management System
- ================================================================== */
+/**
+ * File: global-config.js
+ * Version: v3.0.0 [CORE]
+ * Function: القاموس الموحد + التلميحات الذكية + نظام الجداول المطور
+ */
 
 // إعدادات الاتصال بقاعدة بيانات Supabase
 const SB_URL = "https://jmalxvhumgygqxqislut.supabase.co".trim();
@@ -39,6 +40,15 @@ window.safeSubmit = async function(submitFunction) {
 
 // --- [2] نظام تشغيل الواجهة (Boot Sequence) ---
 function bootSystem(pageTitle) {
+    // [EN] Authentication Guard | [AR] نظام حماية الدخول وحجب الصفحات عن غير المسجلين
+    const isLoginPage = window.location.pathname.includes('login.html');
+    const userSession = sessionStorage.getItem('full_name_ar');
+
+    if (!isLoginPage && !userSession) {
+        window.location.href = 'login.html';
+        return;
+    }
+
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", () => startBootSequence(pageTitle));
     } else {
@@ -53,7 +63,7 @@ function startBootSequence(pageTitle) {
         document.head.appendChild(link);
     }
     injectGlobalStyles();  
-    injectFavicon();
+    injectFaviconAndMobile();
     renderGlobalLayout(pageTitle); 
     startPulseEngine(); 
     initGlobalModalStructure(); 
@@ -62,14 +72,29 @@ function startBootSequence(pageTitle) {
     applyAdvancedTooltips(); // تشغيل نظام التلميحات الذكي
 }
 
-function injectFavicon() {
+function injectFaviconAndMobile() {
+    // [EN] Standard Favicon | [AR] الأيقونة العادية للمتصفح
     if (!document.querySelector('link[rel="icon"]')) {
         const link = document.createElement('link');
-        link.rel = 'icon';
-        link.type = 'image/png';
-        link.href = 'favicon.png';
+        link.rel = 'icon'; link.type = 'image/png'; link.href = 'icon.png';
         document.head.appendChild(link);
     }
+    
+    // [EN] Apple Touch Icon for iPhone | [AR] أيقونة الايفون عند الحفظ على الشاشة الرئيسية
+    if (!document.querySelector('link[rel="apple-touch-icon"]')) {
+        const appleIcon = document.createElement('link');
+        appleIcon.rel = 'apple-touch-icon'; appleIcon.href = 'icon.png';
+        document.head.appendChild(appleIcon);
+    }
+
+    // [EN] Mobile Web App Capable | [AR] إعدادات جعل النظام يعمل كتطبيق على الجوال
+    const metaMobile = document.createElement('meta');
+    metaMobile.name = 'apple-mobile-web-app-capable'; metaMobile.content = 'yes';
+    document.head.appendChild(metaMobile);
+
+    const metaStatus = document.createElement('meta');
+    metaStatus.name = 'apple-mobile-web-app-status-bar-style'; metaStatus.content = 'black-translucent';
+    document.head.appendChild(metaStatus);
 }
 
 // --- [3] التنسيقات والواجهة العامة ---
@@ -162,7 +187,10 @@ function renderGlobalLayout(title) {
         </header>
         <div id="navOverlay" class="overlay" onclick="toggleNav(false)"></div>
         <nav id="sideNav" class="sidebar">
-            <div style="padding:20px 20px; color:var(--taxi-gold); font-weight:900; text-shadow: 0 2px 4px rgba(0,0,0,0.5); text-align:center; border-bottom:1px solid #333;">🚖 مـديـر الـتـاكـسـي</div>
+            <div style="padding:20px 20px; color:var(--taxi-gold); font-weight:900; text-shadow: 0 2px 4px rgba(0,0,0,0.5); text-align:center; border-bottom:1px solid #333;">
+                🚖 مـديـر الـتـاكـسـي
+                <div style="font-size:0.65rem; font-weight:normal; color:#888; margin-top:5px;">Version 3.0.0</div>
+            </div>
             <a href="index.html">📉 لوحة التحكم | Dashboard</a>
             <a href="work_days.html">📅 أيام العمل والضمان</a>
             <a href="cars.html">🚗 أسطول السيارات</a>

@@ -47,9 +47,6 @@ async function handleLogin(event) {
     btn.innerHTML = "⌛ جاري التحقق...";
     btn.style.opacity = "0.7";
 
-    // [أهم تعديل]: تسجيل محاولة البدء فوراً
-    await recordLoginEvent(userVal, 'Attempt', 'بدء محاولة الدخول');
-
     try {
         const { data, error } = await _supabase
             .from('t11_staff')
