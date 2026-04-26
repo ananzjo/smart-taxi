@@ -28,13 +28,229 @@ async function initSystem() {
         fetchWorkDays()
     ]);
     populateFilters();
+    populateFormDropdowns();
     initTableControls();
     setupFormListener();
+    resetWorkDayForm();
+}
+
+/**
+ * عرض تفاصيل اليوم مع معلومات الدفع إن وجدت
+ */
+function viewWorkDay(id) {
+    const day = allWorkDays.find(d => d.f01_id === id);
+    if (!day) return;
+
+    const driver = driversList.find(d => d.f01_id == day.f04_driver_id);
+    
+    // البحث عن الإيرادات المرتبطة
+    const linkedRevs = revenuesList.filter(r => {
+        if (r.f10_work_day_link) {
+            try {
+                const ids = JSON.parse(r.f10_work_day_link);
+                return ids.includes(day.f01_id);
+            } catch(e) { return false; }
+        }
+        // Fallback for date-based matching
+        return !r.f10_work_day_link && r.f03_car_no === day.f03_car_no && r.f02_date === day.f02_date;
+    });
+
+    const viewData = {
+        f02_date: day.f02_date,
+        f03_car_no: day.f03_car_no,
+        f04_driver_id: driver ? driver.f02_name : day.f04_driver_id,
+        f05_daily_amount: day.f05_daily_amount + " د.أ",
+        f06_is_off_day: day.f06_is_off_day ? "يوم توقف (Off Day)" : "يوم عمل نشط",
+        f07_reason_if_off: day.f07_reason_if_off || "---",
+        payment_info: linkedRevs.length > 0 
+            ? linkedRevs.map(r => `بتاريخ ${r.f02_date} بمبلغ ${r.f06_amount} د.أ (${r.f07_method})`).join(' | ')
+            : "لم يتم الدفع بعد / مكسور"
+    };
+
+    const labels = {
+        f06_is_off_day: 'نوع اليوم | Day Type',
+        f07_reason_if_off: 'السبب | Reason',
+        payment_info: 'معلومات الدفع | Payment Info'
+    };
+
+    window.showViewModal(viewData, "تفاصيل سجل العمل | Work Day Details", labels);
+}
+
+function populateFormDropdowns() {
+    fillOptions('f03_car_no', carsList, 'f02_plate_no', 'f02_plate_no', '-- اختر السيارة --');
+    fillOptions('f04_driver_id', driversList, 'f01_id', 'f02_name', '-- اختر السائق --');
+    
+    // الفلترة للسيارات الفعالة فقط في التوليد المجمع (نفس منطق صفحة العهدة)
+    const activeCars = carsList.filter(car => {
+        const s = (car.f11_is_active || '').toLowerCase();
+        const isExplicitlyInActive = s.includes('inactive') || s.includes('غير') || s.includes('off');
+        return !isExplicitlyInActive && (s.includes('active') || s.includes('نشط') || s.includes('مشغول'));
+    });
+    fillOptions('bulk_car_no', activeCars, 'f02_plate_no', 'f02_plate_no', '-- اختر السيارة --');
+    
+    // إضافة مستمع لحدث التغيير لجلب آخر ضمان
+    const bulkCarSelect = document.getElementById('bulk_car_no');
+    if (bulkCarSelect) {
+        bulkCarSelect.onchange = updateBulkAmount;
+    }
+}
+
+async function updateBulkAmount() {
+    const carNo = document.getElementById('bulk_car_no').value;
+    if (!carNo) return;
+
+    try {
+        const { data, error } = await _supabase
+            .from('t04_handover')
+            .select('f08_daman')
+            .eq('f04_car_no', carNo)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        if (data && data.f08_daman) {
+            document.getElementById('bulk_amount').value = data.f08_daman;
+        } else {
+            // Fallback to car's standard rent if handover not found
+            const car = carsList.find(c => c.f02_plate_no === carNo);
+            if (car && car.f08_standard_rent) {
+                document.getElementById('bulk_amount').value = car.f08_standard_rent;
+            }
+        }
+    } catch (e) {
+        console.error("Error fetching last daman:", e);
+    }
+}
+
+function openBulkModal() {
+    const modal = document.getElementById('bulkModal');
+    if(modal) modal.style.display = 'flex';
+}
+
+function closeBulkModal() {
+    const modal = document.getElementById('bulkModal');
+    if(modal) modal.style.display = 'none';
+}
+
+async function startBulkGeneration() {
+    const carNo = document.getElementById('bulk_car_no').value;
+    const startStr = document.getElementById('bulk_start_date').value;
+    const endStr = document.getElementById('bulk_end_date').value;
+    const amount = parseFloat(document.getElementById('bulk_amount').value) || 0;
+
+    if (!carNo || !startStr || !endStr) {
+        return showToast("يرجى تعبئة جميع الخانات", "warning");
+    }
+
+    const start = new Date(startStr);
+    const end = new Date(endStr);
+    
+    if (start > end) return showToast("تاريخ البدء يجب أن يكون قبل تاريخ الانتهاء", "warning");
+
+    // Find the driver currently assigned to this car
+    const driver = driversList.find(d => d.f08_car_no === carNo);
+    const driverId = driver ? driver.f01_id : null;
+
+    if (!driverId) {
+        return showToast("هذه السيارة ليس لها سائق حالي مرتبط بها", "error");
+    }
+
+    const toInsert = [];
+    let current = new Date(start);
+    
+    // Fetch existing records in this range to avoid duplicates
+    const { data: existing } = await _supabase.from('t08_work_days')
+        .select('f02_date')
+        .eq('f03_car_no', carNo)
+        .gte('f02_date', startStr)
+        .lte('f02_date', endStr);
+    
+    const existingDates = new Set((existing || []).map(e => e.f02_date));
+
+    while (current <= end) {
+        const dStr = current.toISOString().split('T')[0];
+        // Skip Fridays (index 5 in ISO/JS usually, but let's be safe with getDay())
+        // getDay(): 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+        if (current.getDay() !== 5 && !existingDates.has(dStr)) {
+            toInsert.push({
+                f02_date: dStr,
+                f03_car_no: carNo,
+                f04_driver_id: driverId,
+                f05_daily_amount: amount,
+                f06_is_off_day: false
+            });
+        }
+        current.setDate(current.getDate() + 1);
+    }
+
+    if (toInsert.length === 0) {
+        return showToast("لا توجد أيام جديدة لتوليدها في هذه الفترة", "info");
+    }
+
+    const { error } = await _supabase.from('t08_work_days').insert(toInsert);
+    if (!error) {
+        showToast(`تم توليد ${toInsert.length} سجل بنجاح`, "success");
+        closeBulkModal();
+        fetchWorkDays();
+    } else {
+        showToast("خطأ أثناء التوليد: " + error.message, "error");
+    }
+}
+
+function resetWorkDayForm() {
+    const form = document.getElementById('workDayForm');
+    if (!form) return;
+    form.reset();
+    document.getElementById('f01_id').value = '';
+    document.getElementById('f02_date').valueAsDate = new Date();
+    toggleOffDayReasonMain();
+}
+
+function toggleOffDayReasonMain() {
+    const isOff = document.getElementById('f06_is_off_day').value === 'true';
+    const group = document.getElementById('mainReasonGroup');
+    const amountInput = document.getElementById('f05_daily_amount');
+    if (group) group.style.display = isOff ? 'block' : 'none';
+    if (isOff && amountInput) amountInput.value = 0;
+    else if (!isOff && amountInput && amountInput.value == 0) amountInput.value = 15;
+}
+
+function editWorkDay(id) {
+    const day = allWorkDays.find(d => d.f01_id === id);
+    if (!day) return;
+    
+    document.getElementById('f01_id').value = day.f01_id;
+    document.getElementById('f02_date').value = day.f02_date;
+    document.getElementById('f03_car_no').value = day.f03_car_no;
+    document.getElementById('f04_driver_id').value = day.f04_driver_id;
+    document.getElementById('f05_daily_amount').value = day.f05_daily_amount;
+    document.getElementById('f06_is_off_day').value = day.f06_is_off_day.toString();
+    document.getElementById('f07_reason_if_off').value = day.f07_reason_if_off || '';
+    
+    toggleOffDayReasonMain();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 async function fetchCars() {
-    const { data } = await _supabase.from('t01_cars').select('*');
-    carsList = data || [];
+    try {
+        const { data, error } = await _supabase
+            .from('t01_cars')
+            .select('*, statusLookup:sys_lookup_data!f11_is_active(f03_label_ar)');
+        
+        if (error) {
+            // Fallback if join fails (might be a direct string column)
+            const backup = await _supabase.from('t01_cars').select('*');
+            carsList = backup.data || [];
+        } else {
+            // Map the lookup label back to f11_is_active for compatibility with existing filters
+            carsList = (data || []).map(car => ({
+                ...car,
+                f11_is_active: car.statusLookup?.f03_label_ar || car.f11_is_active
+            }));
+        }
+    } catch (e) {
+        console.error("fetchCars error:", e);
+    }
 }
 
 async function fetchDrivers() {
@@ -60,11 +276,15 @@ async function fetchWorkDays() {
 
         if (wErr) throw wErr;
 
+        // Fetch revenues with a wider range to catch payments made just before or after the month
+        const padStart = new Date(new Date(startDate).getTime() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        const padEnd = new Date(new Date(endDate).getTime() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
         const { data: revData } = await _supabase
             .from('t05_revenues')
             .select('*')
-            .gte('f02_date', startDate)
-            .lte('f02_date', endDate);
+            .gte('f02_date', padStart)
+            .lte('f02_date', padEnd);
 
         allWorkDays = workData || [];
         filteredWorkDays = [...allWorkDays];
@@ -90,29 +310,56 @@ function renderTable() {
         <table>
             <thead>
                 <tr>
-                    <th onclick="sortData('f02_date')" style="cursor:pointer">التاريخ | Date ↕</th>
-                    <th onclick="sortData('f03_car_no')" style="cursor:pointer">السيارة | Car ↕</th>
-                    <th onclick="sortData('f04_driver_id')" style="cursor:pointer">السائق | Driver ↕</th>
-                    <th onclick="sortData('f05_daily_amount')" style="cursor:pointer">المستحق | Due ↕</th>
-                    <th onclick="sortData('f06_is_off_day')" style="cursor:pointer">الحالة | Status ↕</th>
-                    <th>إجراءات | Acts</th>
+                    <th onclick="sortData('f02_date')" style="cursor:pointer; width: 150px;">التاريخ | Date ↕</th>
+                    <th onclick="sortData('f03_car_no')" style="cursor:pointer; width: 120px;">السيارة | Car ↕</th>
+                    <th onclick="sortData('f04_driver_id')" style="cursor:pointer;">السائق | Driver ↕</th>
+                    <th onclick="sortData('f05_daily_amount')" style="cursor:pointer; width: 90px;">المستحق | Due ↕</th>
+                    <th onclick="sortData('f06_amount')" style="cursor:pointer; width: 90px;">المسدد | Paid ↕</th>
+                    <th onclick="sortData('f06_is_off_day')" style="cursor:pointer; width: 120px;">الحالة | Status ↕</th>
+                    <th style="width: 140px;">إجراءات | Acts</th>
                 </tr>
             </thead>
             <tbody>
                 ${filteredWorkDays.map(day => {
                     const driver = driversList.find(d => d.f01_id == day.f04_driver_id);
-                    const dayRev = revenuesList.filter(r => 
+                    // حساب الإيرادات المرتبطة بهذا اليوم (سواء بالمطابقة المباشرة أو التاريخ)
+                    const linkedRevs = revenuesList.filter(r => {
+                        if (r.f10_work_day_link) {
+                            try {
+                                const ids = JSON.parse(r.f10_work_day_link);
+                                return ids.includes(day.f01_id);
+                            } catch(e) { return false; }
+                        }
+                        return false;
+                    });
+
+                    // إيرادات مطابقة بالتاريخ (للحالات القديمة أو غير المطابقة يدوياً)
+                    const dateMatchRevs = revenuesList.filter(r => 
+                        !r.f10_work_day_link && 
                         r.f03_car_no === day.f03_car_no && 
                         r.f02_date === day.f02_date
-                    ).reduce((sum, r) => sum + parseFloat(r.f06_amount || 0), 0);
+                    );
+
+                    // مجموع الإيراد لهذا اليوم
+                    // إذا كان مرتبطاً، نفترض أنه يسدد قيمة اليوم بالكامل (أو حسب منطق العمل)
+                    const linkedTotal = linkedRevs.length > 0 ? day.f05_daily_amount : 0;
+                    const dateMatchTotal = dateMatchRevs.reduce((sum, r) => sum + parseFloat(r.f06_amount || 0), 0);
+                    
+                    const dayRev = linkedTotal + dateMatchTotal;
 
                     const isPaid = day.f06_is_off_day || (dayRev >= day.f05_daily_amount);
                     const statusClass = day.f06_is_off_day ? 'badge-off' : (isPaid ? 'badge-paid' : 'badge-broken');
                     const statusText = day.f06_is_off_day ? 'توقف' : (isPaid ? 'مسدد ✅' : 'مكسور 🔴');
 
+                    // الحصول على يوم الأسبوع بالعربي
+                    const dayName = new Date(day.f02_date).toLocaleDateString('ar-JO', { weekday: 'long' });
+
                     return `
                         <tr>
-                            <td style="font-weight:700;">${day.f02_date}</td>
+                            <td style="font-weight:700;">
+                                <div style="font-size:0.8rem; color:var(--taxi-gold);">${dayName}</div>
+                                <div>${day.f02_date}</div>
+                            </td>
                             <td>${window.formatJordanPlate(day.f03_car_no, true)}</td>
                             <td>${driver ? driver.f02_name : '---'}</td>
                             <td style="font-weight:bold;">${day.f05_daily_amount}</td>
@@ -120,8 +367,9 @@ function renderTable() {
                             <td><span class="badge-status ${statusClass}">${statusText}</span></td>
                             <td>
                                 <div class="action-btns-group">
-                                    <button class="btn-action-sm btn-view" onclick='showViewModal(${JSON.stringify(day)}, "تفاصيل اليوم | Day Details")' title="عرض">👁️</button>
-                                    <button class="btn-action-sm btn-edit" onclick="openAdjustmentModal('${day.f01_id}')" title="تعديل">🛠️</button>
+                                    <button class="btn-action-sm btn-view" onclick='viewWorkDay("${day.f01_id}")' title="عرض">👁️</button>
+                                    <button class="btn-action-sm btn-edit" onclick="editWorkDay('${day.f01_id}')" title="تعديل">✏️</button>
+                                    <button class="btn-action-sm btn-delete" onclick="deleteWorkDay('${day.f01_id}')" title="حذف">🗑️</button>
                                 </div>
                             </td>
                         </tr>
@@ -213,56 +461,63 @@ async function triggerAutoGeneration() {
     }
 }
 
-function openAdjustmentModal(id) {
-    const day = allWorkDays.find(d => d.f01_id === id);
-    if (!day) return;
-
-    document.getElementById('f01_id').value = day.f01_id;
-    document.getElementById('adj_type').value = day.f06_is_off_day ? 'off' : 'active';
-    document.getElementById('f05_amount').value = day.f05_daily_amount;
-    document.getElementById('f07_reason').value = day.f07_reason_if_off || '';
-    
-    toggleOffDayReason();
-    const modal = document.getElementById('adjustmentModal');
-    if(modal) modal.classList.add('open');
-}
-
-function toggleOffDayReason() {
-    const isOff = document.getElementById('adj_type').value === 'off';
-    const reasonGrp = document.getElementById('reasonGroup');
-    const fAmt = document.getElementById('f05_amount');
-    
-    if(reasonGrp) reasonGrp.style.display = isOff ? 'block' : 'none';
-    if(isOff && fAmt) fAmt.value = 0;
-}
-
-function closeModal() {
-    const modal = document.getElementById('adjustmentModal');
-    if(modal) modal.classList.remove('open');
-}
 
 function setupFormListener() {
-    const form = document.getElementById('adjustmentForm');
-    if(form) {
+    const form = document.getElementById('workDayForm');
+    if (form) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             safeSubmit(async () => {
                 const id = document.getElementById('f01_id').value;
                 const payload = {
-                    f06_is_off_day: document.getElementById('adj_type').value === 'off',
-                    f05_daily_amount: parseFloat(document.getElementById('f05_amount').value),
-                    f07_reason_if_off: document.getElementById('f07_reason').value
+                    f02_date: document.getElementById('f02_date').value,
+                    f03_car_no: document.getElementById('f03_car_no').value,
+                    f04_driver_id: document.getElementById('f04_driver_id').value,
+                    f05_daily_amount: parseFloat(document.getElementById('f05_daily_amount').value),
+                    f06_is_off_day: document.getElementById('f06_is_off_day').value === 'true',
+                    f07_reason_if_off: document.getElementById('f07_reason_if_off').value
                 };
 
-                const { error } = await _supabase.from('t08_work_days').update(payload).eq('f01_id', id);
-                if (!error) {
-                    showToast("تم تحديث السجل بنجاح", "success");
-                    closeModal();
+                let result;
+                if (id) {
+                    result = await _supabase.from('t08_work_days').update(payload).eq('f01_id', id);
+                } else {
+                    // التحقق من عدم وجود سجل مسبق لنفس السيارة والتاريخ
+                    const { data: existing } = await _supabase.from('t08_work_days')
+                        .select('f01_id')
+                        .eq('f03_car_no', payload.f03_car_no)
+                        .eq('f02_date', payload.f02_date)
+                        .maybeSingle();
+                    
+                    if (existing) {
+                        return showToast("هذا السجل موجود مسبقاً (نفس السيارة والتاريخ)!", "warning");
+                    }
+
+                    result = await _supabase.from('t08_work_days').insert([payload]);
+                }
+
+                if (!result.error) {
+                    showToast("تم حفظ السجل بنجاح", "success");
+                    resetWorkDayForm();
                     fetchWorkDays();
+                } else {
+                    showToast("خطأ في الحفظ: " + result.error.message, "error");
                 }
             });
         });
     }
+}
+
+async function deleteWorkDay(id) {
+    window.showModal("تنبيه الحذف", "هل أنت متأكد من حذف هذا السجل؟ سيفقد السجل من تقارير المديونية!", "danger", async () => {
+        const { error } = await _supabase.from('t08_work_days').delete().eq('f01_id', id);
+        if (!error) {
+            showToast("تم الحذف بنجاح", "success");
+            fetchWorkDays();
+        } else {
+            showToast("فشل الحذف: " + error.message, "error");
+        }
+    });
 }
 
 function initTableControls() {

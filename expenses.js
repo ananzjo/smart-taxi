@@ -104,9 +104,16 @@ function renderTable() {
                 </tr>
             </thead>
             <tbody>
-                ${filteredExpenses.map(ex => `
-                    <tr>
-                        <td>${ex.f02_date}</td>
+                ${filteredExpenses.map(ex => {
+                    const dayName = new Date(ex.f02_date).toLocaleDateString('ar-JO', { weekday: 'long' });
+                    return `
+                        <tr>
+                            <td style="font-weight:700;">
+                                <div style="font-size:0.75rem; color:var(--taxi-gold);">${dayName}</div>
+                                <div>${ex.f02_date}</div>
+                            </td>
+`;
+                }).join('')}
                         <td>${window.formatJordanPlate(ex.f03_car_no, true)}</td>
                         <td>${ex.f05_expense_type}</td>
                         <td style="font-weight:900; color:var(--taxi-red)">${ex.f07_amount.toLocaleString()}</td>

@@ -160,7 +160,10 @@ function renderTable() {
             <td style="font-weight:600;">${driverName}</td>
             <td><span class="odometer-red">${(h.f09_km_reading || 0).toLocaleString()}</span></td>
             <td style="font-weight:bold; color:var(--taxi-green)">${h.f08_daman || '---'}</td>
-            <td style="font-size:0.85rem; color:#666;">${dateStr} | <strong>${timeStr}</strong></td>
+            <td style="font-weight:700;">
+                <div style="font-size:0.75rem; color:var(--taxi-gold);">${new Date(opDate).toLocaleDateString('ar-JO', { weekday: 'long' })}</div>
+                <div style="font-size:0.9rem;">${opDate} | <span style="color:#666; font-size:0.8rem;">${opTime}</span></div>
+            </td>
             <td>
                 <div class="action-btns-group">
                     <button class="btn-action-sm btn-view" onclick="viewHandover('${h.f01_id}')" title="عرض">👁️</button>

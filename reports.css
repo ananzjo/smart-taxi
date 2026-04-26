@@ -10,7 +10,8 @@ Function: Luxury Reporting & Print Layouts
     --taxi-dark: #0b0c10;
 }
 
-body { background: #f5f6f8; }
+body { background: #f5f6f8; padding-top: 0 !important; }
+.global-header { display: none !important; }
 
 .main-container { padding: 30px; }
 
@@ -54,28 +55,101 @@ body { background: #f5f6f8; }
 
 @media print {
     .no-print { display: none !important; }
-    .print-container { display: block !important; padding: 0; margin: 0; background: white; color: black; font-family: 'Tajawal', sans-serif; }
+
+    /* Professional Print Settings */
+    @page { 
+        size: A4 portrait; 
+        margin: 10mm 15mm; /* Balanced margins to avoid browser headers */
+    }
     
-    @page { size: A4; margin: 15mm; }
-
-    .print-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 4px solid var(--taxi-gold); padding-bottom: 20px; margin-bottom: 30px; }
-    .print-logo { display: flex; align-items: center; gap: 15px; }
-    .company-name h2 { margin: 0; color: var(--taxi-dark); font-size: 1.8rem; letter-spacing: 1px; }
-    .print-meta p { margin: 2px 0; font-size: 0.85rem; }
-
-    .print-title-box { text-align: center; margin-bottom: 35px; background: #fcfcfc; padding: 15px; border-radius: 10px; border: 1px solid #f0f0f0; }
-    .print-title-box h1 { margin: 0; font-size: 2rem; color: var(--taxi-dark); border-bottom: 2px solid var(--taxi-gold); display: inline-block; padding-bottom: 5px; }
-    .print-title-box p { margin: 10px 0 0; color: #555; font-weight: bold; }
-
-    .report-table { width: 100%; border: 1px solid #ddd; }
-    .report-table th { background: #f0f0f0 !important; -webkit-print-color-adjust: exact; }
-
-    .print-footer { display: flex; justify-content: space-between; margin-top: 60px; }
-    .signature-box { width: 200px; text-align: center; font-weight: bold; }
-    .sig-line { margin-top: 50px; border-top: 2px solid #333; }
+    body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     
-    .badge-status { border: 1px solid #000 !important; color: #000 !important; background: transparent !important; }
+    .print-container { 
+        display: block !important; 
+        padding: 0 !important; 
+        margin: 0 !important; 
+        background: white; 
+        color: black; 
+        font-family: 'Tajawal', sans-serif;
+        border: none !important;
+        width: 100%;
+        page-break-after: avoid;
+    }
+
+    /* Fixed Clean Header */
+    .print-header { 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        border-bottom: 3px solid var(--taxi-dark); 
+        padding-bottom: 10px; 
+        margin-bottom: 15px; 
+    }
+    
+    .print-logo { display: flex; align-items: center; gap: 10px; }
+    .company-name h2 { margin: 0; color: var(--taxi-dark); font-size: 1.4rem; font-weight: 900; }
+    .print-meta { text-align: left; font-size: 0.75rem; line-height: 1.2; }
+
+    .print-title-box { 
+        text-align: center; 
+        margin-bottom: 20px; 
+        background: #f9f9f9;
+        padding: 10px;
+        border-radius: 8px;
+    }
+    .print-title-box h1 { 
+        margin: 0; 
+        font-size: 1.5rem; 
+        color: var(--taxi-dark); 
+    }
+    .print-title-box p { margin: 5px 0 0; color: #333; font-weight: 700; font-size: 0.9rem; }
+
+    /* Tables Optimized for One-Page Fit */
+    .report-table { 
+        width: 100%; 
+        border-collapse: collapse;
+        border: 1px solid #000;
+        font-size: 0.8rem !important; /* Smaller text for single page */
+    }
+    .report-table th { 
+        background: #f0f0f0 !important; 
+        border: 1px solid #000;
+        padding: 6px 4px;
+    }
+    .report-table td {
+        border: 1px solid #000;
+        padding: 4px 6px;
+    }
+
+    .summary-table-luxury { 
+        border: 2px solid #000 !important; 
+        margin-bottom: 20px;
+        font-size: 0.9rem !important;
+    }
+    .summary-table-luxury td { 
+        border: 1px solid #000 !important; 
+        padding: 8px 15px !important;
+    }
+
+    .print-footer { 
+        display: flex; 
+        justify-content: space-between; 
+        margin-top: 30px; 
+        border-top: 1px dashed #ccc;
+        padding-top: 20px;
+    }
+    .signature-box { width: 45%; text-align: center; }
+    .signature-box p { font-weight: 800; margin-bottom: 30px; font-size: 0.85rem; }
+    .sig-line { border-top: 1.5px solid #000; width: 80%; margin: 0 auto; }
+
+    /* Avoid page breaks inside key sections */
+    .investor-report-container { page-break-inside: avoid; }
+    .summary-table-luxury { page-break-inside: avoid; }
 }
+
+/* Adjustments for the summary table layout to be compact */
+.summary-table-luxury .lbl { width: 70%; text-align: right; }
+.summary-table-luxury .val { width: 30%; text-align: center; }
 
 /* Investor Monthly Report Specialized Styles */
 .investor-report-container {

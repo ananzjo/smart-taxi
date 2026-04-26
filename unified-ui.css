@@ -121,13 +121,21 @@ td:last-child {
 }
 .badge-paid::before, .badge-active::before { background: #2ecc71; box-shadow: 0 0 6px #2ecc71; }
 
-/* حالة غير النشط - برتقالي ملكي */
-.badge-pending, .badge-inactive {
-    background: rgba(230, 126, 34, 0.12) !important;
-    color: #d35400 !important;
-    border: 1px solid rgba(230, 126, 34, 0.2) !important;
+/* حالة مكسور - أحمر مكسور */
+.badge-broken, .badge-danger {
+    background: rgba(231, 76, 60, 0.12) !important;
+    color: #c0392b !important;
+    border: 1px solid rgba(231, 76, 60, 0.2) !important;
 }
-.badge-pending::before, .badge-inactive::before { background: #e67e22; box-shadow: 0 0 6px #e67e22; }
+.badge-broken::before, .badge-danger::before { background: #e74c3c; box-shadow: 0 0 6px #e74c3c; }
+
+/* حالة عطلة/توقف - رمادي */
+.badge-off, .badge-secondary {
+    background: rgba(149, 165, 166, 0.12) !important;
+    color: #7f8c8d !important;
+    border: 1px solid rgba(149, 165, 166, 0.2) !important;
+}
+.badge-off::before, .badge-secondary::before { background: #95a5a6; box-shadow: 0 0 6px #95a5a6; }
 
 .badge-status:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
 

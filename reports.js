@@ -8,6 +8,7 @@
 let cars = [];
 let drivers = [];
 let owners = [];
+let staff = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     initReports();
@@ -18,7 +19,7 @@ async function initReports() {
     document.getElementById('date_from').value = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
     document.getElementById('date_to').value = now.toISOString().split('T')[0];
 
-    await Promise.all([fetchCars(), fetchDrivers(), fetchOwners()]);
+    await Promise.all([fetchCars(), fetchDrivers(), fetchOwners(), fetchStaff()]);
 }
 
 async function fetchCars() {
@@ -36,6 +37,11 @@ async function fetchOwners() {
     owners = data || [];
 }
 
+async function fetchStaff() {
+    const { data } = await _supabase.from('t11_staff').select('f01_id, f02_name');
+    staff = data || [];
+}
+
 function toggleSecondaryFilter() {
     // 1. تعريف جميع العناصر المطلوبة
     const type = document.getElementById('report_type').value;
@@ -43,7 +49,7 @@ function toggleSecondaryFilter() {
     const label = document.getElementById('secondary_label');
     const select = document.getElementById('secondary_id');
     const staffWrapper = document.getElementById('staff_filter_wrapper');
-    const staffSelect = document.getElementById('staff_name_filter');
+    const staffSelect = document.getElementById('staff_filter');
 
     // 2. إخفاء الفلاتر مبدئياً لتنظيف الشاشة
     if (wrapper) wrapper.style.display = 'none';
@@ -58,11 +64,13 @@ function toggleSecondaryFilter() {
         label.innerText = 'اختر المالك';
         select.innerHTML = owners.map(o => `<option value="${o.f01_id}">${o.f02_owner_name}</option>`).join('');
 
-        // تعبئة فلتر الموظفين بأسماء فريدة من جدول السيارات
-        const staffList = [...new Set(cars.map(c => c.f11_staff_in_charge).filter(s => s))];
+        // تعبئة فلتر الموظفين
+        const activeStaffIds = [...new Set(cars.map(c => c.f14_staff_id).filter(s => s))];
+        const activeStaff = staff.filter(s => activeStaffIds.includes(s.f01_id));
+        
         if (staffSelect) {
             staffSelect.innerHTML = '<option value="all">كل الموظفين</option>' + 
-                staffList.map(s => `<option value="${s}">${s}</option>`).join('');
+                activeStaff.map(s => `<option value="${s.f01_id}">${s.f02_name}</option>`).join('');
         }
     } 
     else if (type === 'driver_soa') {
@@ -94,7 +102,10 @@ async function generateLuxuryReport() {
     try {
         switch (type) {
             case 'financial_summary': await buildFinancialSummary(dateFrom, dateTo); break;
-            case 'investor_monthly': await buildInvestorMonthlyReport(secondaryId, dateFrom, dateTo); break;
+            case 'investor_monthly': 
+                const staffId = document.getElementById('staff_filter').value;
+                await buildInvestorMonthlyReport(secondaryId, dateFrom, dateTo, staffId); 
+                break;
             case 'driver_soa': await buildDriverSOA(secondaryId, dateFrom, dateTo); break;
             case 'broken_days': await buildBrokenDaysReport(dateFrom, dateTo); break;
             default: showToast("التقرير قيد التطوير", "info");
@@ -117,9 +128,13 @@ function getWorkingDaysCount(from, to) {
 }
 
 // --- [Investor Monthly Report] ---
-async function buildInvestorMonthlyReport(ownerId, from, to) {
+async function buildInvestorMonthlyReport(ownerId, from, to, staffFilter = 'all') {
     const owner = owners.find(o => o.f01_id == ownerId);
-    const investorCars = cars.filter(c => c.f10_owner_id == ownerId);
+    let investorCars = cars.filter(c => c.f10_owner_id == ownerId);
+
+    if (staffFilter !== 'all') {
+        investorCars = investorCars.filter(c => c.f14_staff_id == staffFilter);
+    }
     if (investorCars.length === 0) {
         document.getElementById('reportPreview').innerHTML = "❌ لا توجد سيارات مرتبطة بهذا المستثمر";
         return;
@@ -159,7 +174,13 @@ async function buildInvestorMonthlyReport(ownerId, from, to) {
     const netRemaining = (totalAmountCollected + otherRevenues) - (totalPaymentsToSuppliers + ownerWithdrawals);
 
     const dateObj = new Date(from);
-    const reportTitle = `خلاصة شهر ${dateObj.getMonth() + 1} لعام ${dateObj.getFullYear()} - (${owner.f02_owner_name})`;
+    let reportTitle = `خلاصة شهر ${dateObj.getMonth() + 1} لعام ${dateObj.getFullYear()} - (${owner.f02_owner_name})`;
+    
+    if (staffFilter !== 'all') {
+        const staffName = staff.find(s => s.f01_id == staffFilter)?.f02_name || '';
+        reportTitle += `<div style="font-size:0.9rem; font-weight:normal; margin-top:5px;">سيارات (${staffName})</div>`;
+    }
+
     const dateRange = `الفترة من ${from} إلى ${to}`;
 
     let html = `
@@ -224,45 +245,140 @@ async function buildInvestorMonthlyReport(ownerId, from, to) {
 // --- [1] كشف حساب سائق (Statement of Account) ---
 async function buildDriverSOA(driverId, from, to) {
     const driver = drivers.find(d => d.f01_id == driverId);
+    if (!driver) return;
 
+    // 1. Fetch data
     const [workRes, revRes, fineRes] = await Promise.all([
         _supabase.from('t08_work_days').select('*').eq('f04_driver_id', driverId).gte('f02_date', from).lte('f02_date', to),
         _supabase.from('t05_revenues').select('*').eq('f04_driver_id', driverId).gte('f02_date', from).lte('f02_date', to),
         _supabase.from('t09_fines_accidents').select('*').eq('f04_driver_id', driverId).gte('f02_date', from).lte('f02_date', to)
     ]);
 
-    const workDays = workRes.data || [];
-    const revenues = revRes.data || [];
-    const fines = fineRes.data || [];
+    const workRecords = workRes.data || [];
+    const revenueRecords = revRes.data || [];
+    const fineRecords = fineRes.data || [];
 
-    const totalWorkDebt = workDays.reduce((sum, d) => sum + parseFloat(d.f05_daily_amount), 0);
-    const totalPayments = revenues.reduce((sum, r) => sum + parseFloat(r.f06_amount), 0);
-    const totalFines = fines.reduce((sum, f) => sum + parseFloat(f.f05_amount), 0);
-    const balance = (totalWorkDebt + totalFines) - totalPayments;
+    const unmatchedRevs = revenueRecords.filter(r => !r.f10_work_day_link);
+    const totalUnmatched = unmatchedRevs.reduce((s, r) => s + parseFloat(r.f06_amount || 0), 0);
 
-    const reportTitle = `كشف حساب السائق: ${driver.f02_name}`;
-    const dateRange = `الفترة من ${from} إلى ${to}`;
+    // 2. Generate All Dates in Period
+    const dateList = [];
+    let current = new Date(from);
+    const endDate = new Date(to);
+    while (current <= endDate) {
+        dateList.push(current.toISOString().split('T')[0]);
+        current.setDate(current.getDate() + 1);
+    }
 
-    let tableHtml = `
-        <div class="report-stats-banner">
-            <div class="stat-box"><h4>إجمالي مديونية الضمان</h4><div class="val">${totalWorkDebt.toLocaleString()}</div></div>
-            <div class="stat-box"><h4>إجمالي المخالفات</h4><div class="val" style="color:var(--taxi-red)">${totalFines.toLocaleString()}</div></div>
-            <div class="stat-box"><h4>إجمالي المدفوعات</h4><div class="val" style="color:var(--taxi-green)">${totalPayments.toLocaleString()}</div></div>
-            <div class="stat-box"><h4>الرصيد النهائي (الذمة)</h4><div class="val" style="color:${balance > 0 ? 'var(--taxi-red)' : 'var(--taxi-green)'}">${balance.toLocaleString()}</div></div>
+    let totalDue = 0;
+    let totalPaid = 0;
+    let totalFines = fineRecords.reduce((s, f) => s + parseFloat(f.f05_amount || 0), 0);
+    let workingDaysCount = 0;
+
+    // 3. Build Table Rows (Primarily from Work Days)
+    let rowsHtml = '';
+    // We use dateList to ensure we show the whole period sequence as requested before
+    dateList.forEach(date => {
+        const dayWork = workRecords.find(w => w.f02_date === date);
+        // Only include revenues linked to this day OR unlinked revenues on this specific date
+        const dayRevs = revenueRecords.filter(r => {
+            if (r.f02_date !== date) return false;
+            if (!dayWork) return !r.f10_work_day_link; // If no work record, only show unlinked ones here
+            // If there is a work record, show linked ones + unlinked ones on same day
+            return true;
+        });
+        const dayFines = fineRecords.filter(f => f.f02_date === date);
+
+        const dueAmount = dayWork ? parseFloat(dayWork.f05_daily_amount || 0) : 0;
+        const paidAmount = dayRevs.reduce((s, r) => s + parseFloat(r.f06_amount || 0), 0);
+        const fineAmount = dayFines.reduce((s, f) => s + parseFloat(f.f05_amount || 0), 0);
+        
+        totalDue += dueAmount;
+        totalPaid += paidAmount;
+        if (dayWork && !dayWork.f06_is_off_day) workingDaysCount++;
+
+        const isOff = dayWork && dayWork.f06_is_off_day;
+        const isPaid = paidAmount >= dueAmount && dueAmount > 0;
+        const isBroken = dueAmount > 0 && paidAmount < dueAmount;
+
+        let statusText = '---';
+        let statusStyle = '';
+        if (isOff) { statusText = 'توقف'; statusStyle = 'color:#777;'; }
+        else if (isPaid) { statusText = 'مدفوع ✅'; statusStyle = 'color:#27ae60; font-weight:bold;'; }
+        else if (isBroken) { statusText = 'مكسور 🔴'; statusStyle = 'color:#e74c3c; font-weight:bold;'; }
+        else if (!dayWork && paidAmount > 0) { statusText = 'دفعة فقط'; statusStyle = 'color:#3498db;'; }
+
+        const dayName = new Date(date).toLocaleDateString('ar-JO', { weekday: 'long' });
+
+        rowsHtml += `
+            <tr>
+                <td style="font-weight:700;">
+                    <div style="font-size:0.7rem; color:var(--taxi-gold);">${dayName}</div>
+                    <div>${date}</div>
+                </td>
+                <td>${dayWork ? 'ضمان يومي' : (paidAmount > 0 ? 'دفعة خارجية' : 'يوم غياب')}</td>
+                <td class="amount-cell">${dueAmount.toLocaleString()}</td>
+                <td class="amount-cell" style="color:#27ae60;">${paidAmount.toLocaleString()}</td>
+                <td class="amount-cell" style="color:#e74c3c;">${fineAmount > 0 ? fineAmount.toLocaleString() : ''}</td>
+                <td style="${statusStyle}">${statusText}</td>
+            </tr>
+        `;
+    });
+
+    const netBalance = (totalDue + totalFines) - totalPaid;
+
+    let html = `
+        <div class="report-stats-banner" style="grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 40px;">
+            <div class="stat-box" style="border-top: 5px solid #3498db; padding: 15px;">
+                <h4 style="font-size:0.75rem; font-weight:bold; color:#555;">إجمالي ضمان الفترة</h4>
+                <div class="val" style="font-size: 1.6rem; font-weight: 900; color: #3498db;">${totalDue.toLocaleString()}</div>
+            </div>
+            <div class="stat-box" style="border-top: 5px solid #27ae60; padding: 15px;">
+                <h4 style="font-size:0.75rem; font-weight:bold; color:#555;">إجمالي المسدد</h4>
+                <div class="val" style="font-size: 1.6rem; font-weight: 900; color: #27ae60;">${totalPaid.toLocaleString()}</div>
+            </div>
+            <div class="stat-box" style="border-top: 5px solid #9b59b6; padding: 15px;">
+                <h4 style="font-size:0.75rem; font-weight:bold; color:#555;">سداد بدون مطابقة</h4>
+                <div class="val" style="font-size: 1.6rem; font-weight: 900; color: #9b59b6;">${totalUnmatched.toLocaleString()}</div>
+            </div>
+            <div class="stat-box" style="border-top: 5px solid #e67e22; padding: 15px;">
+                <h4 style="font-size:0.75rem; font-weight:bold; color:#555;">عدد أيام العمل</h4>
+                <div class="val" style="font-size: 1.6rem; font-weight: 900; color: #e67e22;">${workingDaysCount} <small style="font-size:0.8rem; font-weight:normal;">يوم</small></div>
+            </div>
+            <div class="stat-box" style="border-top: 5px solid #e74c3c; background: #fff8f8; padding: 15px;">
+                <h4 style="font-size:0.75rem; font-weight:bold; color:#c0392b;">الذمة المتبقية</h4>
+                <div class="val" style="font-size: 1.6rem; font-weight: 900; color: #e74c3c;">${netBalance.toLocaleString()}</div>
+            </div>
         </div>
         <table class="report-table">
             <thead>
-                <tr><th>التاريخ</th><th>البيان / النوع</th><th>السيارة</th><th>مدين (+)</th><th>دائن (-)</th><th>الحالة</th></tr>
+                <tr>
+                    <th>التاريخ واليوم</th>
+                    <th>البيان</th>
+                    <th>المستحق (+)</th>
+                    <th>المسدد (-)</th>
+                    <th>المخالفات (+)</th>
+                    <th>الحالة</th>
+                </tr>
             </thead>
             <tbody>
-                ${workDays.map(d => `<tr><td>${d.f02_date}</td><td>ضمان يومي</td><td>${window.formatJordanPlate(d.f03_car_no, true)}</td><td class="amount-cell">${d.f05_daily_amount}</td><td>0</td><td>${d.f06_is_off_day ? 'توقف' : 'مستحق'}</td></tr>`).join('')}
-                ${fines.map(f => `<tr><td>${f.f02_date}</td><td>⚠️ ${f.f06_type}</td><td>${window.formatJordanPlate(f.f03_car_no, true)}</td><td class="amount-cell">${f.f05_amount}</td><td>0</td><td>${f.f07_status}</td></tr>`).join('')}
-                ${revenues.map(r => `<tr><td>${r.f02_date}</td><td>💰 دفعة نقدية (${r.f07_method})</td><td>${window.formatJordanPlate(r.f03_car_no, true)}</td><td>0</td><td class="amount-cell">${r.f06_amount}</td><td>محصل</td></tr>`).join('')}
+                ${rowsHtml}
             </tbody>
+            <tfoot>
+                <tr style="background:#f9f9f9; font-weight:900;">
+                    <td colspan="2">المجموع الكلي</td>
+                    <td>${totalDue.toLocaleString()}</td>
+                    <td style="color:#27ae60;">${totalPaid.toLocaleString()}</td>
+                    <td style="color:#e74c3c;">${totalFines.toLocaleString()}</td>
+                    <td style="font-size:1.2rem; color:${netBalance > 0 ? '#e74c3c' : '#27ae60'}">${netBalance.toLocaleString()}</td>
+                </tr>
+            </tfoot>
         </table>
     `;
 
-    updateUIAndPrint(reportTitle, dateRange, tableHtml);
+    const reportTitle = `كشف حساب السائق: ${driver.f02_name}`;
+    const dateRange = `الفترة من ${from} إلى ${to}`;
+    updateUIAndPrint(reportTitle, dateRange, html);
 }
 
 // --- [2] مخلص مالي عام (Financial Summary) ---
@@ -432,7 +548,7 @@ function updateUIAndPrint(title, range, html) {
         ${html}
     `;
 
-    document.getElementById('print_report_title').innerText = title;
+    document.getElementById('print_report_title').innerHTML = title;
     document.getElementById('print_date_range').innerText = range;
     document.getElementById('print_content').innerHTML = html;
     document.getElementById('print_date').innerText = new Date().toLocaleDateString('ar-EG');

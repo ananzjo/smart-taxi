@@ -1,6 +1,6 @@
 /* مأخوذ من دستور revenues.css */
-.main-container { padding: 30px; max-width: 1400px; margin: 0 auto; font-family: 'Segoe UI', sans-serif; }
-.elegant-card { background: #fff; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.07); margin-bottom: 30px; border: 1px solid #efefef; overflow: hidden; }
+.main-container { padding: 30px; max-width: 1600px; width: 95%; margin: 0 auto; font-family: 'Segoe UI', sans-serif; }
+.elegant-card { background: #fff; border-radius: 12px; box-shadow: 0 5px 35px rgba(0,0,0,0.1); margin-bottom: 30px; border: 1px solid #efefef; overflow: hidden; }
 .card-header { background: #121212; color: #f1c40f; padding: 18px 25px; font-weight: bold; font-size: 1rem; }
 
 .taxi-form { padding: 30px; }
@@ -24,4 +24,32 @@ td { padding: 12px; text-align: center; border-bottom: 1px solid #eee; font-size
 .delete-btn:hover { transform: scale(1.5); filter: hue-rotate(190deg); }
 
 .excel-controls { padding: 20px; display: flex; justify-content: space-between; align-items: center; background: #fafafa; }
-#excelSearch { padding: 10px; border: 1px solid #ddd; border-radius: 20px; width: 300px; }
+#excelSearch { padding: 10px; border: 1px solid #ddd; border-radius: 20px; width: 300px; }/* === Checklist Wrapper Styles === */
+.checklist-wrapper {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    max-height: 250px;
+    overflow-y: auto;
+    padding: 10px;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+}
+.checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.checklist-item:hover { background: #fffdf0; border-color: var(--taxi-gold); }
+.checklist-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--taxi-gold); }
+.item-details { display: flex; flex-direction: column; gap: 2px; }
+.item-date { font-size: 0.85rem; font-weight: 600; color: #333; }
+.item-amount { font-size: 0.75rem; color: #777; }
+.total-badge { background: var(--taxi-gold); color: #121212; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; cursor: pointer; }
+.placeholder-text { color: #aaa; font-size: 0.85rem; text-align: center; width: 100%; grid-column: 1 / -1; padding: 20px; }

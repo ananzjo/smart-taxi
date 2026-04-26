@@ -96,9 +96,13 @@ function renderTable() {
             <tbody>
                 ${filteredRecords.map(r => {
                     const statusClass = r.f07_status === 'Paid' ? 'badge-paid' : (r.f07_status === 'Pending' ? 'badge-pending' : 'badge-off');
+                    const dayName = new Date(r.f02_date).toLocaleDateString('ar-JO', { weekday: 'long' });
                     return `
                         <tr>
-                            <td>${r.f02_date}</td>
+                            <td style="font-weight:700;">
+                                <div style="font-size:0.75rem; color:var(--taxi-gold);">${dayName}</div>
+                                <div>${r.f02_date}</div>
+                            </td>
                             <td>${window.formatJordanPlate(r.f03_car_no, true)}</td>
                             <td>${r.t02_drivers ? r.t02_drivers.f02_name : '---'}</td>
                             <td>${r.f06_type}</td>

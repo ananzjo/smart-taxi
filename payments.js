@@ -13,16 +13,14 @@ async function initPaymentPage() {
     }
     await fillCarDropdown();
     await loadPaymentsData();
+    initTableControls();
     syncPayerField();
     
-    // ربط اختيار السيارة بتحميل المصاريف والاختيار التلقائي
+    // ربط اختيار السيارة بتحميل المصاريف
     const carSelect = document.getElementById('f05_car_no');
     if (carSelect) {
         carSelect.addEventListener('change', (e) => {
             loadPendingExpenses(e.target.value);
-            // Although payments doesn't have a direct driver field, 
-            // the user might want a recipient or other field auto-filled.
-            // For now, let's keep it to matching expenses.
         });
     }
 
@@ -31,9 +29,13 @@ async function initPaymentPage() {
     if(form) {
         form.onsubmit = async (e) => {
             e.preventDefault();
-            safeSubmit(async () => {
+            if (window.safeSubmit) {
+                await window.safeSubmit(async () => {
+                    await savePaymentData();
+                });
+            } else {
                 await savePaymentData();
-            });
+            }
         };
     }
 }
@@ -49,26 +51,82 @@ async function fillCarDropdown() {
 }
 
 // [3] مطابقة ذكية: جلب مصاريف السيارة المختارة (غير المدفوعة)
-async function loadPendingExpenses(carNo, selectedIds = []) {
-    const expenseSelect = document.getElementById('f06_expense_link');
-    if (expenseSelect) {
-        expenseSelect.innerHTML = '<option value="">-- اختر مصروف للمطابقة --</option>';
-        expenseSelect.multiple = true;
+async function loadPendingExpenses(carNo, editingLinkedIds = []) {
+    const checklist = document.getElementById('expense_checklist');
+    const group = document.getElementById('expenseGroup');
+
+    if (!checklist) return;
+
+    if (!carNo) {
+        checklist.innerHTML = '<p class="placeholder-text">يرجى اختيار السيارة أولاً لعرض المصاريف...</p>';
+        if (group) group.style.display = 'none';
+        return;
     }
-    if (!carNo) return;
 
-    // جلب المصاريف المرتبطة بالسيارة من جدول t06
-    const { data } = await _supabase.from('t06_expenses')
-      .select('f01_id, f05_expense_type, f07_amount, f02_date, f10_status')
-      .eq('f03_car_no', carNo);
+    if (group) group.style.display = 'block';
 
-    if (data && expenseSelect) {
-        // فلترة: إظهار المصاريف غير المدفوعة فقط، أو المصاريف المحددة مسبقاً في هذه الدفعة
-        const filteredData = data.filter(e => e.f10_status !== 'Paid|مدفوع' || selectedIds.includes(e.f01_id));
-        
-        expenseSelect.innerHTML += filteredData.map(e => 
-            `<option value="${e.f01_id}" data-amount="${e.f07_amount}">${e.f02_date} | ${e.f05_expense_type} (${e.f07_amount} د.أ)</option>`
-        ).join('');
+    try {
+        const { data: allCarExpenses } = await _supabase.from('t06_expenses')
+            .select('f01_id, f05_expense_type, f07_amount, f02_date, f10_status')
+            .eq('f03_car_no', carNo)
+            .order('f02_date', { ascending: false });
+
+        let relevantExpenses = [];
+        const linkedSet = new Set(editingLinkedIds || []);
+
+        if (linkedSet.size > 0) {
+            relevantExpenses = (allCarExpenses || []).filter(e => linkedSet.has(e.f01_id));
+        } else {
+            relevantExpenses = (allCarExpenses || []).filter(e => e.f10_status !== 'Paid|مدفوع');
+        }
+
+        if (relevantExpenses.length === 0) {
+            checklist.innerHTML = '<p class="placeholder-text">✅ لا توجد مصاريف معلقة لهذه السيارة.</p>';
+            return;
+        }
+
+        let html = '';
+        relevantExpenses.forEach(exp => {
+            const dayName = new Date(exp.f02_date).toLocaleDateString('ar-JO', { weekday: 'long' });
+            const isChecked = linkedSet.has(exp.f01_id) ? 'checked' : '';
+
+            html += `
+                <label class="checklist-item">
+                    <input type="checkbox" value="${exp.f01_id}" data-amount="${exp.f07_amount}" ${isChecked} onchange="calculatePaymentChecklistTotal()">
+                    <span class="item-details">
+                        <span class="item-day-name" style="font-size:0.75rem; color:var(--taxi-gold); display:block;">${dayName}</span>
+                        <span class="item-date">${exp.f02_date} | ${exp.f05_expense_type}</span>
+                        <span class="item-amount">(${exp.f07_amount} د.أ)</span>
+                    </span>
+                </label>
+            `;
+        });
+        checklist.innerHTML = html;
+        calculatePaymentChecklistTotal();
+
+    } catch (err) {
+        checklist.innerHTML = '<p class="placeholder-text" style="color:red;">❌ فشل تحميل المصاريف.</p>';
+    }
+}
+
+function calculatePaymentChecklistTotal() {
+    const checklist = document.getElementById('expense_checklist');
+    const checkboxes = checklist.querySelectorAll('input[type="checkbox"]:checked');
+    let total = 0;
+    checkboxes.forEach(cb => {
+        total += parseFloat(cb.dataset.amount || 0);
+    });
+
+    const badge = document.getElementById('selectedExpenseTotal');
+    if (badge) {
+        badge.innerText = checkboxes.length > 0 ? `(المجموع: ${total} د.أ - تطبيق؟)` : '';
+        badge.style.display = checkboxes.length > 0 ? 'inline-block' : 'none';
+        badge.onclick = () => {
+            const amountInput = document.getElementById('f04_amount');
+            if (amountInput) {
+                amountInput.value = total;
+            }
+        };
     }
 }
 
@@ -79,6 +137,7 @@ async function loadPaymentsData() {
         allPayments = data;
         filteredPayments = [...data];
         renderTable();
+        initTableControls();
     }
 }
 
@@ -96,8 +155,12 @@ function renderTable() {
     </tr></thead><tbody>`;
 
     data.forEach(item => {
+        const dayName = new Date(item.f02_date).toLocaleDateString('ar-JO', { weekday: 'long' });
         html += `<tr>
-            <td>${item.f02_date}</td>
+            <td style="font-weight:700;">
+                <div style="font-size:0.75rem; color:var(--taxi-gold);">${dayName}</div>
+                <div>${item.f02_date}</div>
+            </td>
             <td>${item.f03_type}</td>
             <td>${item.f05_car_no ? window.formatJordanPlate(item.f05_car_no, true) : '-'}</td>
             <td style="font-weight:bold;">${item.f04_amount}</td>
@@ -116,30 +179,36 @@ function renderTable() {
     document.getElementById('tableContainer').innerHTML = html;
 }
 
-function editRecord(id) {
+async function editRecord(id) {
     const item = allPayments.find(p => p.f01_id === id);
     if (!item) return;
 
-    // تعبئة كل الحقول التي تبدأ بـ f وتطابق أسماء الأعمدة
     Object.keys(item).forEach(key => {
         const input = document.getElementById(key);
-        if (input) input.value = item[key];
+        if (input && key !== 'f06_expense_link') {
+            input.value = Array.isArray(item[key]) ? item[key][0] : item[key];
+        }
     });
     
-    // إذا كانت السيارة مختارة، يجب تحميل قائمة المصاريف المرتبطة بها
-    if(item.f05_car_no) {
-        let selectedIds = [];
-        if (item.f06_expense_link) {
-            try { selectedIds = JSON.parse(item.f06_expense_link); } catch(e){}
-        }
-        loadPendingExpenses(item.f05_car_no, selectedIds).then(() => {
-            const expenseSelect = document.getElementById('f06_expense_link');
-            if (expenseSelect) {
-                Array.from(expenseSelect.options).forEach(opt => {
-                    if (selectedIds.includes(opt.value)) opt.selected = true;
-                });
+    let selectedIds = [];
+    const link = item.f06_expense_link;
+    if (link) {
+        if (Array.isArray(link)) {
+            selectedIds = link;
+        } else if (typeof link === 'string') {
+            if (link.startsWith('[') || link.startsWith('{')) {
+                try { selectedIds = JSON.parse(link); } catch(e){ selectedIds = [link]; }
+            } else {
+                selectedIds = [link];
             }
-        });
+        }
+    }
+
+    if (item.f05_car_no) {
+        await loadPendingExpenses(item.f05_car_no, selectedIds);
+    } else {
+        const group = document.getElementById('expenseGroup');
+        if (group) group.style.display = 'none';
     }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -149,27 +218,32 @@ window.viewPayment = function(id) {
     const item = allPayments.find(p => p.f01_id === id);
     if (!item) return;
     const viewData = { ...item };
-    // Expand expense links cleanly if needed, or just let them display raw. 
     window.showViewModal(viewData, "تفاصيل الدفعة | Payment Info");
 };
 
-// [6] دالة الحذف (باستخدام المودال المخصص)
 function deleteRecord(id) {
     window.showModal("تنبيه الحذف", "هل أنت متأكد من حذف هذه الدفعة؟ لا يمكن التراجع!", "danger", async () => {
-        // Fetch the payment to see linked expenses before deleting
-        const { data: oldPayment } = await _supabase.from('t07_payments').select('f06_expense_link').eq('f01_id', id).single();
+        const { data: oldPayment } = await _supabase.from('t07_payments').select('f06_expense_link').eq('f01_id', id).maybeSingle();
         let linkedIds = [];
-        if (oldPayment && oldPayment.f06_expense_link) {
-            try { linkedIds = JSON.parse(oldPayment.f06_expense_link); } catch(e){}
+        const link = oldPayment ? oldPayment.f06_expense_link : null;
+        if (link) {
+            if (Array.isArray(link)) {
+                linkedIds = link;
+            } else if (typeof link === 'string') {
+                if (link.startsWith('[') || link.startsWith('{')) {
+                    try { linkedIds = JSON.parse(link); } catch(e){ linkedIds = [link]; }
+                } else {
+                    linkedIds = [link];
+                }
+            }
         }
 
         const { error } = await _supabase.from('t07_payments').delete().eq('f01_id', id);
         if (!error) {
-            // Revert linked expenses to Pending
             if (linkedIds.length > 0) {
                 await _supabase.from('t06_expenses').update({ f10_status: 'Pending|معلق' }).in('f01_id', linkedIds);
             }
-            window.showModal("نجاح", "تم الحذف بنجاح", "success");
+            if (window.showToast) window.showToast("تم الحذف بنجاح", "success");
             loadPaymentsData();
         } else {
             window.showModal("خطأ", "فشل الحذف: " + error.message, "error");
@@ -179,71 +253,109 @@ function deleteRecord(id) {
 
 // [7] الحفظ والتحديث
 async function savePaymentData() {
-    const id = document.getElementById('f01_id').value;
-    const isReconciled = document.getElementById('f06_expense_link').value !== "";
+    const idEl = document.getElementById('f01_id');
+    const id = idEl ? idEl.value : "";
     
-    const expenseSelect = document.getElementById('f06_expense_link');
-    const selectedOptions = Array.from(expenseSelect.selectedOptions).filter(o => o.value !== "");
-    const selectedIds = selectedOptions.map(o => o.value);
-    const totalDue = selectedOptions.reduce((sum, o) => sum + parseFloat(o.dataset.amount || 0), 0);
-    const paymentAmount = parseFloat(document.getElementById('f04_amount').value);
+    const checklist = document.getElementById('expense_checklist');
+    const checkboxes = checklist ? checklist.querySelectorAll('input[type="checkbox"]:checked') : [];
+    const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+    const totalDue = Array.from(checkboxes).reduce((sum, cb) => sum + parseFloat(cb.dataset.amount || 0), 0);
+    
+    const amountEl = document.getElementById('f04_amount');
+    const paymentAmount = amountEl ? parseFloat(amountEl.value) : 0;
+
+    if (!paymentAmount || paymentAmount <= 0) {
+        return window.showModal('تنبيه', 'يرجى إدخال مبلغ صحيح', 'warning');
+    }
+
     if (selectedIds.length > 0 && paymentAmount < totalDue) {
         return window.showModal('خطأ في العملية', `المبلغ المدفوع (${paymentAmount}) أقل من مجموع المستحقات (${totalDue}). يرجى تعديل المبلغ أو اختيار مستحقات أقل.`, 'error');
     }
+
     const payload = {
         f02_date: document.getElementById('f02_date').value,
         f03_type: document.getElementById('f03_type').value,
         f04_amount: paymentAmount,
         f05_car_no: document.getElementById('f05_car_no').value || null,
-        f06_expense_link: selectedIds.length ? JSON.stringify(selectedIds) : null,
+        f06_expense_link: selectedIds.length > 0 ? selectedIds : null,
         f07_method: document.getElementById('f07_method').value,
         f08_payer: document.getElementById('f08_payer').value || null,
         f09_recipient: document.getElementById('f09_recipient').value || null,
-        f10_reference: document.getElementById('f10_reference') ? document.getElementById('f10_reference').value : null,
+        f10_reference: document.getElementById('f10_reference') ? [document.getElementById('f10_reference').value] : null,
         f11_is_reconciled: selectedIds.length > 0,
         f13_notes: document.getElementById('f13_notes').value || null
     };
 
     let oldExpenseIds = [];
-    let res;
-    if (id) {
-        // Fetch old payment record to see if we unlinked any expenses
-        const { data: oldPayment } = await _supabase.from('t07_payments').select('f06_expense_link').eq('f01_id', id).single();
-        if (oldPayment && oldPayment.f06_expense_link) {
-            try { oldExpenseIds = JSON.parse(oldPayment.f06_expense_link); } catch(e){}
+    
+    try {
+        if (id) {
+            const { data: oldPayment } = await _supabase.from('t07_payments').select('f06_expense_link').eq('f01_id', id).maybeSingle();
+            const link = oldPayment ? oldPayment.f06_expense_link : null;
+            if (link) {
+                if (Array.isArray(link)) {
+                    oldExpenseIds = link;
+                } else if (typeof link === 'string') {
+                    if (link.startsWith('[') || link.startsWith('{')) {
+                        try { oldExpenseIds = JSON.parse(link); } catch(e){ oldExpenseIds = [link]; }
+                    } else {
+                        oldExpenseIds = [link];
+                    }
+                }
+            }
+            const updateRes = await _supabase.from('t07_payments').update(payload).eq('f01_id', id);
+            if (updateRes.error) throw updateRes.error;
+        } else {
+            const insertRes = await _supabase.from('t07_payments').insert([payload]);
+            if (insertRes.error) throw insertRes.error;
         }
-        res = await _supabase.from('t07_payments').update(payload).eq('f01_id', id);
-    } else {
-        res = await _supabase.from('t07_payments').insert([payload]);
+
+        // Update expenses
+        if (selectedIds.length > 0) {
+            await _supabase.from('t06_expenses').update({ f10_status: 'Paid|مدفوع' }).in('f01_id', selectedIds);
+        }
+
+        const unlinkedIds = oldExpenseIds.filter(oldId => !selectedIds.includes(oldId));
+        if (unlinkedIds.length > 0) {
+            await _supabase.from('t06_expenses').update({ f10_status: 'Pending|معلق' }).in('f01_id', unlinkedIds);
+        }
+
+        if (window.showToast) window.showToast("تم الحفظ بنجاح", "success");
+        resetFieldsOnly();
+        loadPaymentsData();
+    } catch (err) {
+        console.error("Save Error:", err);
+        if (window.showToast) window.showToast("خطأ: " + (err.message || "فشل حفظ البيانات"), "error");
+        throw err;
     }
-
-    if (res.error) throw res.error;
-
-    // Update newly linked expenses to 'Paid|مدفوع'
-    if (selectedIds.length > 0) {
-        await _supabase.from('t06_expenses').update({ f10_status: 'Paid|مدفوع' }).in('f01_id', selectedIds);
-    }
-
-    // Revert unlinked expenses back to 'Pending|معلق'
-    const unlinkedIds = oldExpenseIds.filter(oldId => !selectedIds.includes(oldId));
-    if (unlinkedIds.length > 0) {
-        await _supabase.from('t06_expenses').update({ f10_status: 'Pending|معلق' }).in('f01_id', unlinkedIds);
-    }
-
-    showToast("تمت العملية بنجاح", "success");
-    resetFieldsOnly();
-    loadPaymentsData();
 }
 
 function syncPayerField() {
     const user = sessionStorage.getItem('full_name_ar');
-    if(user) document.getElementById('f08_payer').value = user;
+    if(user) {
+        const payerEl = document.getElementById('f08_payer');
+        if (payerEl) payerEl.value = user;
+    }
 }
 
 function resetFieldsOnly() {
-    document.getElementById('paymentForm').reset();
-    document.getElementById('f01_id').value = "";
-    document.getElementById('f02_date').valueAsDate = new Date();
+    const form = document.getElementById('paymentForm');
+    if (form) form.reset();
+    
+    const idEl = document.getElementById('f01_id');
+    if (idEl) idEl.value = "";
+    
+    const dateEl = document.getElementById('f02_date');
+    if (dateEl) {
+        dateEl.value = new Date().toISOString().split('T')[0];
+    }
+    
+    const checklist = document.getElementById('expense_checklist');
+    if (checklist) checklist.innerHTML = '<p class="placeholder-text">يرجى اختيار السيارة أولاً لعرض المصاريف...</p>';
+    
+    const group = document.getElementById('expenseGroup');
+    if (group) group.style.display = 'none';
+
     syncPayerField();
 }
 
@@ -252,13 +364,29 @@ function confirmReset() {
 }
 
 function excelFilter() {
-    const val = document.getElementById('excelSearch').value.toLowerCase();
+    const searchInput = document.getElementById('excelSearch');
+    const val = searchInput ? searchInput.value.toLowerCase() : '';
     filteredPayments = allPayments.filter(p => 
         (p.f03_type && p.f03_type.toLowerCase().includes(val)) || 
         (p.f05_car_no && p.f05_car_no.toLowerCase().includes(val)) ||
         (p.f09_recipient && p.f09_recipient.toLowerCase().includes(val))
     );
     renderTable();
+}
+
+function initTableControls() {
+    const placeholder = document.getElementById('tableControlsPlaceholder');
+    if (placeholder) {
+        placeholder.innerHTML = `
+            <div class="table-header-controls">
+                <div class="record-badge">إجمالي السجلات: <span id="count">${allPayments.length}</span></div>
+                <div class="global-search-wrapper">
+                    <input type="text" id="excelSearch" class="global-search-input" placeholder="بحث سريع في المدفوعات..." onkeyup="excelFilter()">
+                    <span class="search-icon" style="position:absolute; left:12px; top:50%; transform:translateY(-50%);">🔍</span>
+                </div>
+            </div>
+        `;
+    }
 }
 
 function sortData(col) {
@@ -272,12 +400,6 @@ function sortData(col) {
     filteredPayments.sort((a, b) => {
         let vA = a[col] || '';
         let vB = b[col] || '';
-        
-        if (!isNaN(vA) && !isNaN(vB) && vA !== "" && vB !== "") {
-            vA = parseFloat(vA);
-            vB = parseFloat(vB);
-        }
-
         if (vA < vB) return currentSort.asc ? -1 : 1;
         if (vA > vB) return currentSort.asc ? 1 : -1;
         return 0;

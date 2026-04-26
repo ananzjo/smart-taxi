@@ -296,6 +296,7 @@ const globalLabels = {
     f10_owner_id: 'المالك | Owner',
     f11_is_active: 'الحالة | Status',
     f13_fuel_type: 'الوقود | Fuel',
+    f10_work_day_link: 'الأيام المسددة | Settle Days',
     f02_name: 'الاسم | Name',
     f03_national_no: 'الرقم الوطني | National ID',
     f04_mobile: 'الهاتف | Mobile',
@@ -376,12 +377,12 @@ window.smartAutoSelect = {
         if (!driverEl) return;
 
         // Find driver assigned to this car via t02_drivers.f08_car_no
-        const { data, error } = await _supabase.from('t02_drivers')
+        const { data } = await _supabase.from('t02_drivers')
             .select('f01_id, f02_name')
             .eq('f08_car_no', carNo)
             .maybeSingle();
 
-        if (data && data.f01_id) {
+        if (data && data.f01_id && driverEl.value !== data.f01_id) {
             driverEl.value = data.f01_id;
             driverEl.dispatchEvent(new Event('change'));
         }
@@ -391,16 +392,28 @@ window.smartAutoSelect = {
         const carEl = document.getElementById(carFieldId);
         if (!carEl) return;
 
-        const { data, error } = await _supabase.from('t02_drivers')
+        const { data } = await _supabase.from('t02_drivers')
             .select('f08_car_no')
             .eq('f01_id', driverId)
             .maybeSingle();
 
-        if (data && data.f08_car_no) {
+        if (data && data.f08_car_no && carEl.value !== data.f08_car_no) {
             carEl.value = data.f08_car_no;
             carEl.dispatchEvent(new Event('change'));
         }
     }
+};
+
+window.fillOptions = function(elementId, data, valKey, txtKey, placeholder) {
+    const select = document.getElementById(elementId);
+    if (!select) return;
+    let html = `<option value="">${placeholder}</option>`;
+    if (data && Array.isArray(data)) {
+        data.forEach(item => {
+            html += `<option value="${item[valKey]}">${item[txtKey]}</option>`;
+        });
+    }
+    select.innerHTML = html;
 };
 
 window.bootSystem = bootSystem;

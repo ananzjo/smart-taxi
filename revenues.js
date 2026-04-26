@@ -109,10 +109,14 @@ function renderTable() {
     filteredRevenues.forEach(row => {
         const driverName = driversList.find(d => d.f01_id === row.f04_driver_id)?.f02_name || '---';
         const staffName = staffList.find(s => s.f01_id === row.f08_collector_id)?.f02_name || '---';
+        const dayName = new Date(row.f02_date).toLocaleDateString('ar-JO', { weekday: 'long' });
 
         html += `
             <tr>
-                <td>${row.f02_date}</td>
+                <td style="font-weight:700;">
+                    <div style="font-size:0.75rem; color:var(--taxi-gold);">${dayName}</div>
+                    <div>${row.f02_date}</div>
+                </td>
                 <td>${window.formatJordanPlate(row.f03_car_no, true)}</td>
                 <td>${driverName}</td>
                 <td>${row.f05_category}</td>
@@ -136,49 +140,92 @@ function renderTable() {
 
 // --- [4] العمليات ---
 
-function editRevenue(id) {
+async function editRevenue(id) {
     const record = allRevenues.find(r => r.f01_id === id);
     if (!record) return;
 
     document.getElementById('f01_id').value = record.f01_id;
     document.getElementById('f02_date').value = record.f02_date;
     document.getElementById('f03_car_no').value = record.f03_car_no;
+    
+    // Parse linked IDs
+    let linkedIds = [];
+    if (record.f10_work_day_link) {
+        try { linkedIds = JSON.parse(record.f10_work_day_link); } catch(e) {}
+    }
+
+    // Trigger checklist update and wait for it
+    await updateWorkDayDues(record.f03_car_no, record.f01_id, linkedIds);
+
     document.getElementById('f04_driver_id').value = record.f04_driver_id;
     document.getElementById('f05_category').value = record.f05_category;
+    
+    // Show/Hide matching section based on category
+    const group = document.getElementById('workDayGroup');
+    if (group) {
+        group.style.display = (record.f05_category === 'ضمان يومي') ? 'block' : 'none';
+    }
     document.getElementById('f06_amount').value = record.f06_amount;
     document.getElementById('f07_method').value = record.f07_method;
     document.getElementById('f08_collector_id').value = record.f08_collector_id || "";
     document.getElementById('f09_notes').value = record.f09_notes || "";
-    const workDaySelect = document.getElementById('f10_work_day_link');
-    if (workDaySelect && record.f10_work_day_link) {
+
+    // After checklist is updated, check the linked days
+    if (record.f10_work_day_link) {
         try {
             const ids = JSON.parse(record.f10_work_day_link);
-            Array.from(workDaySelect.options).forEach(opt => {
-                opt.selected = ids.includes(opt.value);
-            });
-        } catch (e) { /* ignore */ }
+            const workDayChecklist = document.getElementById('work_day_checklist');
+            if (workDayChecklist) {
+                workDayChecklist.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                    cb.checked = ids.includes(cb.value);
+                });
+                calculateChecklistTotal();
+            }
+        } catch (e) { }
     }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function viewRevenue(id) {
+
+
+/**
+ * دالة مساعدة لتجميل البيانات قبل العرض أو الطباعة
+ * تحول الـ UUIDs إلى أسماء وتواريخ
+ */
+async function getEnhancedData(record) {
+    const data = { ...record };
+    data.f04_driver_id = driversList.find(d => d.f01_id === record.f04_driver_id)?.f02_name || record.f04_driver_id || '---';
+    data.f08_collector_id = staffList.find(s => s.f01_id === record.f08_collector_id)?.f02_name || record.f08_collector_id || '---';
+
+    if (record.f10_work_day_link) {
+        try {
+            const ids = JSON.parse(record.f10_work_day_link);
+            if (Array.isArray(ids) && ids.length > 0) {
+                const { data: days } = await _supabase.from('t08_work_days').select('f02_date').in('f01_id', ids);
+                if (days && days.length > 0) {
+                    data.f10_work_day_link = days.map(d => d.f02_date).join(' , ');
+                }
+            }
+        } catch (e) {}
+    }
+    return data;
+}
+
+async function viewRevenue(id) {
     const record = allRevenues.find(r => r.f01_id === id);
     if (!record) return;
-
-    // Enhance data with names instead of UUIDs
-    const viewData = { ...record };
-    viewData.f04_driver_id = driversList.find(d => d.f01_id === record.f04_driver_id)?.f02_name || record.f04_driver_id || '---';
-    viewData.f08_collector_id = staffList.find(s => s.f01_id === record.f08_collector_id)?.f02_name || record.f08_collector_id || '---';
-
+    const viewData = await getEnhancedData(record);
     window.showViewModal(viewData, "تفاصيل الإيراد | Revenue Details");
 }
+
 async function printRevenue(id) {
     const record = allRevenues.find(r => r.f01_id === id);
     if (!record) return;
 
-    const driverName = driversList.find(d => d.f01_id === record.f04_driver_id)?.f02_name || '---';
-    const staffName = staffList.find(s => s.f01_id === record.f08_collector_id)?.f02_name || '---';
+    const viewData = await getEnhancedData(record);
+    const driverName = viewData.f04_driver_id;
+    const staffName = viewData.f08_collector_id;
     const printArea = document.getElementById('printReceiptSection');
 
     if (!printArea) return;
@@ -209,7 +256,11 @@ async function printRevenue(id) {
             </div>
             <div class="v-row">
                 <span class="v-lbl">وذلك عن:</span>
-                <span class="v-val">${record.f05_category} ${record.f09_notes ? ` - ${record.f09_notes}` : ''}</span>
+                <span class="v-val">
+                    ${record.f05_category} 
+                    ${record.f10_work_day_link ? ` (أيام: ${viewData.f10_work_day_link})` : ''}
+                    ${record.f09_notes ? ` - ${record.f09_notes}` : ''}
+                </span>
             </div>
             <div class="v-row">
                 <span class="v-lbl">طريقة الدفع:</span>
@@ -250,15 +301,6 @@ async function deleteRevenue(id) {
     if (!error) await fetchRevenuesData();
 }
 
-function fillOptions(elementId, data, valKey, txtKey, placeholder) {
-    const select = document.getElementById(elementId);
-    if (!select) return;
-    let html = `<option value="">${placeholder}</option>`;
-    data.forEach(item => {
-        html += `<option value="${item[valKey]}">${item[txtKey]}</option>`;
-    });
-    select.innerHTML = html;
-}
 
 // --- [5] حفظ وتحديث البيانات ---
 function setupFormListener() {
@@ -297,66 +339,159 @@ function setupFormListener() {
 }
 
 /**
- * جلب سجلات الضمان المتاحة لمطابقتها مع الإيراد
+ * جلب سجلات الضمان المتاحة لمطابقتها مع الإيراد وتحويلها لقائمة خيارات (Checklist)
  */
-async function updateWorkDayDues() {
-    const carNo = document.getElementById('f03_car_no').value;
-    const driverId = document.getElementById('f04_driver_id').value;
-    const matchSel = document.getElementById('f10_work_day_link');
+let lastFetchedCar = ""; 
+async function updateWorkDayDues(forceCarNo = null, editingRevenueId = null, editingLinkedIds = []) {
+    const carNo = forceCarNo || document.getElementById('f03_car_no').value;
+    const checklist = document.getElementById('work_day_checklist');
 
-    if (!matchSel) return;
+    if (!checklist) return;
     if (!carNo) {
-        matchSel.innerHTML = '<option value="">-- اختر السيارة أولاً --</option>';
+        checklist.innerHTML = '<p class="placeholder-text">-- اختر السيارة أولاً لعرض الأيام المكسورة --</p>';
+        lastFetchedCar = "";
         return;
     }
 
+    // Skip if already fetched same car, unless we are forcing an update (like in Edit mode)
+    if (carNo === lastFetchedCar && !editingRevenueId) return;
+    lastFetchedCar = carNo;
+
     try {
-        // Fetch unpaid or partially paid work days for this car
-        const { data, error } = await _supabase
+        // 1. Fetch recent work days for this car
+        const { data: workDays, error: wErr } = await _supabase
             .from('t08_work_days')
             .select('*')
             .eq('f03_car_no', carNo)
             .eq('f06_is_off_day', false)
             .order('f02_date', { ascending: false })
-            .limit(10);
+            .limit(50); 
 
-        if (error) throw error;
+        if (wErr) throw wErr;
 
-        let html = '<option value="">-- اختر ضمان للمطابقة --</option>';
-        (data || []).forEach(day => {
-            html += `<option value="${day.f01_id}" data-amount="${day.f05_daily_amount}">${day.f02_date} (المستحق: ${day.f05_daily_amount})</option>`;
+        // 2. Fetch all other revenues to identify which days are already paid
+        const { data: otherRevs } = await _supabase
+            .from('t05_revenues')
+            .select('f01_id, f10_work_day_link')
+            .eq('f03_car_no', carNo)
+            .not('f10_work_day_link', 'is', null);
+
+        const paidByOthers = new Set();
+        (otherRevs || []).forEach(r => {
+            // Very important: Skip the current record being edited
+            if (editingRevenueId && String(r.f01_id) === String(editingRevenueId)) return;
+
+            try {
+                const linkedIds = JSON.parse(r.f10_work_day_link);
+                if (Array.isArray(linkedIds)) {
+                    linkedIds.forEach(id => paidByOthers.add(id));
+                }
+            } catch(e) {}
         });
-        matchSel.innerHTML = html;
+
+        // 3. Filter the list
+        let relevantDays = [];
+        if (editingLinkedIds && editingLinkedIds.length > 0) {
+            // IF ALREADY MATCHED: Show ONLY the days linked to this record
+            relevantDays = (workDays || []).filter(d => editingLinkedIds.includes(d.f01_id));
+        } else {
+            // IF NOT MATCHED: Show ONLY days that are NOT paid by others
+            relevantDays = (workDays || []).filter(d => !paidByOthers.has(d.f01_id));
+        }
+
+        if (relevantDays.length === 0) {
+            checklist.innerHTML = '<p class="placeholder-text">✅ لا توجد أيام مكسورة حالياً.</p>';
+            return;
+        }
+
+        let html = '';
+        relevantDays.forEach(day => {
+            const dayName = new Date(day.f02_date).toLocaleDateString('ar-JO', { weekday: 'long' });
+            
+            // Check if this day is linked to the current edit record
+            const isChecked = editingLinkedIds.includes(day.f01_id) ? 'checked' : '';
+
+            html += `
+                <label class="checklist-item">
+                    <input type="checkbox" value="${day.f01_id}" data-amount="${day.f05_daily_amount}" ${isChecked} onchange="calculateChecklistTotal()">
+                    <span class="item-details">
+                        <span class="item-day-name" style="font-size:0.75rem; color:var(--taxi-gold); display:block;">${dayName}</span>
+                        <span class="item-date">${day.f02_date}</span>
+                        <span class="item-amount">(${day.f05_daily_amount} د.أ)</span>
+                    </span>
+                </label>
+            `;
+        });
+        checklist.innerHTML = html;
+        calculateChecklistTotal();
+
     } catch (err) {
         console.error("Error fetching work days:", err);
+        checklist.innerHTML = '<p class="placeholder-text" style="color:red;">❌ فشل تحميل البيانات.</p>';
     }
 }
 
-function resetRevenueForm() {
+/**
+ * حساب المجموع من القائمة المختارة
+ */
+function calculateChecklistTotal() {
+    const checklist = document.getElementById('work_day_checklist');
+    const checkboxes = checklist.querySelectorAll('input[type="checkbox"]:checked');
+    let total = 0;
+    checkboxes.forEach(cb => {
+        total += parseFloat(cb.dataset.amount || 0);
+    });
+
+    const badge = document.getElementById('selectedTotal');
+    if (badge) {
+        badge.innerText = checkboxes.length > 0 ? `(المجموع: ${total} د.أ - تطبيق؟)` : '';
+        badge.style.display = checkboxes.length > 0 ? 'inline-block' : 'none';
+        badge.onclick = () => {
+            const amountInput = document.getElementById('f06_amount');
+            if (amountInput) {
+                amountInput.value = total;
+                if (window.showToast) window.showToast("تم تطبيق المجموع", "info");
+            }
+        };
+    }
+
+    const amountInput = document.getElementById('f06_amount');
+    if (amountInput && checkboxes.length > 0) {
+        const currentVal = parseFloat(amountInput.value) || 0;
+        if (currentVal === 0) {
+            amountInput.value = total;
+        }
+    }
+}
+
+async function resetRevenueForm() {
     document.getElementById('revenueForm').reset();
     document.getElementById('f01_id').value = '';
     const dateInput = document.getElementById('f02_date');
     if (dateInput) dateInput.valueAsDate = new Date();
+    const badge = document.getElementById('selectedTotal');
+    if (badge) badge.innerText = '';
+    lastFetchedCar = ""; // Reset tracking
 }
 
 async function handleFormSubmit(e) {
     if (e) e.preventDefault();
     safeSubmit(async () => {
         const id = document.getElementById('f01_id').value;
-        const workDaySelect = document.getElementById('f10_work_day_link');
-        let selectedWorkDays = [];
-        if (workDaySelect) {
-            selectedWorkDays = Array.from(workDaySelect.selectedOptions)
-                .filter(o => o.value)
-                .map(o => o.value);
-        }
-        // Validation: ensure revenue amount covers selected due amounts (allow partial payment)
+        
+        // جلب المعرفات المختارة من الـ Checklist
+        const checklist = document.getElementById('work_day_checklist');
+        const selectedWorkDays = Array.from(checklist.querySelectorAll('input[type="checkbox"]:checked'))
+                                    .map(cb => cb.value);
+
+        // Validation: ensure revenue amount covers selected due amounts
         const revenueAmt = parseFloat(document.getElementById('f06_amount').value) || 0;
         if (selectedWorkDays.length) {
-            const totalDue = selectedWorkDays.reduce((sum, id) => {
-                const opt = workDaySelect.querySelector(`option[value="${id}"]`);
-                return sum + parseFloat(opt?.dataset.amount || 0);
-            }, 0);
+            let totalDue = 0;
+            checklist.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+                totalDue += parseFloat(cb.dataset.amount || 0);
+            });
+            
             if (revenueAmt < totalDue) {
                 return window.showModal('خطأ في العملية', `المبلغ المدفوع (${revenueAmt}) أقل من مجموع المستحقات (${totalDue}). يرجى اختيار أيام أقل أو زيادة المبلغ.`, 'error');
             }

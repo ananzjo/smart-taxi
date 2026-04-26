@@ -53,11 +53,12 @@
                         <select id="f05_category" required></select>
                     </div>
 
-                    <div class="form-group" id="workDayGroup" style="display:none;">
-                        <label>مطابقة مع استحقاق | Match with Due</label>
-                        <select id="f10_work_day_link" multiple>
-                            <option value="">-- اختر ضمان للمطابقة --</option>
-                        </select>
+                    <div class="form-group full-width" id="workDayGroup" style="display:none;">
+                        <label>تسكير الأيام المكسورة | Settle Broken Days <span id="selectedTotal" class="total-badge"></span></label>
+                        <div id="work_day_checklist" class="checklist-wrapper">
+                            <p class="placeholder-text">-- جاري تحميل سجلات العمل --</p>
+                        </div>
+                        <input type="hidden" id="f10_work_day_link"> 
                     </div>
 
                     <div class="form-group">
