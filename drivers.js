@@ -41,16 +41,14 @@ async function fetchDrivers() {
 
         if (drvRes.error) throw drvRes.error;
         allDrivers = drvRes.data || [];
-        filteredDrivers = [...allDrivers];
-
-        // تعبئة قائمة السيارات في الفورم
-        const carSel = document.getElementById('f08_car_no');
-        if (carSel) {
-            carSel.innerHTML = '<option value="">-- بلا سيارة --</option>' + 
-                (carRes.data || []).map(c => `<option value="${c.f02_plate_no}">${c.f02_plate_no}</option>`).join('');
+        
+        const searchInput = document.getElementById('globalSearch');
+        if (searchInput && searchInput.value) {
+            filterLocal();
+        } else {
+            filteredDrivers = [...allDrivers];
+            renderTable();
         }
-
-        renderTable();
     } catch (err) {
         showToast("فشل في تحميل البيانات", "error");
     }

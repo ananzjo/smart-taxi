@@ -69,9 +69,14 @@ async function fetchCars() {
 
         if (error) throw error;
         allCars = data || [];
-        filteredCars = [...allCars];
-
-        renderTable();
+        
+        const searchInput = document.getElementById('globalSearch');
+        if (searchInput && searchInput.value) {
+            filterLocal();
+        } else {
+            filteredCars = [...allCars];
+            renderTable();
+        }
     } catch (err) {
         showToast("فشل في تحميل بيانات السيارات", "error");
     }

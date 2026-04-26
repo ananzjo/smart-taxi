@@ -99,8 +99,15 @@ async function fetchRevenuesData() {
         .select('*').order('f02_date', { ascending: false }).order('created_at', { ascending: false });
     if (!error) {
         allRevenues = data || [];
-        filteredRevenues = [...allRevenues];
-        renderTable();
+        // [AR] الحفاظ على الفلترة الحالية إن وجدت
+        // [EN] Preserve current filtering if it exists
+        const searchInput = document.getElementById('excelSearch');
+        if (searchInput && searchInput.value) {
+            excelFilter();
+        } else {
+            filteredRevenues = [...allRevenues];
+            renderTable();
+        }
     }
 }
 

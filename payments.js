@@ -147,8 +147,14 @@ function calculatePaymentChecklistTotal() {
 async function loadPaymentsData() {
     const { data } = await _supabase.from('t07_payments').select('*').order('f02_date', { ascending: false });
     if (data) {
-        allPayments = data; filteredPayments = [...data];
-        renderTable();
+        allPayments = data;
+        const searchInput = document.getElementById('excelSearch');
+        if (searchInput && searchInput.value) {
+            excelFilter();
+        } else {
+            filteredPayments = [...data];
+            renderTable();
+        }
     }
 }
 

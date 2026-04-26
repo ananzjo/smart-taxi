@@ -74,8 +74,14 @@ async function loadData() {
 
         if (error) throw error;
         allExpenses = data || [];
-        filteredExpenses = [...allExpenses];
-        renderTable();
+        
+        const searchInput = document.getElementById('globalSearch');
+        if (searchInput && searchInput.value) {
+            filterLocal();
+        } else {
+            filteredExpenses = [...allExpenses];
+            renderTable();
+        }
     } catch (err) {
         showToast("تعذر جلب البيانات", "error");
     }

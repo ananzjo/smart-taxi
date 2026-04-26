@@ -274,6 +274,8 @@ async function buildDriverSOA(driverId, from, to) {
     let totalPaid = 0;
     let totalFines = fineRecords.reduce((s, f) => s + parseFloat(f.f05_amount || 0), 0);
     let workingDaysCount = 0;
+    let fullyBrokenCount = 0;
+    let partiallyBrokenCount = 0;
 
     // 3. Build Table Rows (Primarily from Work Days)
     let rowsHtml = '';
@@ -300,12 +302,18 @@ async function buildDriverSOA(driverId, from, to) {
         const isOff = dayWork && dayWork.f06_is_off_day;
         const isPaid = paidAmount >= dueAmount && dueAmount > 0;
         const isBroken = dueAmount > 0 && paidAmount < dueAmount;
+        const isPartial = dueAmount > 0 && paidAmount > 0 && paidAmount < dueAmount;
+        const isFullBroken = dueAmount > 0 && paidAmount === 0;
+        
+        if (isFullBroken) fullyBrokenCount++;
+        if (isPartial) partiallyBrokenCount++;
 
         let statusText = '---';
         let statusStyle = '';
         if (isOff) { statusText = 'توقف'; statusStyle = 'color:#777;'; }
         else if (isPaid) { statusText = 'مدفوع ✅'; statusStyle = 'color:#27ae60; font-weight:bold;'; }
-        else if (isBroken) { statusText = 'مكسور 🔴'; statusStyle = 'color:#e74c3c; font-weight:bold;'; }
+        else if (isPartial) { statusText = 'مكسور جزئياً 🟠'; statusStyle = 'color:#e67e22; font-weight:bold;'; }
+        else if (isFullBroken) { statusText = 'مكسور كلياً 🔴'; statusStyle = 'color:#e74c3c; font-weight:bold;'; }
         else if (!dayWork && paidAmount > 0) { statusText = 'دفعة فقط'; statusStyle = 'color:#3498db;'; }
 
         const dayName = new Date(date).toLocaleDateString('ar-JO', { weekday: 'long' });
@@ -328,26 +336,34 @@ async function buildDriverSOA(driverId, from, to) {
     const netBalance = (totalDue + totalFines) - totalPaid;
 
     let html = `
-        <div class="report-stats-banner" style="grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 15px;">
+        <div class="report-stats-banner" style="grid-template-columns: repeat(7, 1fr); gap: 10px; margin-bottom: 15px;">
             <div class="stat-box" style="border-top: 5px solid #3498db; padding: 10px;">
-                <h4 style="font-size:0.75rem; font-weight:bold; color:#555;">إجمالي ضمان الفترة</h4>
-                <div class="val" style="font-size: 1.6rem; font-weight: 900; color: #3498db;">${totalDue.toLocaleString()}</div>
+                <h4 style="font-size:0.7rem; font-weight:bold; color:#555;">إجمالي الضمان</h4>
+                <div class="val" style="font-size: 1.4rem; font-weight: 900; color: #3498db;">${totalDue.toLocaleString()}</div>
             </div>
             <div class="stat-box" style="border-top: 5px solid #27ae60; padding: 10px;">
-                <h4 style="font-size:0.75rem; font-weight:bold; color:#555;">إجمالي المسدد</h4>
-                <div class="val" style="font-size: 1.6rem; font-weight: 900; color: #27ae60;">${totalPaid.toLocaleString()}</div>
-            </div>
-            <div class="stat-box" style="border-top: 5px solid #9b59b6; padding: 10px;">
-                <h4 style="font-size:0.75rem; font-weight:bold; color:#555;">سداد بدون مطابقة</h4>
-                <div class="val" style="font-size: 1.6rem; font-weight: 900; color: #9b59b6;">${totalUnmatched.toLocaleString()}</div>
+                <h4 style="font-size:0.7rem; font-weight:bold; color:#555;">إجمالي المسدد</h4>
+                <div class="val" style="font-size: 1.4rem; font-weight: 900; color: #27ae60;">${totalPaid.toLocaleString()}</div>
             </div>
             <div class="stat-box" style="border-top: 5px solid #e67e22; padding: 10px;">
-                <h4 style="font-size:0.75rem; font-weight:bold; color:#555;">عدد أيام العمل</h4>
-                <div class="val" style="font-size: 1.6rem; font-weight: 900; color: #e67e22;">${workingDaysCount} <small style="font-size:0.8rem; font-weight:normal;">يوم</small></div>
+                <h4 style="font-size:0.7rem; font-weight:bold; color:#e67e22;">كسر جزئي</h4>
+                <div class="val" style="font-size: 1.4rem; font-weight: 900; color: #e67e22;">${partiallyBrokenCount} <small style="font-size:0.7rem;">يوم</small></div>
             </div>
-            <div class="stat-box" style="border-top: 5px solid #e74c3c; background: #fff8f8; padding: 10px;">
-                <h4 style="font-size:0.75rem; font-weight:bold; color:#c0392b;">الذمة المتبقية</h4>
-                <div class="val" style="font-size: 1.6rem; font-weight: 900; color: #e74c3c;">${netBalance.toLocaleString()}</div>
+            <div class="stat-box" style="border-top: 5px solid #e74c3c; padding: 10px;">
+                <h4 style="font-size:0.7rem; font-weight:bold; color:#c0392b;">كسر كلي</h4>
+                <div class="val" style="font-size: 1.4rem; font-weight: 900; color: #c0392b;">${fullyBrokenCount} <small style="font-size:0.7rem;">يوم</small></div>
+            </div>
+            <div class="stat-box" style="border-top: 5px solid #9b59b6; padding: 10px;">
+                <h4 style="font-size:0.7rem; font-weight:bold; color:#555;">سداد معلق</h4>
+                <div class="val" style="font-size: 1.4rem; font-weight: 900; color: #9b59b6;">${totalUnmatched.toLocaleString()}</div>
+            </div>
+            <div class="stat-box" style="border-top: 5px solid #333; padding: 10px;">
+                <h4 style="font-size:0.7rem; font-weight:bold; color:#555;">أيام العمل</h4>
+                <div class="val" style="font-size: 1.4rem; font-weight: 900; color: #333;">${workingDaysCount} <small style="font-size:0.7rem;">يوم</small></div>
+            </div>
+            <div class="stat-box" style="border-top: 5px solid #000; background: #fff8f8; padding: 10px;">
+                <h4 style="font-size:0.7rem; font-weight:bold; color:#333;">الذمة النهائية</h4>
+                <div class="val" style="font-size: 1.4rem; font-weight: 900; color: #e74c3c;">${netBalance.toLocaleString()}</div>
             </div>
         </div>
         <table class="report-table">
