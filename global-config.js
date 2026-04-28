@@ -191,12 +191,14 @@ function renderGlobalLayout(title) {
                 🚖 مـديـر الـتـاكـسـي
                 <div style="font-size:0.65rem; font-weight:normal; color:#888; margin-top:5px;">Version 3.0.0</div>
             </div>
-            <a href="index.html">📉 لوحة التحكم | Dashboard</a>
+            <a href="index.html" style="background: rgba(212,175,55,0.1); color: var(--taxi-gold); border-right: 3px solid var(--taxi-gold);">📈 تحليلات الأداء | Analytics</a>
+            <a href="dashboard-summary.html">📉 ملخص عام | Summary</a>
             <a href="work_days.html">📅 أيام العمل والضمان</a>
             <a href="cars.html">🚗 أسطول السيارات</a>
             <a href="drivers.html">👨‍✈️ السائقين</a>
             <a href="owners.html">👥 الملاك والمستثمرين</a>
             <a href="revenues.html">💰 الإيرادات والتحصيل</a>
+            <a href="magic_match.html" style="color: #27ae60; font-weight: bold;">🪄 المطابقة الذكية للذمم</a>
             <a href="fines_accidents.html">⚠️ المخالفات والحوادث</a>
             <a href="expenses.html">🔧 المصاريف والصيانة</a>
             <a href="suppliers.html">🤝 الموردين والجهات</a>

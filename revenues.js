@@ -227,6 +227,7 @@ async function editRevenue(id) {
  */
 async function getEnhancedData(record) {
     const data = { ...record };
+    // NOTE: f03_car_no is left as plain text — showViewModal applies formatJordanPlate automatically
     data.f04_driver_id = driversList.find(d => d.f01_id === record.f04_driver_id)?.f02_name || record.f04_driver_id;
     data.f08_collector_id = staffList.find(s => s.f01_id === record.f08_collector_id)?.f02_name || record.f08_collector_id;
 
@@ -274,8 +275,9 @@ async function printRevenue(id) {
         </div>
         <div class="v-body">
             <div class="v-row"><span class="v-lbl">وصلنا من السيد:</span><span class="v-val">${viewData.f04_driver_id}</span></div>
-            <div class="v-row"><span class="v-lbl">رقم السيارة:</span><span class="v-val">${record.f03_car_no}</span></div>
+            <div class="v-row"><span class="v-lbl">رقم السيارة:</span><span class="v-val">${viewData.f03_car_no}</span></div>
             <div class="v-row"><span class="v-lbl">البيان:</span><span class="v-val">${record.f05_category} ${record.f10_work_day_link ? `(أيام: ${viewData.f10_work_day_link})` : ''}</span></div>
+            <div class="v-row"><span class="v-lbl">ملاحظات:</span><span class="v-val">${record.f09_notes || '---'}</span></div>
             <div style="text-align: center; margin-top: 30px;"><div class="v-amount-box"><span>${record.f06_amount} JD</span></div></div>
         </div>
         <div class="v-footer">
@@ -428,6 +430,36 @@ async function handleFormSubmit(e) {
             f09_notes: document.getElementById('f09_notes').value || '',
             f10_work_day_link: selectedWorkDays.length ? JSON.stringify(selectedWorkDays) : null
         };
+
+        // [AR] منع إزدواجية الإيرادات (نفس السيارة، نفس التاريخ، ونفس النوع)
+        // [EN] Prevent duplicate revenues (same car, same date, same category)
+        let dupQuery = _supabase.from('t05_revenues')
+            .select('f01_id, created_at')
+            .eq('f02_date', payload.f02_date)
+            .eq('f03_car_no', payload.f03_car_no)
+            .eq('f05_category', payload.f05_category);
+            
+        if (id) dupQuery = dupQuery.neq('f01_id', id);
+
+        const { data: duplicates } = await dupQuery;
+        
+        if (duplicates && duplicates.length > 0) {
+            const createdDate = new Date(duplicates[0].created_at).toLocaleString('ar-JO', { 
+                year: 'numeric', month: '2-digit', day: '2-digit', 
+                hour: '2-digit', minute: '2-digit', second: '2-digit' 
+            });
+            window.showModal(
+                "❌ إيراد مكرر | Duplicate Entry", 
+                `يوجد إيراد مسجل مسبقاً لهذه السيارة <b>(${window.formatJordanPlate(payload.f03_car_no, true)})</b><br>
+                لنفس التاريخ <b>(${payload.f02_date})</b><br>
+                ومن نفس النوع <b>(${payload.f05_category})</b>.<br><br>
+                <div style="background:#f8d7da; color:#721c24; padding:10px; border-radius:8px; font-size:0.9rem;">
+                    تاريخ إدخال السجل السابق:<br><b dir="ltr">${createdDate}</b>
+                </div>`, 
+                "error"
+            );
+            return;
+        }
 
         const res = id
             ? await _supabase.from('t05_revenues').update(payload).eq('f01_id', id)

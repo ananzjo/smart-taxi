@@ -10,10 +10,10 @@ async function loadComprehensiveDashboard() {
         const monthFilter = document.getElementById('monthFilter');
         const collectorFilter = document.getElementById('collectorFilter');
         if (!monthFilter || !collectorFilter) return;
-        
-        const selectedMonth = monthFilter.value; 
+
+        const selectedMonth = monthFilter.value;
         const selectedCollector = collectorFilter.value;
-        
+
         const year = selectedMonth.split('-')[0];
         const month = selectedMonth.split('-')[1];
         const startDate = `${selectedMonth}-01`;
@@ -37,7 +37,7 @@ async function loadComprehensiveDashboard() {
 
         // الفلترة بناءً على المحصل
         if (selectedCollector !== 'all') {
-            revenues = revenues.filter(r => 
+            revenues = revenues.filter(r =>
                 String(r.f08_collector_id).trim() === String(selectedCollector).trim()
             );
         }
@@ -53,7 +53,7 @@ async function loadComprehensiveDashboard() {
 
                 const carsDetailHTML = ownerCarsList.map(car => {
                     const carAmount = revenues.filter(r => r.f03_car_no === car.f02_plate_no)
-                                              .reduce((sum, r) => sum + parseFloat(r.f06_amount || 0), 0);
+                        .reduce((sum, r) => sum + parseFloat(r.f06_amount || 0), 0);
                     return `
                         <div class="car-item-row-grid">
                             <span>🚕 ${car.f02_plate_no}</span>
@@ -88,10 +88,10 @@ async function loadComprehensiveDashboard() {
         const carsData = cars.map(c => {
             const carRev = revenues.filter(r => r.f03_car_no === c.f02_plate_no);
             const total = carRev.reduce((sum, r) => sum + parseFloat(r.f06_amount || 0), 0);
-            return { 
-                label: `السيارة: ${c.f02_plate_no}`, 
-                value: total, 
-                icon: '🚖', 
+            return {
+                label: `السيارة: ${c.f02_plate_no}`,
+                value: total,
+                icon: '🚖',
                 sub: `دفعات: ${carRev.length}`,
                 footer: `المحصل: ${selectedCollector === 'all' ? 'الكل' : selectedCollector}`
             };
@@ -101,10 +101,10 @@ async function loadComprehensiveDashboard() {
         const driversData = drivers.map(d => {
             const driverRev = revenues.filter(r => r.f04_driver_id === d.f01_id);
             const total = driverRev.reduce((sum, r) => sum + parseFloat(r.f06_amount || 0), 0);
-            return { 
-                label: d.f02_name, 
-                value: total, 
-                icon: '👨‍✈️', 
+            return {
+                label: d.f02_name,
+                value: total,
+                icon: '👨‍✈️',
                 sub: `تحصيل: ${total.toLocaleString()}`,
                 footer: `بواسطة: ${selectedCollector === 'all' ? 'الكل' : selectedCollector}`
             };
@@ -121,7 +121,7 @@ async function loadComprehensiveDashboard() {
 function renderGroupedCards(containerId, dataList, typeClass) {
     const container = document.getElementById(containerId);
     if (!container) return;
-    
+
     const isFiltered = document.getElementById('collectorFilter').value !== 'all';
     const displayList = isFiltered ? dataList.filter(i => i.value > 0) : dataList;
 

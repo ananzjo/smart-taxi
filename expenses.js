@@ -112,29 +112,30 @@ function renderTable() {
             <tbody>
                 ${filteredExpenses.map(ex => {
                     const dayName = new Date(ex.f02_date).toLocaleDateString('ar-JO', { weekday: 'long' });
+                    const formattedPlate = window.formatJordanPlate(ex.f03_car_no, true);
+                    const viewData = { ...ex, f03_car_no: formattedPlate };
                     return `
                         <tr>
                             <td style="font-weight:700;">
                                 <div style="font-size:0.75rem; color:var(--taxi-gold);">${dayName}</div>
                                 <div>${ex.f02_date}</div>
                             </td>
-`;
+                            <td>${formattedPlate}</td>
+                            <td>${ex.f05_expense_type}</td>
+                            <td style="font-weight:900; color:var(--taxi-red)">${ex.f07_amount.toLocaleString()}</td>
+                            <td>${ex.t11_staff?.f02_name || '-'}</td>
+                            <td><span class="badge-status ${ex.f10_status === 'Paid|مدفوع' ? 'badge-paid' : 'badge-pending'}">${ex.f10_status}</span></td>
+                            <td class="no-print">
+                                <div class="action-btns-group">
+                                    <button onclick='showViewModal(${JSON.stringify(viewData)}, "تفاصيل المصروف | Expense Info")' class="btn-action-sm btn-view">👁️</button>
+                                    <button onclick="editRecord('${ex.f01_id}')" class="btn-action-sm btn-edit">✏️</button>
+                                    <button onclick="printExpense('${ex.f01_id}')" class="btn-action-sm btn-print" title="طباعة سند صرف">🖨️</button>
+                                    <button onclick="deleteRecord('${ex.f01_id}')" class="btn-action-sm btn-delete">🗑️</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
                 }).join('')}
-                        <td>${window.formatJordanPlate(ex.f03_car_no, true)}</td>
-                        <td>${ex.f05_expense_type}</td>
-                        <td style="font-weight:900; color:var(--taxi-red)">${ex.f07_amount.toLocaleString()}</td>
-                        <td>${ex.t11_staff?.f02_name || '-'}</td>
-                        <td><span class="badge-status ${ex.f10_status === 'Paid|مدفوع' ? 'badge-paid' : 'badge-pending'}">${ex.f10_status}</span></td>
-                        <td class="no-print">
-                            <div class="action-btns-group">
-                                <button onclick='showViewModal(${JSON.stringify(ex)}, "تفاصيل المصروف | Expense Info")' class="btn-action-sm btn-view">👁️</button>
-                                <button onclick="editRecord('${ex.f01_id}')" class="btn-action-sm btn-edit">✏️</button>
-                                <button onclick="printExpense('${ex.f01_id}')" class="btn-action-sm btn-print" title="طباعة سند صرف">🖨️</button>
-                                <button onclick="deleteRecord('${ex.f01_id}')" class="btn-action-sm btn-delete">🗑️</button>
-                            </div>
-                        </td>
-                    </tr>
-                `).join('')}
             </tbody>
         </table>
     `;
@@ -213,6 +214,7 @@ async function printExpense(id) {
 
     const staffName = record.t11_staff?.f02_name || '---';
     const driverName = record.t02_drivers?.f02_name || '---';
+    const formattedPlate = window.formatJordanPlate(record.f03_car_no, true);
     const printArea = document.getElementById('printVoucherSection');
 
     if (!printArea) return;
@@ -243,7 +245,7 @@ async function printExpense(id) {
             </div>
             <div class="v-row">
                 <span class="v-lbl">بخصوص:</span>
-                <span class="v-val">${record.f05_expense_type} ${record.f03_car_no ? ` للسيارة (${record.f03_car_no})` : ''}</span>
+                <span class="v-val">${record.f05_expense_type} ${record.f03_car_no ? ` للسيارة (${formattedPlate})` : ''}</span>
             </div>
             <div class="v-row">
                 <span class="v-lbl">ملاحظات:</span>

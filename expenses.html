@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="expenses.css">
     <link rel="stylesheet" href="revenues.css">
 </head>
-<body onload="bootSystem('إدارة المصاريف | Expenses')">
+<body class="expenses-page">
 
     <div class="main-container">
         
@@ -130,9 +130,15 @@
     <script src="expenses.js"></script>
     <script>
         window.onload = async () => { 
-            bootSystem("إدارة المصاريف | Expenses"); 
+            // تشغيل النظام العام مرة واحدة فقط
+            if(typeof bootSystem === 'function') bootSystem("إدارة المصاريف | Expenses"); 
+            
+            // تعبئة البيانات الأولية
             if(typeof loadFormData === 'function') await loadFormData(); 
-            document.getElementById('f02_date').valueAsDate = new Date(); 
+            
+            // ضبط التاريخ التلقائي
+            const dateInput = document.getElementById('f02_date');
+            if (dateInput) dateInput.valueAsDate = new Date(); 
         };
     </script>
 </body>

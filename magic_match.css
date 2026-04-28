@@ -1,0 +1,205 @@
+/* magic_match.css */
+
+/* --- Missing Global CSS Classes for Unification --- */
+.luxury-page-header { display: flex; flex-direction: column; align-items: stretch; padding: 20px; background: linear-gradient(180deg, #1a1c1e 0%, #0b0c10 100%); color: #fff; border-radius: 15px; margin-bottom: 25px; border-bottom: 3px solid var(--taxi-gold); box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
+.luxury-page-header .header-info { text-align: center; }
+.luxury-page-header h1 { margin: 0; font-size: 1.6rem; font-weight: 900; color: var(--taxi-gold); text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+.luxury-page-header p { margin: 8px 0 0 0; color: #ccc; font-size: 0.95rem; }
+
+.elegant-card { background: #fff; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.07); margin-bottom: 30px; border: 1px solid #efefef; overflow: hidden; }
+.card-header { background: #121212; color: var(--taxi-gold); padding: 18px 25px; font-weight: bold; font-size: 1rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--taxi-gold); }
+/* -------------------------------------------------- */
+
+.input-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
+    gap: 20px; 
+    padding: 15px;
+}
+
+.magic-filters-grid {
+    justify-content: center;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 280px)) !important;
+}
+
+.magic-table-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.taxi-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+}
+
+.taxi-table th, .taxi-table td {
+    padding: 12px 15px;
+    border: 1px solid #e0e0e0;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.taxi-table th {
+    background-color: #f8f9fa;
+    font-weight: 900;
+    color: #444;
+    border-bottom: 2px solid var(--taxi-gold);
+    text-align: center;
+}
+
+.taxi-table tbody tr:nth-child(even) {
+    background-color: #fdfdfd;
+}
+
+.taxi-table tbody tr:hover {
+    background-color: #fffdf7;
+}
+
+
+.form-group { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 8px; 
+}
+
+.form-group label { 
+    font-size: 0.85rem; 
+    font-weight: 600; 
+    color: #555; 
+}
+
+.form-group input, 
+.form-group select { 
+    padding: 12px 15px; 
+    border: 1px solid #ddd; 
+    border-radius: 8px; 
+    font-family: inherit; 
+    transition: 0.3s; 
+    width: 100%;
+}
+
+.form-group input:focus, 
+.form-group select:focus { 
+    border-color: #f1c40f; 
+    outline: none; 
+    box-shadow: 0 0 0 3px rgba(241, 196, 15, 0.1); 
+}
+
+.apply-input-table {
+    width: 100px;
+    padding: 6px 10px;
+    font-size: 1rem;
+    font-weight: 900;
+    text-align: center;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    transition: 0.2s;
+}
+.apply-input-table:focus {
+    border-color: var(--taxi-gold);
+    outline: none;
+}
+.apply-input-table.active {
+    border-color: var(--taxi-green);
+    background: #ebf7ee;
+}
+
+.magic-input {
+    flex: 1;
+    font-size: 1.1rem;
+    font-weight: 900;
+    padding: 8px 15px;
+    border: 2px solid var(--taxi-gold);
+    border-radius: var(--border-radius-sm);
+    outline: none;
+    text-align: center;
+}
+
+/* =====================================================
+   RESPONSIVE RULES
+   ===================================================== */
+
+/* --- Tablet (max 900px) --- */
+@media screen and (max-width: 900px) {
+    .magic-filters-grid {
+        grid-template-columns: 1fr 1fr !important;
+    }
+}
+
+/* --- Mobile (max 600px) --- */
+@media screen and (max-width: 600px) {
+
+    /* Filters: stack to single column */
+    .magic-filters-grid {
+        grid-template-columns: 1fr !important;
+        padding: 12px !important;
+        gap: 12px !important;
+    }
+
+    /* Page title */
+    .luxury-page-header h1 {
+        font-size: 1.1rem !important;
+    }
+    .luxury-page-header p {
+        font-size: 0.8rem !important;
+    }
+
+    /* Card header */
+    .card-header {
+        font-size: 0.85rem !important;
+        padding: 12px 15px !important;
+    }
+
+    /* Totals bar: stack vertically */
+    .table-header-controls {
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 10px !important;
+    }
+    .table-header-controls .record-badge {
+        width: 100%;
+        text-align: center;
+        box-sizing: border-box;
+    }
+    .table-header-controls button {
+        width: 100% !important;
+    }
+
+    /* Table: horizontally scrollable on mobile */
+    .table-responsive {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .taxi-table {
+        min-width: 620px; /* Ensures it stays readable when scrolled */
+    }
+
+    .taxi-table th, .taxi-table td {
+        padding: 8px 10px !important;
+        font-size: 0.8rem !important;
+    }
+
+    /* Apply input shrinks on mobile */
+    .apply-input-table {
+        width: 75px !important;
+        font-size: 0.85rem !important;
+    }
+
+    /* Magic allocate input layout */
+    .form-group div[style*="flex"] {
+        flex-direction: column !important;
+    }
+
+    .form-group div[style*="flex"] button {
+        width: 100% !important;
+        min-width: unset !important;
+    }
+
+    /* Save button */
+    #saveBtn, button[onclick="saveMatching()"] {
+        width: 100% !important;
+        font-size: 0.95rem !important;
+    }
+}

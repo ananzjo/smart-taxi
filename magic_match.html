@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المطابقة الذكية | Magic Match - Smart Taxi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="unified-ui.css">
+    <link rel="stylesheet" href="magic_match.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body onload="bootSystem('المطابقة الذكية | Magic Match')">
+
+    <div class="main-container">
+        <div class="luxury-page-header">
+            <div class="header-info">
+                <h1>🪄 المطابقة الذكية للذمم | Magic Match</h1>
+                <p>مطابقة إيرادات السيارات مع أيام العمل المستحقة آلياً ويدوياً | Smart Dues Allocation</p>
+            </div>
+        </div>
+
+        <div class="elegant-card luxury-card-border" style="margin-bottom: 20px;">
+            <div class="card-header">
+                <span>🪄 محددات البحث والتوزيع السحري | Search & Allocate</span>
+            </div>
+            <form class="taxi-form" onsubmit="event.preventDefault(); applyMagicMatch();">
+                <div class="input-grid magic-filters-grid">
+                    <div class="form-group">
+                        <label>تصفية حسب السيارة | Filter by Car</label>
+                        <select id="carFilter" onchange="loadDues()"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>تصفية حسب السائق | Filter by Driver</label>
+                        <select id="driverFilter" onchange="loadDues()"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>المبلغ المستلم | Received Amount</label>
+                        <div style="display:flex; gap:10px;">
+                            <input type="number" id="magicAmount" placeholder="0.00" min="0" step="0.01" style="flex:1;">
+                            <button type="button" class="primary-btn" onclick="applyMagicMatch()" style="min-width: 120px; white-space: nowrap;">توزيع سحري ✨</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="table-header-controls" style="margin-top: 0; border-radius: 12px; margin-bottom: 15px; display:flex; justify-content:center; align-items:center; flex-direction:column; gap:15px; text-align:center;">
+            <div style="display:flex; gap:15px; align-items:center; flex-wrap:wrap; justify-content:center;">
+                <div class="record-badge">إجمالي المستحق: <span id="totalDueText" style="color:#e74c3c;">0.00</span></div>
+                <div class="record-badge">إجمالي المطبق: <span id="totalSelectedText" style="color:#27ae60;">0.00</span></div>
+                <div class="record-badge">المتبقي: <span id="unallocatedText">0.00</span></div>
+            </div>
+            <button class="primary-btn" style="background: #27ae60; color:white; width: 300px; font-size: 1.1rem; padding: 10px;" onclick="saveMatching()">💾 حفظ المطابقة والتحصيل</button>
+        </div>
+
+        <div class="elegant-card grid-card">
+            <div class="card-header">
+                <span>📋 الأيام المفتوحة والذمم | Open Dues</span>
+            </div>
+            <div id="duesContainer" class="table-responsive magic-table-container">
+                <div class="empty-state">
+                    <p>👆 الرجاء اختيار سيارة أو سائق لعرض الذمم المفتوحة.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="globalModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modalTitle"></h3>
+            <p id="modalMessage"></p>
+            <div class="modal-actions" id="modalActions"></div>
+        </div>
+    </div>
+    
+    <!-- ===================== Revenue Collection Modal ===================== -->
+    <div id="revModalOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:9998; align-items:center; justify-content:center;">
+        <div style="background:#fff; width:95%; max-width:560px; border-radius:15px; overflow:hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.4);">
+            <!-- Modal Header -->
+            <div style="background:#121212; color:#f1c40f; padding:18px 25px; font-weight:900; font-size:1.1rem; border-bottom:3px solid #f1c40f; display:flex; justify-content:space-between; align-items:center;">
+                <span>💰 إتمام التحصيل | Complete Collection</span>
+                <button onclick="closeRevModal()" style="background:none; border:none; color:#f1c40f; font-size:1.5rem; cursor:pointer; line-height:1;">×</button>
+            </div>
+            <!-- Allocation Summary -->
+            <div id="revModalSummary" style="background:#f8f9fa; padding:15px 25px; border-bottom:1px solid #eee; font-size:0.9rem; color:#444;"></div>
+            <!-- Form -->
+            <form id="revCollectionForm" style="padding:25px;" onsubmit="event.preventDefault(); commitSave();">
+                <div class="input-grid" style="gap:15px; padding:0;">
+                    <div class="form-group">
+                        <label>تاريخ التحصيل | Collection Date <span style="color:red">*</span></label>
+                        <input type="date" id="rc_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>الفئة | Category <span style="color:red">*</span></label>
+                        <select id="rc_category" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>طريقة الدفع | Method <span style="color:red">*</span></label>
+                        <select id="rc_method" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>المحصّل | Collector <span style="color:red">*</span></label>
+                        <select id="rc_collector" required>
+                            <option value="">-- اختر المحصل --</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1;">
+                        <label>ملاحظات | Notes</label>
+                        <textarea id="rc_notes" rows="2" placeholder="أي تفاصيل إضافية للعملية..." style="padding:10px; border:1px solid #ddd; border-radius:8px; font-family:inherit; resize:vertical;"></textarea>
+                    </div>
+                </div>
+                <div style="margin-top:20px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+                    <button type="submit" class="primary-btn" id="revModalSaveBtn" style="background:#27ae60; color:white; min-width:200px; font-size:1.05rem;">✅ تأكيد الحفظ والمطابقة</button>
+                    <button type="button" onclick="closeRevModal()" style="background:#f5f5f5; color:#555; border:none; padding:12px 25px; border-radius:8px; cursor:pointer; font-weight:700;">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- ================================================================== -->
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="global-config.js"></script>
+    <script src="droplistsdata.js"></script>
+    <script src="magic_match.js"></script>
+</body>
+</html>
+

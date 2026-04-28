@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقرير التدفق النقدي | Cash Flow - Smart Taxi</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="cashflow.css">
+</head>
+<body onload="bootSystem('التدفق النقدي | Cash Flow')">
+
+    <div class="main-container">
+
+        <!-- Page Header -->
+        <div class="luxury-page-header">
+            <div class="header-info">
+                <h1>💵 التدفق النقدي | Cash Flow Report</h1>
+                <p>إدارة الرصيد النقدي والبنكي وعمليات الإيداع والسحب | Manage cash, bank balances, deposits & withdrawals</p>
+            </div>
+        </div>
+
+        <!-- Balance Summary Cards -->
+        <div class="cf-balance-grid">
+            <div class="cf-balance-card cash-card">
+                <div class="cf-card-icon">💵</div>
+                <div class="cf-card-body">
+                    <div class="cf-card-label">النقدي في الصندوق | Cash In Hand</div>
+                    <div class="cf-card-amount" id="cashBalance">---</div>
+                    <div class="cf-card-sub">
+                        <span class="cf-in">↑ <span id="cashIn">0.00</span></span>
+                        <span class="cf-out">↓ <span id="cashOut">0.00</span></span>
+                    </div>
+                </div>
+            </div>
+            <div class="cf-balance-card bank-card">
+                <div class="cf-card-icon">🏦</div>
+                <div class="cf-card-body">
+                    <div class="cf-card-label">الرصيد البنكي | Bank Balance</div>
+                    <div class="cf-card-amount" id="bankBalance">---</div>
+                    <div class="cf-card-sub">
+                        <span class="cf-in">↑ <span id="bankIn">0.00</span></span>
+                        <span class="cf-out">↓ <span id="bankOut">0.00</span></span>
+                    </div>
+                </div>
+            </div>
+            <div class="cf-balance-card total-card">
+                <div class="cf-card-icon">📊</div>
+                <div class="cf-card-body">
+                    <div class="cf-card-label">الإجمالي الكلي | Total Assets</div>
+                    <div class="cf-card-amount" id="totalBalance">---</div>
+                    <div class="cf-card-sub" style="color:rgba(255,255,255,0.7); font-size:0.85rem;">نقدي + بنك</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Transfer Buttons -->
+        <div class="cf-transfer-bar">
+            <button class="cf-transfer-btn deposit-btn" onclick="openTransferModal('DEPOSIT')">
+                🏦 إيداع في البنك | Deposit to Bank
+            </button>
+            <button class="cf-transfer-btn withdraw-btn" onclick="openTransferModal('WITHDRAW')">
+                💵 سحب من البنك | Withdraw from Bank
+            </button>
+            <button class="cf-transfer-btn manual-in-btn" onclick="openTransferModal('MANUAL_CASH_IN')">
+                ➕ إدخال نقدي يدوي | Manual Cash In
+            </button>
+            <button class="cf-transfer-btn manual-out-btn" onclick="openTransferModal('MANUAL_CASH_OUT')">
+                ➖ صرف نقدي يدوي | Manual Cash Out
+            </button>
+        </div>
+
+        <!-- Entry Form Card -->
+        <div id="entryFormCard" class="elegant-card luxury-card-border" style="display:none; margin-bottom:20px;">
+            <div class="card-header">
+                <span id="formCardTitle">💱 عملية نقدية | Cash Operation</span>
+                <button onclick="closeEntryForm()" style="background:none;border:none;color:var(--taxi-gold);font-size:1.3rem;cursor:pointer;">✕</button>
+            </div>
+            <form class="taxi-form" id="cfEntryForm" onsubmit="event.preventDefault(); saveCashEntry();">
+                <input type="hidden" id="cf_type">
+                <input type="hidden" id="cf_account">
+                <input type="hidden" id="cf_direction">
+                <div class="input-grid">
+                    <div class="form-group">
+                        <label>التاريخ | Date <span style="color:red">*</span></label>
+                        <input type="date" id="cf_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>المبلغ | Amount (JD) <span style="color:red">*</span></label>
+                        <input type="number" id="cf_amount" min="0.01" step="0.01" placeholder="0.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label>الموظف المسؤول | Staff</label>
+                        <select id="cf_staff">
+                            <option value="">-- اختر الموظف --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>البيان | Description</label>
+                        <input type="text" id="cf_description" placeholder="وصف موجز للعملية...">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>ملاحظات | Notes</label>
+                        <textarea id="cf_notes" rows="2" placeholder="تفاصيل إضافية..."></textarea>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="primary-btn" id="cfSaveBtn">💾 حفظ العملية | Save</button>
+                    <button type="button" class="secondary-btn" onclick="closeEntryForm()">إلغاء</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Ledger Table -->
+        <div class="elegant-card grid-card">
+            <div class="card-header">
+                <span>📋 سجل التدفق النقدي | Cash Flow Ledger</span>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <select id="accountFilter" onchange="applyFilter()" style="background:#1a1a1a;color:#f1c40f;border:1px solid #444;padding:6px 10px;border-radius:6px;">
+                        <option value="">-- الكل --</option>
+                        <option value="CASH">نقدي فقط | Cash</option>
+                        <option value="BANK">بنك فقط | Bank</option>
+                    </select>
+                </div>
+            </div>
+            <div id="cfTableContainer" class="table-responsive">
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>جاري تحميل البيانات...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="global-config.js"></script>
+    <script src="cashflow.js"></script>
+</body>
+</html>

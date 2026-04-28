@@ -1,0 +1,52 @@
+/* dashboard-v2.css */
+:root {
+    --bg-light: #f4f7f6;
+    --card-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    --taxi-dark: #1a1c1e;
+}
+
+.main-container { max-width: 1400px; margin: 0 auto; padding: 25px; font-family: 'Tajawal', sans-serif; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
+.stat-tile { background: white; padding: 20px; border-radius: 20px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 15px; border-bottom: 5px solid #eee; transition: transform 0.3s ease; }
+.stat-tile:hover { transform: translateY(-5px); }
+.stat-icon { width: 55px; height: 55px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: white; margin-bottom: 5px; }
+.stat-info { width: 100%; }
+.stat-info .label { font-size: 1.15rem; color: #7f8c8d; font-weight: 800; margin-bottom: 10px; display: block; border-bottom: 1px solid #f0f0f0; padding-bottom: 8px; }
+.stat-info .value { font-size: 2rem; font-weight: 900; color: var(--taxi-dark); letter-spacing: -0.5px; }
+
+/* Comparison Grid & Cards */
+.comparison-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 30px; margin-bottom: 30px; }
+.comparison-card { background: white; padding: 25px; border-radius: 22px; box-shadow: var(--card-shadow); text-align: center; border-right: 5px solid #eee; transition: all 0.3s ease; }
+.comparison-card .comp-label { font-size: 0.95rem; color: #95a5a6; font-weight: 700; margin-bottom: 15px; }
+.comparison-card .comp-value { font-size: 2.2rem; font-weight: 900; margin-bottom: 10px; }
+.comparison-card .comp-sub { font-size: 0.8rem; color: #bdc3c7; font-weight: 600; }
+
+.dashboard-controls { background: white; padding: 20px 35px; border-radius: 60px; box-shadow: var(--card-shadow); display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; gap: 20px; border: 1px solid rgba(0,0,0,0.03); }
+.filter-group { display: flex; align-items: center; gap: 20px; }
+.filter-group select, .filter-group input { padding: 12px 25px; border-radius: 30px; border: 1px solid #e0e0e0; font-family: inherit; font-weight: 700; font-size: 1rem; color: #2c3e50; outline: none; transition: border-color 0.3s; }
+.filter-group select:focus, .filter-group input:focus { border-color: #d4af37; }
+
+.dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
+.dashboard-card { background: white; border-radius: 24px; box-shadow: var(--card-shadow); overflow: hidden; margin-bottom: 30px; border: 1px solid rgba(0,0,0,0.02); }
+.card-header { padding: 25px 30px; background: #fafafa; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+.card-header h3 { margin: 0; font-size: 1.25rem; color: #2c3e50; font-weight: 900; display: flex; align-items: center; gap: 12px; }
+.card-body { padding: 25px; }
+
+.dashboard-table { width: 100%; border-collapse: collapse; }
+.dashboard-table th { text-align: right; padding: 15px 20px; font-size: 0.9rem; color: #bdc3c7; border-bottom: 2px solid #f0f0f0; font-weight: 700; }
+.dashboard-table td { padding: 18px 20px; border-bottom: 1px solid #f5f5f5; font-size: 1.05rem; color: #2c3e50; }
+
+.amount-up { color: #27ae60; font-weight: 900; }
+.amount-down { color: #e74c3c; font-weight: 900; }
+.rank-badge { width: 32px; height: 32px; background: #f8f9fa; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 900; color: #7f8c8d; }
+
+.refresh-btn-luxury { padding: 12px 30px; background: linear-gradient(135deg, #1a1c1e 0%, #34495e 100%); color: #d4af37; border: 2px solid #d4af37; border-radius: 50px; font-weight: 900; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-size: 1rem; }
+.refresh-btn-luxury:hover { transform: scale(1.05); box-shadow: 0 10px 20px rgba(212,175,55,0.2); }
+
+@media screen and (max-width: 1000px) { 
+    .dashboard-grid { grid-template-columns: 1fr; } 
+    .dashboard-controls { flex-direction: column; border-radius: 30px; padding: 25px; gap: 20px; } 
+    .filter-group { flex-direction: column; width: 100%; gap: 15px; }
+    .filter-group select, .filter-group input { width: 100%; }
+    .refresh-btn-luxury { width: 100%; justify-content: center; }
+}
